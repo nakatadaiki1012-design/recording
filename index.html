@@ -234,6 +234,53 @@
   .toast.ok { border-color: var(--ok); }
   .toast.err { border-color: var(--rec); }
 
+  /* 復元バー */
+  .restore {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: rgba(108,140,255,.12); border: 1px solid var(--accent);
+    border-radius: 12px; padding: 12px 14px;
+  }
+  .restore #restoreText { flex: 1; font-size: .9rem; min-width: 120px; }
+  .restore-btns { display: flex; gap: 8px; }
+  .restore .btn { min-height: 40px; padding: 8px 14px; }
+
+  /* チューナー */
+  .tuner { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .tuner-note { font-size: 2rem; font-weight: 700; line-height: 1; min-height: 1em; }
+  .tuner-note.ok { color: var(--ok); } .tuner-note.high { color: #ffb454; } .tuner-note.low { color: #6cc1ff; }
+  .tuner-scale { display: flex; align-items: center; gap: 10px; width: 100%; color: var(--muted); font-size: .9rem; }
+  .tuner-bar {
+    position: relative; flex: 1; height: 26px; border-radius: 8px;
+    background: var(--panel-2); border: 1px solid var(--border); overflow: hidden;
+  }
+  .tuner-zone {
+    position: absolute; left: 50%; top: 0; bottom: 0; width: 16%; transform: translateX(-50%);
+    background: rgba(62,207,142,.18); border-left: 1px solid rgba(62,207,142,.5); border-right: 1px solid rgba(62,207,142,.5);
+  }
+  .tuner-needle {
+    position: absolute; top: 2px; bottom: 2px; left: 50%; width: 4px; border-radius: 2px;
+    background: var(--accent); transform: translateX(-50%); transition: left .08s linear, background .1s;
+  }
+  .tuner-cents { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; min-height: 1.2em; }
+  button.btn.tuner-toggle { width: 100%; margin-top: 2px; }
+  button.btn.tuner-toggle.on { border-color: var(--accent); color: #cdd8ff; background: rgba(108,140,255,.14); }
+
+  /* メトロノーム */
+  #metroCard { padding-bottom: 16px; }
+  .metro-row { display: flex; align-items: center; gap: 10px; }
+  .metro-adj {
+    font: inherit; font-size: 1rem; color: var(--text); background: var(--panel-2);
+    border: 1px solid var(--border); border-radius: 10px; width: 56px; height: 48px; cursor: pointer;
+  }
+  .metro-adj:active { background: #2a3044; }
+  .metro-bpm { flex: 1; text-align: center; }
+  .metro-bpm b { font-size: 1.8rem; font-variant-numeric: tabular-nums; }
+  .metro-bpm small { color: var(--muted); margin-left: 4px; }
+  #metroToggle { min-width: 108px; }
+  #metroToggle.on { border-color: var(--ok); color: var(--ok); }
+  .metro-check { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: .85rem; color: var(--muted); }
+  .metro-check input { width: 18px; height: 18px; }
+
   @media (min-width: 700px) {
     body { padding-top: 32px; }
     #wave { height: 180px; }
@@ -247,6 +294,14 @@
     <p>すべて端末内で処理されます（サーバー送信なし）</p>
   </header>
 
+  <div id="restoreBar" class="restore hidden">
+    <span id="restoreText">前回の録音があります</span>
+    <div class="restore-btns">
+      <button id="restoreBtn" class="btn primary">復元する</button>
+      <button id="discardBtn" class="btn">破棄</button>
+    </div>
+  </div>
+
   <!-- 1. 録音 -->
   <section class="card">
     <h2>録音</h2>
@@ -254,9 +309,33 @@
       <button id="recBtn" class="rec-btn" aria-label="録音開始 / 停止"><span class="dot"></span></button>
       <div id="timer" class="timer">00:00.0</div>
       <div id="status" class="status">ボタンを押すと録音を開始します</div>
+
+      <div id="tuner" class="tuner hidden">
+        <div class="tuner-note" id="tunerNote">–</div>
+        <div class="tuner-scale">
+          <span>♭</span>
+          <div class="tuner-bar"><div class="tuner-zone"></div><div class="tuner-needle" id="tunerNeedle"></div></div>
+          <span>♯</span>
+        </div>
+        <div class="tuner-cents" id="tunerCents">音を鳴らしてください</div>
+      </div>
+
       <canvas id="live" class="live-canvas"></canvas>
       <button id="markBtn" class="btn mark hidden">🚩 ここに印をつける</button>
+      <button id="tunerBtn" class="btn tuner-toggle">🎯 チューナーだけ使う</button>
     </div>
+  </section>
+
+  <!-- メトロノーム -->
+  <section class="card" id="metroCard">
+    <h2>メトロノーム</h2>
+    <div class="metro-row">
+      <button class="metro-adj" data-bpm="-5">−5</button>
+      <div class="metro-bpm"><b id="metroBpm">120</b><small>BPM</small></div>
+      <button class="metro-adj" data-bpm="5">＋5</button>
+      <button id="metroToggle" class="btn">▶ 鳴らす</button>
+    </div>
+    <label class="metro-check"><input type="checkbox" id="countin"> 録音前に1小節（4拍）カウントインする</label>
   </section>
 
   <!-- 2. 波形 & トリミング -->
@@ -300,13 +379,19 @@
     <div id="markers" class="markers hidden"></div>
 
     <div class="btn-grid">
-      <button id="autoBtn" class="btn">✂️ 無音カット</button>
+      <button id="autoBtn" class="btn">✂️ 前後の無音カット</button>
       <button id="resetBtn" class="btn">↺ 全体に戻す</button>
+      <button id="addMarkBtn" class="btn">🚩 開始位置に印を追加</button>
+      <button id="splitBtn" class="btn">📁 無音で自動分割</button>
     </div>
 
     <div class="play-row">
       <button id="playBtn" class="btn">▶ 選択範囲を再生</button>
+      <button id="playAllBtn" class="btn">⏮ 最初から通し再生</button>
+    </div>
+    <div class="play-row">
       <button id="loopBtn" class="btn">🔁 くり返し</button>
+      <button id="saveAllBtn" class="btn">⬇️ 全区間まとめて保存</button>
     </div>
     <div class="speed-row">
       <span class="speed-label">速さ</span>
@@ -386,6 +471,11 @@
   const loopBtn = $('loopBtn'), analyzeCard = $('analyzeCard');
   const pitchBtn = $('pitchBtn'), pitchOut = $('pitchOut');
   const tempoBtn = $('tempoBtn'), tempoOut = $('tempoOut');
+  const tunerBox = $('tuner'), tunerNote = $('tunerNote'), tunerNeedle = $('tunerNeedle'), tunerCents = $('tunerCents');
+  const tunerBtn = $('tunerBtn'), addMarkBtn = $('addMarkBtn'), splitBtn = $('splitBtn');
+  const playAllBtn = $('playAllBtn'), saveAllBtn = $('saveAllBtn');
+  const metroBpmEl = $('metroBpm'), metroToggle = $('metroToggle'), countinEl = $('countin');
+  const restoreBar = $('restoreBar'), restoreText = $('restoreText'), restoreBtn = $('restoreBtn'), discardBtn = $('discardBtn');
 
   const TARGET_RATE = 24000;   // 声の録音に十分な音質で、ファイルサイズを約半分にする
   const MIN_LEN = 0.05;        // 選択範囲の最小の長さ（秒）
@@ -404,6 +494,9 @@
   let playRAF = 0, playhead = null;
   let speed = 1, loopOn = false, previewURL = null;
   let refA = 442;           // チューナーの基準ピッチ（Hz）
+  let activeSeg = null;     // いま選んでいる区間の番号（分割保存の名前用）
+  let bpm = 120, metroTimer = 0, metroOn = false; // メトロノーム
+  let tunerStream = null, tunerRAF = 0, tunerAnalyser = 0, tunerBuf = null; // チューナー単体
 
   // 再生・ループ・速度変更用の <audio>。preservesPitch で音程を変えずに遅くできる
   const audioEl = new Audio();
@@ -466,13 +559,16 @@
   });
 
   // ---------- 1. 録音 ----------
+  let capturePending = false, countinTimer = 0;
   recBtn.addEventListener('click', () => {
     if (recorder && recorder.state === 'recording') stopRecording();
+    else if (capturePending) cancelCountIn();
     else startRecording();
   });
 
   async function startRecording() {
     stopPreview();
+    stopTunerOnly();
     const ctx = getCtx(); // await より前（タップの直後）に作る
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
       toast(location.protocol === 'file:' ? 'https のページで開いてください' : 'このブラウザは録音に対応していません', 'err');
@@ -490,36 +586,64 @@
     }
     const src = ctx.createMediaStreamSource(mediaStream);
     analyser = ctx.createAnalyser();
-    analyser.fftSize = 1024;
+    analyser.fftSize = 2048; // チューナーの精度のため大きめ
     src.connect(analyser);
     // 電話の着信などでマイクが切れたら録音を止める
     mediaStream.getAudioTracks().forEach(t => t.addEventListener('ended', () => {
       if (recorder && recorder.state === 'recording') stopRecording();
     }));
 
+    markers = [];
+    nameInput.value = defaultName();
+    tagBtns.forEach(b => b.classList.remove('on'));
+    recBtn.classList.add('recording');
+    statusEl.classList.add('live');
+    editCard.classList.add('disabled');
+    saveCard.classList.add('disabled');
+    analyzeCard.classList.add('disabled');
+    tunerBox.classList.remove('hidden');
+    keepScreenOn(true);
+    vibrate(30);
+
+    // カウントイン（メトロノームで4拍鳴らしてから録音開始）
+    if (countinEl.checked) {
+      capturePending = true;
+      const spb = 60 / bpm;
+      let t = ctx.currentTime + 0.15;
+      for (let i = 0; i < 4; i++) clickSound(t + i * spb, i === 0);
+      statusEl.textContent = 'カウントイン… （押すと中止）';
+      countinTimer = setTimeout(beginCapture, (0.15 + 4 * spb) * 1000);
+    } else {
+      beginCapture();
+    }
+  }
+
+  function beginCapture() {
+    if (!mediaStream) return;
+    capturePending = false;
     chunks = [];
     recorder = new MediaRecorder(mediaStream);
     recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
     recorder.onstop = onRecordingStopped;
     recorder.start(1000);
-
     recStartTime = performance.now();
-    markers = [];
-    nameInput.value = defaultName();
-    tagBtns.forEach(b => b.classList.remove('on'));
-    recBtn.classList.add('recording');
     statusEl.textContent = '● 録音中… もう一度押すと停止';
-    statusEl.classList.add('live');
-    editCard.classList.add('disabled');
-    saveCard.classList.add('disabled');
-    analyzeCard.classList.add('disabled');
     markBtn.classList.remove('hidden');
     markBtn.textContent = '🚩 ここに印をつける';
     markersEl.classList.add('hidden');
-    vibrate(30);
-    keepScreenOn(true);
     tickTimer();
     drawLive();
+  }
+
+  function cancelCountIn() {
+    clearTimeout(countinTimer);
+    capturePending = false;
+    if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+    recBtn.classList.remove('recording');
+    statusEl.classList.remove('live');
+    statusEl.textContent = '中止しました';
+    tunerBox.classList.add('hidden');
+    keepScreenOn(false);
   }
 
   function stopRecording() {
@@ -529,6 +653,8 @@
     cancelAnimationFrame(liveRAF);
     recBtn.classList.remove('recording');
     markBtn.classList.add('hidden');
+    tunerBox.classList.add('hidden');
+    showTuner(-1);
     statusEl.classList.remove('live');
     statusEl.textContent = '音声を解析しています…';
     vibrate([20, 60, 20]);
@@ -552,7 +678,7 @@
     toast(`印 ${markers.length}：${fmtTime(t)}`, 'ok');
   });
 
-  let liveData = null;
+  let liveData = null, liveFloat = null, tunerFrame = 0;
   function drawLive() {
     const { w, h, dpr } = fitCanvas(liveCanvas);
     const g = liveCanvas.getContext('2d');
@@ -568,6 +694,12 @@
       i ? g.lineTo(x, y) : g.moveTo(x, y);
     }
     g.stroke();
+    // 録音しながらチューナーも動かす（数フレームに1回でよい）
+    if ((tunerFrame++ % 4) === 0) {
+      if (!liveFloat || liveFloat.length !== analyser.fftSize) liveFloat = new Float32Array(analyser.fftSize);
+      analyser.getFloatTimeDomainData(liveFloat);
+      showTuner(autoCorrelate(liveFloat, audioCtx.sampleRate));
+    }
     liveRAF = requestAnimationFrame(drawLive);
   }
   function clearLive() {
@@ -624,8 +756,10 @@
     markers = markers.map(t => Math.min(t, audioBuffer.duration)).filter(t => t >= 0).sort((a, b) => a - b);
     pitchOut.textContent = tempoOut.textContent = '—';
     pitchOut.className = tempoOut.className = 'an-out';
+    activeSeg = null;
     renderMarkers();
     setSelection(0, audioBuffer.duration);
+    saveState(); // 端末内に自動保存
   }
 
   // 印のチップを描く。タップで「その印から次の印まで」を選択
@@ -639,9 +773,10 @@
       const next = i + 1 < markers.length ? markers[i + 1] : audioBuffer.duration;
       chip.innerHTML = `<span class="no">${i + 1}</span> ${fmtTime(t)}<span class="del">×</span>`;
       chip.addEventListener('click', (e) => {
-        if (e.target.classList.contains('del')) { markers.splice(i, 1); renderMarkers(); drawWave(); return; }
+        if (e.target.classList.contains('del')) { markers.splice(i, 1); activeSeg = null; renderMarkers(); drawWave(); saveState(); return; }
         stopPreview();
         setSelection(t, next);
+        activeSeg = i + 1; // 分割保存の名前（_1, _2 …）に使う
         markersEl.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
         chip.classList.add('on');
       });
@@ -751,6 +886,12 @@
     if (which === 'start') setSelection(Math.min(t, selEnd), selEnd, 'start');
     else setSelection(selStart, Math.max(t, selStart), 'end');
   }
+  // 手で範囲を動かしたら「区間◯」の選択状態を解除（保存名が区間番号にならないように）
+  function clearActiveSeg() {
+    if (activeSeg === null) return;
+    activeSeg = null;
+    markersEl.querySelectorAll('.chip.on').forEach(c => c.classList.remove('on'));
+  }
 
   // つまみ・波形を指でドラッグ（近いほうのつまみが動く）
   function timeAt(el, ev) {
@@ -764,6 +905,7 @@
       if (!audioBuffer) return;
       ev.preventDefault();
       stopPreview();
+      clearActiveSeg();
       const t = timeAt(rangeEl, ev);
       which = pick(ev, t);
       (which === 'start' ? hStart : hEnd).classList.add('active');
@@ -790,6 +932,7 @@
     if (d === undefined) return;
     e.preventDefault();
     stopPreview();
+    clearActiveSeg();
     const which = h === hStart ? 'start' : 'end';
     moveHandle(which, (which === 'start' ? selStart : selEnd) + d);
   }));
@@ -798,6 +941,7 @@
   document.querySelectorAll('[data-nudge]').forEach(b => b.addEventListener('click', () => {
     if (!audioBuffer) return;
     stopPreview();
+    clearActiveSeg();
     const which = b.dataset.nudge, d = parseFloat(b.dataset.d);
     moveHandle(which, (which === 'start' ? selStart : selEnd) + d);
   }));
@@ -805,6 +949,7 @@
   resetBtn.addEventListener('click', () => {
     if (!audioBuffer) return;
     stopPreview();
+    clearActiveSeg();
     setSelection(0, audioBuffer.duration);
   });
 
@@ -812,6 +957,7 @@
   autoBtn.addEventListener('click', () => {
     if (!audioBuffer) return;
     stopPreview();
+    clearActiveSeg();
     const sr = audioBuffer.sampleRate, ch = audioBuffer.numberOfChannels, len = audioBuffer.length;
     const chans = [];
     for (let c = 0; c < ch; c++) chans.push(audioBuffer.getChannelData(c));
@@ -845,37 +991,50 @@
     toast(cut > 0.05 ? `無音部分 ${cut.toFixed(1)} 秒をカットしました` : 'カットできる無音はありませんでした', 'ok');
   });
 
-  // プレビュー再生（選択範囲を WAV にして <audio> で再生。ループ・速度変更に対応）
-  playBtn.addEventListener('click', () => {
-    if (!audioBuffer) return;
-    if (!audioEl.paused) { stopPreview(); return; }
+  // プレビュー再生（範囲を WAV にして <audio> で再生。ループ・速度変更に対応）
+  let playFrom = 0, playTo = 0, playBtnActive = null;
+  function startPlay(a, e, loop, btn) {
     setAudioSession('playback');
-    const blob = encodeWav(audioBuffer, selStart, selEnd);
+    const blob = encodeWav(audioBuffer, a, e);
     if (previewURL) URL.revokeObjectURL(previewURL);
     previewURL = URL.createObjectURL(blob);
     audioEl.src = previewURL;
-    audioEl.loop = loopOn;
+    audioEl.loop = loop;
     audioEl.playbackRate = speed;
     audioEl.preservesPitch = audioEl.mozPreservesPitch = audioEl.webkitPreservesPitch = true;
     audioEl.currentTime = 0;
     audioEl.play().catch(() => toast('再生できませんでした', 'err'));
-    playBtn.textContent = '■ 停止';
-    playBtn.classList.add('playing');
+    playFrom = a; playTo = e; playBtnActive = btn;
+    btn.textContent = '■ 停止';
+    btn.classList.add('playing');
     const tick = () => {
       if (audioEl.paused) return;
-      playhead = Math.min(selEnd, selStart + audioEl.currentTime);
+      playhead = Math.min(playTo, playFrom + audioEl.currentTime);
       drawWave();
       playRAF = requestAnimationFrame(tick);
     };
     tick();
+  }
+  playBtn.addEventListener('click', () => {
+    if (!audioBuffer) return;
+    if (!audioEl.paused) { stopPreview(); return; }
+    startPlay(selStart, selEnd, loopOn, playBtn);
+  });
+  // 選択に関係なく、最初から通し再生
+  playAllBtn.addEventListener('click', () => {
+    if (!audioBuffer) return;
+    if (!audioEl.paused) { stopPreview(); return; }
+    startPlay(0, audioBuffer.duration, false, playAllBtn);
   });
 
   function stopPreview() {
     if (!audioEl.paused) { try { audioEl.pause(); } catch (_) {} }
     cancelAnimationFrame(playRAF);
     playhead = null;
+    if (playBtnActive) { playBtnActive.classList.remove('playing'); }
     playBtn.textContent = '▶ 選択範囲を再生';
-    playBtn.classList.remove('playing');
+    playAllBtn.textContent = '⏮ 最初から通し再生';
+    playBtnActive = null;
     drawWave();
   }
 
@@ -932,9 +1091,18 @@
   function sanitize(name) {
     return name.replace(/[\\/:*?"<>|\x00-\x1f]/g, '_').replace(/\.wav$/i, '').trim();
   }
+  function baseName() { return sanitize(nameInput.value) || defaultName(); }
   function makeFile() {
-    const name = (sanitize(nameInput.value) || defaultName()) + '.wav';
-    return { name, blob: encodeWav(audioBuffer, selStart, selEnd) };
+    // 区間を選んでいるときは名前に _1, _2 … を付けて分割保存でも区別できるように
+    const suffix = activeSeg !== null ? '_' + activeSeg : '';
+    return { name: baseName() + suffix + '.wav', blob: encodeWav(audioBuffer, selStart, selEnd) };
+  }
+  function downloadBlob(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 
   function save() {
@@ -942,14 +1110,7 @@
     stopPreview();
     nameInput.blur(); // スマホのキーボードを閉じる
     const { name, blob } = makeFile();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = name;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    downloadBlob(blob, name);
     vibrate(30);
     toast(`「${name}」を保存しました`, 'ok');
   }
@@ -1129,9 +1290,233 @@
     document.querySelectorAll('.ref').forEach(x => x.classList.toggle('on', x === b));
   }));
 
+  // ---------- チューナー表示（録音中と単体の両方で使う） ----------
+  function showTuner(f) {
+    if (!(f > 0)) {
+      tunerNote.textContent = '–'; tunerNote.className = 'tuner-note';
+      tunerNeedle.style.left = '50%'; tunerNeedle.style.background = 'var(--muted)';
+      tunerCents.textContent = '音を鳴らしてください';
+      return;
+    }
+    const midi = 69 + 12 * Math.log2(f / refA);
+    const nearest = Math.round(midi);
+    const cents = Math.round((midi - nearest) * 100);
+    const idx = ((nearest % 12) + 12) % 12;
+    const cls = Math.abs(cents) <= 10 ? 'ok' : (cents > 0 ? 'high' : 'low');
+    tunerNote.textContent = NOTE_JP[idx] + '(' + NOTE_EN[idx] + Math.floor(nearest / 12 - 1) + ')';
+    tunerNote.className = 'tuner-note ' + cls;
+    tunerNeedle.style.left = (50 + Math.max(-50, Math.min(50, cents))) + '%';
+    tunerNeedle.style.background = cls === 'ok' ? 'var(--ok)' : (cls === 'high' ? '#ffb454' : '#6cc1ff');
+    tunerCents.textContent = (cents > 0 ? '+' : '') + cents + ' セント ／ ' + f.toFixed(1) + ' Hz';
+  }
+
+  // 録音せずにチューナーだけ使う
+  tunerBtn.addEventListener('click', () => {
+    if (recorder && recorder.state === 'recording') return;
+    if (tunerStream) { stopTunerOnly(); } else { startTunerOnly(); }
+  });
+  async function startTunerOnly() {
+    const ctx = getCtx();
+    try {
+      tunerStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    } catch (e) { toast('マイクを使用できません', 'err'); return; }
+    const src = ctx.createMediaStreamSource(tunerStream);
+    tunerAnalyser = ctx.createAnalyser();
+    tunerAnalyser.fftSize = 2048;
+    src.connect(tunerAnalyser);
+    tunerBuf = new Float32Array(tunerAnalyser.fftSize);
+    tunerBox.classList.remove('hidden');
+    tunerBtn.classList.add('on');
+    tunerBtn.textContent = '🎯 チューナーを止める';
+    let c = 0;
+    const tick = () => {
+      if (!tunerStream) return;
+      if ((c++ % 4) === 0) { tunerAnalyser.getFloatTimeDomainData(tunerBuf); showTuner(autoCorrelate(tunerBuf, ctx.sampleRate)); }
+      tunerRAF = requestAnimationFrame(tick);
+    };
+    tick();
+  }
+  function stopTunerOnly() {
+    if (tunerStream) { tunerStream.getTracks().forEach(t => t.stop()); tunerStream = null; }
+    cancelAnimationFrame(tunerRAF);
+    tunerBtn.classList.remove('on');
+    tunerBtn.textContent = '🎯 チューナーだけ使う';
+    if (!(recorder && recorder.state === 'recording')) { tunerBox.classList.add('hidden'); showTuner(-1); }
+  }
+
+  // ---------- メトロノーム ----------
+  function clickSound(time, accent) {
+    const ctx = getCtx();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = accent ? 1600 : 1000;
+    o.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.0001, time);
+    g.gain.exponentialRampToValueAtTime(accent ? 0.6 : 0.4, time + 0.001);
+    g.gain.exponentialRampToValueAtTime(0.0001, time + 0.05);
+    o.start(time); o.stop(time + 0.06);
+  }
+  let nextClick = 0, beatNum = 0;
+  function metroSchedule() {
+    const ctx = getCtx(), spb = 60 / bpm;
+    while (nextClick < ctx.currentTime + 0.12) {
+      clickSound(nextClick, beatNum % 4 === 0);
+      nextClick += spb; beatNum++;
+    }
+    metroTimer = setTimeout(metroSchedule, 25);
+  }
+  metroToggle.addEventListener('click', () => {
+    if (metroOn) {
+      metroOn = false; clearTimeout(metroTimer);
+      metroToggle.textContent = '▶ 鳴らす'; metroToggle.classList.remove('on');
+    } else {
+      metroOn = true; beatNum = 0; nextClick = getCtx().currentTime + 0.06;
+      metroToggle.textContent = '■ 止める'; metroToggle.classList.add('on');
+      metroSchedule();
+    }
+  });
+  document.querySelectorAll('.metro-adj').forEach(b => b.addEventListener('click', () => {
+    bpm = Math.max(40, Math.min(240, bpm + parseInt(b.dataset.bpm, 10)));
+    metroBpmEl.textContent = bpm;
+  }));
+
+  // ---------- 録音後に印を追加 / 無音で自動分割 / まとめて保存 ----------
+  addMarkBtn.addEventListener('click', () => {
+    if (!audioBuffer) return;
+    const t = selStart;
+    if (markers.some(m => Math.abs(m - t) < 0.05)) { toast('近くに印があります', 'err'); return; }
+    markers.push(t); markers.sort((a, b) => a - b);
+    activeSeg = null;
+    renderMarkers(); drawWave(); saveState();
+    toast(`印を追加：${fmtTime(t)}`, 'ok');
+    vibrate(15);
+  });
+
+  splitBtn.addEventListener('click', () => {
+    if (!audioBuffer) return;
+    stopPreview();
+    const sr = audioBuffer.sampleRate, len = audioBuffer.length;
+    const ch0 = audioBuffer.getChannelData(0);
+    const win = Math.max(1, Math.floor(sr * 0.02));
+    const n = Math.ceil(len / win);
+    const rms = new Float32Array(n);
+    let maxRms = 0;
+    for (let k = 0; k < n; k++) {
+      const a = k * win, b = Math.min(len, a + win);
+      let sum = 0;
+      for (let i = a; i < b; i++) sum += ch0[i] * ch0[i];
+      rms[k] = Math.sqrt(sum / (b - a));
+      if (rms[k] > maxRms) maxRms = rms[k];
+    }
+    const th = Math.max(0.006, maxRms * 0.1);
+    const gapWin = Math.ceil(0.6 / 0.02); // 0.6秒以上の無音で区切る
+    const starts = [];
+    let active = false, silence = 0;
+    for (let k = 0; k < n; k++) {
+      if (rms[k] > th) {
+        if (!active && (starts.length === 0 || silence >= gapWin)) starts.push(Math.max(0, k * win / sr - 0.1));
+        active = true; silence = 0;
+      } else {
+        silence++; if (silence >= gapWin) active = false;
+      }
+    }
+    if (starts.length <= 1) { toast('区切れる無音が見つかりませんでした', 'err'); return; }
+    markers = starts.map(t => Math.min(t, audioBuffer.duration));
+    activeSeg = null;
+    renderMarkers(); drawWave(); saveState();
+    toast(`${markers.length}個の区間に分割しました`, 'ok');
+    vibrate(20);
+  });
+
+  // 全区間（印ごと）をまとめて保存
+  saveAllBtn.addEventListener('click', async () => {
+    if (!audioBuffer) return;
+    stopPreview();
+    if (!markers.length) { save(); return; } // 印がなければ全体を1つ保存
+    const base = baseName();
+    for (let i = 0; i < markers.length; i++) {
+      const a = markers[i], e = i + 1 < markers.length ? markers[i + 1] : audioBuffer.duration;
+      downloadBlob(encodeWav(audioBuffer, a, e), `${base}_${i + 1}.wav`);
+      await new Promise(r => setTimeout(r, 500)); // 連続ダウンロードの間隔
+    }
+    vibrate(30);
+    toast(`${markers.length}個の区間を保存しました`, 'ok');
+  });
+
+  // ---------- 端末内に自動保存／復元（IndexedDB） ----------
+  const DB_NAME = 'recorderDB', STORE = 'takes';
+  function openDB() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open(DB_NAME, 1);
+      r.onupgradeneeded = () => r.result.createObjectStore(STORE);
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+  }
+  async function saveState() {
+    try {
+      if (!audioBuffer) return;
+      const wav = encodeWav(audioBuffer, 0, audioBuffer.duration);
+      if (wav.size > 80 * 1024 * 1024) return; // 大きすぎる録音は自動保存しない
+      const db = await openDB();
+      await new Promise((res, rej) => {
+        const tx = db.transaction(STORE, 'readwrite');
+        tx.objectStore(STORE).put({ wav, markers: markers.slice(), name: nameInput.value, at: Date.now() }, 'last');
+        tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+      });
+    } catch (_) {}
+  }
+  async function loadState() {
+    try {
+      const db = await openDB();
+      return await new Promise((res) => {
+        const tx = db.transaction(STORE, 'readonly');
+        const rq = tx.objectStore(STORE).get('last');
+        rq.onsuccess = () => res(rq.result || null);
+        rq.onerror = () => res(null);
+      });
+    } catch (_) { return null; }
+  }
+  async function clearState() {
+    try { const db = await openDB(); db.transaction(STORE, 'readwrite').objectStore(STORE).delete('last'); } catch (_) {}
+  }
+
+  restoreBtn.addEventListener('click', async () => {
+    const st = await loadState();
+    if (!st) { restoreBar.classList.add('hidden'); return; }
+    try {
+      const arr = await st.wav.arrayBuffer();
+      audioBuffer = await new Promise((res, rej) => {
+        const p = getCtx().decodeAudioData(arr, res, rej);
+        if (p && p.then) p.then(res, rej);
+      });
+    } catch (e) { toast('復元に失敗しました', 'err'); return; }
+    markers = (st.markers || []).slice();
+    nameInput.value = st.name || defaultName(); syncTags();
+    timerEl.textContent = fmtTimer(audioBuffer.duration);
+    statusEl.textContent = `復元しました（${fmtTime(audioBuffer.duration)}）`;
+    editCard.classList.remove('disabled');
+    saveCard.classList.remove('disabled');
+    analyzeCard.classList.remove('disabled');
+    waveEmpty.style.display = 'none';
+    peaks = null; activeSeg = null;
+    pitchOut.textContent = tempoOut.textContent = '—';
+    renderMarkers();
+    setSelection(0, audioBuffer.duration);
+    restoreBar.classList.add('hidden');
+    vibrate(20);
+  });
+  discardBtn.addEventListener('click', () => { clearState(); restoreBar.classList.add('hidden'); });
+
   // ---------- 初期化 ----------
   nameInput.value = defaultName();
   clearLive();
+  loadState().then(st => {
+    if (st) {
+      const d = new Date(st.at);
+      restoreText.textContent = `前回の録音があります（${pad(d.getHours())}:${pad(d.getMinutes())}）`;
+      restoreBar.classList.remove('hidden');
+    }
+  });
   let resizeTimer = 0;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
