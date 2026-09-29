@@ -352,6 +352,11 @@
   #metroToggle.on { border-color: var(--ok); color: var(--ok); }
   .metro-check { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: .85rem; color: var(--muted); }
   .metro-check input { width: 18px; height: 18px; }
+  .quality { display: flex; align-items: flex-start; gap: 9px; width: 100%; margin-top: 4px;
+    padding: 11px 12px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px;
+    font-size: .82rem; color: var(--muted); line-height: 1.4; cursor: pointer; }
+  .quality input { width: 20px; height: 20px; margin-top: 1px; flex-shrink: 0; }
+  .quality b { color: var(--text); }
 
   /* 口頭コメント録音ボタン */
   button.btn.comment { width: 100%; margin-top: 10px; }
@@ -452,6 +457,8 @@
 
       <canvas id="live" class="live-canvas"></canvas>
       <button id="markBtn" class="btn mark hidden">🚩 ここに印をつける</button>
+      <label class="quality"><input type="checkbox" id="hifi" checked>
+        <span><b>高音質で録音</b>（音楽向け・通話用の音質処理を切る）</span></label>
       <button id="tunerBtn" class="btn tuner-toggle">🎯 チューナーだけ使う</button>
       <button id="mediaKeyBtn" class="btn mediakey">🎧 イヤホン/ボタンで録音操作</button>
     </div>
@@ -746,6 +753,7 @@
   let markers = [];         // 録音中に付けた印（秒）
   let playRAF = 0, playhead = null;
   let speed = 1, loopOn = false, previewURL = null;
+  let hifi = true; // 高音質（音楽向け）録音
   let refA = 442;           // チューナーの基準ピッチ（Hz）
   let activeSeg = null;     // いま選んでいる区間の番号（分割保存の名前用）
   let bpm = 120, metroTimer = 0, metroOn = false; // メトロノーム
@@ -829,9 +837,11 @@
     }
     setAudioSession('play-and-record');
     try {
-      mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-      });
+      // 高音質（音楽向け）は通話用処理をOFFにして、マイクを高音質モードのまま使う
+      const audioConstraints = hifi
+        ? { echoCancellation: false, noiseSuppression: false, autoGainControl: false, sampleRate: 48000, channelCount: 1 }
+        : { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+      mediaStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
     } catch (e) {
       toast('マイクを使用できません（ブラウザの設定で許可してください）', 'err');
       statusEl.textContent = 'マイクへのアクセスが許可されていません';
@@ -964,11 +974,13 @@
     g.beginPath(); g.moveTo(0, h / 2); g.lineTo(w, h / 2); g.stroke();
   }
 
-  // 録音データを「モノラル・24kHz」に変換（スマホのメモリ節約とファイルサイズ削減）
+  // 録音データをモノラル化。高音質モードは元の音質(最大48kHz)を保ち、
+  // 軽量モードは24kHzに落としてファイルを小さくする
   async function toMonoLowRate(buf) {
-    const needMix = buf.numberOfChannels > 1, needRate = buf.sampleRate > TARGET_RATE;
+    const maxRate = hifi ? 48000 : TARGET_RATE;
+    const needMix = buf.numberOfChannels > 1, needRate = buf.sampleRate > maxRate;
     if (!needMix && !needRate) return buf;
-    const rate = needRate ? TARGET_RATE : buf.sampleRate;
+    const rate = needRate ? maxRate : buf.sampleRate;
     try {
       const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
       const frames = Math.ceil(buf.duration * rate);
@@ -2492,6 +2504,7 @@
     saveCard.classList.toggle('hidden', !has);
   }
   $('toRecBtn').addEventListener('click', () => { showTab('rec'); recBtn.click(); });
+  $('hifi').addEventListener('change', (e) => { hifi = e.target.checked; });
 
   // ---------- 初期化 ----------
   nameInput.value = defaultName();
