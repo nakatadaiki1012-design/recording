@@ -202,18 +202,29 @@
   .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
   .btn-grid .wide { grid-column: 1 / -1; }
   button.btn {
-    font: inherit; font-size: .95rem; color: var(--text);
-    background: var(--panel-2); border: 1px solid var(--border);
-    min-height: 50px; padding: 10px 12px; border-radius: 12px; cursor: pointer;
+    font: inherit; font-size: .95rem; font-weight: 600; color: var(--text);
+    background: #eef2f9; border: 1px solid #d6dde9;
+    min-height: 52px; padding: 10px 12px; border-radius: 13px; cursor: pointer;
     transition: background .12s, border-color .12s, transform .08s;
   }
-  button.btn:active { transform: scale(.98); background: #e9edf6; }
+  button.btn:active { transform: scale(.97); background: #e0e6f2; }
   button.btn.primary {
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    border-color: transparent; color: #fff; font-weight: 600;
+    border-color: transparent; color: #fff; font-weight: 700;
+    box-shadow: 0 6px 16px rgba(74,99,231,.28);
   }
+  button.btn.big { min-height: 56px; font-size: 1.05rem; }
   button.btn { white-space: nowrap; }
-  button.btn.playing { border-color: var(--ok); color: var(--ok); }
+  button.btn.playing { border-color: var(--ok); color: var(--ok); background: rgba(20,160,106,.08); }
+
+  /* 録音がまだ無いときの案内 */
+  .empty-card { text-align: center; padding: 32px 20px; }
+  .empty-ico { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 18px;
+    background: var(--panel-2); color: var(--accent); display: grid; place-items: center; }
+  .empty-ico svg { width: 32px; height: 32px; }
+  .empty-title { margin: 0 0 6px; font-size: 1.12rem; font-weight: 700; }
+  .empty-sub { margin: 0 0 18px; font-size: .88rem; color: var(--muted); line-height: 1.6; }
+  .empty-card .btn.big { width: 100%; max-width: 260px; margin: 0 auto; }
 
   /* 印（マーカー） */
   button.btn.mark {
@@ -458,8 +469,20 @@
     <label class="metro-check"><input type="checkbox" id="countin"> 録音前に1小節（4拍）カウントインする</label>
   </section>
 
+  <!-- 録音がまだ無いときの案内（編集タブ） -->
+  <section class="card empty-card" id="editEmpty" data-tab="edit">
+    <div class="empty-ico" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>
+      </svg>
+    </div>
+    <p class="empty-title">まだ録音がありません</p>
+    <p class="empty-sub">まず録音すると、ここで切り取り・再生・保存ができます。</p>
+    <button id="toRecBtn" class="btn primary big">🎙 録音する</button>
+  </section>
+
   <!-- 2. 波形 & トリミング -->
-  <section id="editCard" class="card disabled" data-tab="edit">
+  <section id="editCard" class="card disabled hidden" data-tab="edit">
     <h2>① 使う部分を選ぶ</h2>
     <div class="wave-wrap">
       <canvas id="wave"></canvas>
@@ -618,7 +641,7 @@
   </section>
 
   <!-- 3. ファイル名 & 保存 -->
-  <section id="saveCard" class="card disabled" data-tab="edit">
+  <section id="saveCard" class="card disabled hidden" data-tab="edit">
     <h2>ファイル名と保存</h2>
     <div class="tags">
       <button class="tag" data-tag="[合奏]">[合奏]</button>
@@ -990,6 +1013,7 @@
     renderMarkers();
     setSelection(0, audioBuffer.duration);
     saveState(); // 端末内に自動保存
+    refreshEditTab();
     showTab('edit'); // 録音が終わったら編集タブへ
   }
 
@@ -1865,6 +1889,7 @@
     renderMarkers();
     setSelection(0, audioBuffer.duration);
     restoreBar.classList.add('hidden');
+    refreshEditTab();
     showTab('edit');
     vibrate(20);
   });
@@ -2458,11 +2483,21 @@
     window.scrollTo(0, 0);
   }
   tabBtns.forEach(b => b.addEventListener('click', () => showTab(b.dataset.go)));
+  // 録音の有無で編集タブの中身を出し分け（灰色の空画面を出さない）
+  const editEmpty = $('editEmpty');
+  function refreshEditTab() {
+    const has = !!audioBuffer;
+    editEmpty.classList.toggle('hidden', has);
+    editCard.classList.toggle('hidden', !has);
+    saveCard.classList.toggle('hidden', !has);
+  }
+  $('toRecBtn').addEventListener('click', () => { showTab('rec'); recBtn.click(); });
 
   // ---------- 初期化 ----------
   nameInput.value = defaultName();
   clearLive();
   renderLibrary();
+  refreshEditTab();
   showTab('rec');
   loadState().then(st => {
     if (st) {
