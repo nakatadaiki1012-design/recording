@@ -285,9 +285,18 @@
   button.btn.comment { width: 100%; margin-top: 10px; }
   button.btn.comment.rec { border-color: var(--rec); color: #ffd0d5; background: rgba(255,77,94,.14); }
 
-  /* 音程の推移グラフ */
-  #pitchGraph { width: 100%; height: 150px; display: block; margin-top: 4px;
+  /* 音程の推移グラフ・採譜ロール */
+  #pitchGraph, #rollCanvas { width: 100%; height: 150px; display: block; margin-top: 8px;
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; }
+  #transcribeOut { font-size: 1.1rem; font-weight: 600; line-height: 1.5; word-break: break-word; }
+
+  /* ロングトーン採点 */
+  .lt-row { display: flex; align-items: center; gap: 12px; }
+  .lt-row .btn { flex-shrink: 0; }
+  .lt-score { flex: 1; text-align: center; font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .lt-score.g { color: var(--ok); } .lt-score.y { color: #ffb454; } .lt-score.r { color: var(--rec); }
+  .lt-note { margin-top: 10px; text-align: center; font-size: .9rem; color: var(--muted); min-height: 1.3em; }
+  .lt-note b { color: var(--text); font-size: 1.1rem; }
 
   /* イヤホン/ボタン操作 */
   button.btn.mediakey { width: 100%; margin-top: 2px; }
@@ -431,7 +440,22 @@
       <span class="speed-note">音程はそのまま</span>
     </div>
 
+    <div class="play-row">
+      <button id="colorBtn" class="btn">🌈 音程で色分け</button>
+      <button id="overdubBtn" class="btn">🎚 重ねて録音</button>
+    </div>
     <button id="commentBtn" class="btn comment">🎤 口頭コメントを末尾に追加</button>
+  </section>
+
+  <!-- ロングトーン採点 -->
+  <section class="card" id="longtoneCard">
+    <h2>ロングトーン採点（基礎練）</h2>
+    <p class="hint" style="margin-top:0">同じ音を4秒のばすと、音程と音量の「安定度」を採点します。</p>
+    <div class="lt-row">
+      <button id="ltStartBtn" class="btn primary">🎯 採点スタート</button>
+      <div id="ltScore" class="lt-score">—</div>
+    </div>
+    <div id="ltNote" class="lt-note">マイクに向かって音をのばしてください</div>
   </section>
 
   <!-- 音程・テンポ -->
@@ -455,7 +479,10 @@
     </div>
     <button id="pitchGraphBtn" class="btn" style="width:100%">📈 音程の推移グラフ</button>
     <canvas id="pitchGraph" class="hidden"></canvas>
-    <p class="hint">選択範囲を分析します。音程は「単音をのばした音」、テンポは「一定のリズムがあるとき」に正確です。推移グラフは、のばした音が上ずる/下がるのを線で見られます。</p>
+    <button id="transcribeBtn" class="btn" style="width:100%;margin-top:10px">🎼 吹いた音を音名に（自動採譜）</button>
+    <div id="transcribeOut" class="an-out hidden" style="margin-top:8px"></div>
+    <canvas id="rollCanvas" class="hidden"></canvas>
+    <p class="hint">選択範囲を分析します。音程は「単音をのばした音」、テンポは「一定のリズムがあるとき」に正確です。推移グラフは、のばした音が上ずる/下がるのを線で見られます。自動採譜は単音のメロディ向けです。</p>
   </section>
 
   <!-- 3. ファイル名 & 保存 -->
@@ -520,6 +547,9 @@
   const restoreBar = $('restoreBar'), restoreText = $('restoreText'), restoreBtn = $('restoreBtn'), discardBtn = $('discardBtn');
   const commentBtn = $('commentBtn'), pitchGraphBtn = $('pitchGraphBtn'), pitchGraph = $('pitchGraph');
   const mediaKeyBtn = $('mediaKeyBtn'), libList = $('libList'), libEmpty = $('libEmpty');
+  const colorBtn = $('colorBtn'), overdubBtn = $('overdubBtn');
+  const transcribeBtn = $('transcribeBtn'), transcribeOut = $('transcribeOut'), rollCanvas = $('rollCanvas');
+  const ltStartBtn = $('ltStartBtn'), ltScore = $('ltScore'), ltNote = $('ltNote');
 
   const TARGET_RATE = 24000;   // 声の録音に十分な音質で、ファイルサイズを約半分にする
   const MIN_LEN = 0.05;        // 選択範囲の最小の長さ（秒）
@@ -533,6 +563,7 @@
   let wakeLock = null;
   let audioBuffer = null;   // 録音したデータ（モノラル）
   let peaks = null;         // 波形描画用（列ごとの最小・最大）
+  let colorMode = false, colorGrid = null; // 🌈 音程で色分け表示
   let selStart = 0, selEnd = 0; // 秒
   let markers = [];         // 録音中に付けた印（秒）
   let playRAF = 0, playhead = null;
@@ -795,7 +826,7 @@
     saveCard.classList.remove('disabled');
     analyzeCard.classList.remove('disabled');
     waveEmpty.style.display = 'none';
-    peaks = null;
+    peaks = null; colorGrid = null;
     // 録音の実測時間よりわずかに長い印は末尾に丸める
     markers = markers.map(t => Math.min(t, audioBuffer.duration)).filter(t => t >= 0).sort((a, b) => a - b);
     pitchOut.textContent = tempoOut.textContent = '—';
@@ -871,15 +902,30 @@
     g.fillRect(0, Math.floor(mid), w, Math.max(1, dpr));
 
     const cOut = cssVar('--wave'), cIn = cssVar('--wave-sel');
-    for (let x = 0; x < w; x++) {
-      const mn = peaks[x * 2], mx = peaks[x * 2 + 1];
-      const y1 = mid - mx * amp, y2 = mid - mn * amp;
-      g.fillStyle = (x >= sx && x <= ex) ? cIn : cOut;
-      g.fillRect(x, y1, 1, Math.max(1, y2 - y1));
+    if (colorMode) {
+      // 🌈 音程で色分け表示（緑＝合ってる〜赤＝ずれてる）
+      if (!colorGrid) colorGrid = computePitchColors();
+      const { arr, hop, win, sr } = colorGrid;
+      for (let x = 0; x < w; x++) {
+        const mn = peaks[x * 2], mx = peaks[x * 2 + 1];
+        const y1 = mid - mx * amp, y2 = mid - mn * amp;
+        const t = (x / w) * dur;
+        let k = Math.round((t * sr - win / 2) / hop);
+        k = Math.max(0, Math.min(arr.length - 1, k));
+        g.fillStyle = centColor(arr[k]);
+        g.fillRect(x, y1, 1, Math.max(1, y2 - y1));
+      }
+    } else {
+      for (let x = 0; x < w; x++) {
+        const mn = peaks[x * 2], mx = peaks[x * 2 + 1];
+        const y1 = mid - mx * amp, y2 = mid - mn * amp;
+        g.fillStyle = (x >= sx && x <= ex) ? cIn : cOut;
+        g.fillRect(x, y1, 1, Math.max(1, y2 - y1));
+      }
+      g.fillStyle = 'rgba(10,12,18,0.55)';
+      g.fillRect(0, 0, sx, h);
+      g.fillRect(ex, 0, w - ex, h);
     }
-    g.fillStyle = 'rgba(10,12,18,0.55)';
-    g.fillRect(0, 0, sx, h);
-    g.fillRect(ex, 0, w - ex, h);
     // 印（マーカー）の縦線と番号
     if (markers && markers.length) {
       for (let i = 0; i < markers.length; i++) {
@@ -901,6 +947,29 @@
       g.fillStyle = '#ffffff';
       g.fillRect(px - dpr, 0, 2 * dpr, h);
     }
+  }
+
+  // 音程のズレ（絶対セント）を色に。-1 は音程なし（灰）
+  function centColor(c) {
+    if (c < 0) return '#3a3f4d';
+    if (c <= 10) return '#3ecf8e';
+    if (c <= 25) return '#a6d84a';
+    if (c <= 40) return '#ffb454';
+    return '#ff6b6b';
+  }
+  // 全体を時間の格子で音程解析し、各格子の「最寄り半音からのズレ（絶対セント）」を返す
+  function computePitchColors() {
+    const sr = audioBuffer.sampleRate, d = audioBuffer.getChannelData(0);
+    const win = 2048, hop = Math.floor(sr * 0.04);
+    const n = Math.max(1, Math.floor((d.length - win) / hop) + 1);
+    const arr = new Float32Array(n);
+    for (let k = 0; k < n; k++) {
+      const i = k * hop;
+      const f = autoCorrelate(d.subarray(i, i + win), sr);
+      if (f > 0) { const midi = 69 + 12 * Math.log2(f / refA); arr[k] = Math.min(50, Math.abs((midi - Math.round(midi)) * 100)); }
+      else arr[k] = -1;
+    }
+    return { arr, hop, win, sr };
   }
 
   // which: 'start' / 'end' / 省略（両方を指定どおりに）
@@ -1630,7 +1699,7 @@
     saveCard.classList.remove('disabled');
     analyzeCard.classList.remove('disabled');
     waveEmpty.style.display = 'none';
-    peaks = null; activeSeg = null;
+    peaks = null; colorGrid = null; activeSeg = null;
     pitchOut.textContent = tempoOut.textContent = '—';
     renderMarkers();
     setSelection(0, audioBuffer.duration);
@@ -1679,7 +1748,7 @@
     out.set(audioBuffer.getChannelData(0).subarray(0, oldLen), 0);
     out.set(cbuf.getChannelData(0), oldLen + gap);
     const joinSec = (oldLen + gap) / sr;
-    audioBuffer = nb; peaks = null;
+    audioBuffer = nb; peaks = null; colorGrid = null;
     if (!markers.some(m => Math.abs(m - joinSec) < 0.05)) { markers.push(joinSec); markers.sort((a, b) => a - b); }
     timerEl.textContent = fmtTimer(audioBuffer.duration);
     activeSeg = null;
@@ -1772,6 +1841,175 @@
     else if (e.key === 'm' || e.key === 'M') { if (recorder && recorder.state === 'recording') { e.preventDefault(); markBtn.click(); } }
   });
 
+  // ---------- 🌈 音程で色分け表示 ----------
+  colorBtn.addEventListener('click', () => {
+    if (!audioBuffer) return;
+    colorMode = !colorMode;
+    colorBtn.classList.toggle('looping', colorMode);
+    colorBtn.textContent = colorMode ? '🌈 色分け中（押して戻す）' : '🌈 音程で色分け';
+    if (colorMode && !colorGrid) toast('緑＝合ってる／赤＝ずれてる', 'ok');
+    drawWave();
+  });
+
+  // ---------- 🎚 オーバーダブ（重ねて録音） ----------
+  let odRec = null, odStream = null, odChunks = [];
+  overdubBtn.addEventListener('click', async () => {
+    if (!audioBuffer) return;
+    if (odRec && odRec.state === 'recording') { odRec.stop(); return; }
+    stopPreview();
+    const ctx = getCtx();
+    setAudioSession('play-and-record');
+    try { odStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
+    catch (e) { toast('マイクを使用できません', 'err'); return; }
+    odChunks = [];
+    odRec = new MediaRecorder(odStream);
+    odRec.ondataavailable = (e) => { if (e.data && e.data.size) odChunks.push(e.data); };
+    odRec.onstop = onOverdubStop;
+    // 既存の録音を鳴らしながら、その上に演奏を録る（イヤホン推奨）
+    startPlay(0, audioBuffer.duration, false, overdubBtn);
+    odRec.start();
+    overdubBtn.textContent = '■ 重ね録り中（押して終了）';
+    overdubBtn.classList.add('playing');
+    vibrate(20);
+  });
+  async function onOverdubStop() {
+    if (odStream) { odStream.getTracks().forEach(t => t.stop()); odStream = null; }
+    stopPreview();
+    overdubBtn.textContent = '🎚 重ねて録音';
+    overdubBtn.classList.remove('playing');
+    const blob = new Blob(odChunks, { type: odRec.mimeType || 'audio/webm' });
+    odChunks = [];
+    let add;
+    try {
+      const arr = await blob.arrayBuffer();
+      const dec = await new Promise((res, rej) => { const p = getCtx().decodeAudioData(arr, res, rej); if (p && p.then) p.then(res, rej); });
+      add = await resampleMonoTo(dec, audioBuffer.sampleRate);
+    } catch (e) { toast('重ね録りの取り込みに失敗しました', 'err'); return; }
+    // 元の音 ＋ 新しい演奏 を足し合わせる（長さは元に合わせる）
+    const sr = audioBuffer.sampleRate, len = audioBuffer.length;
+    const nb = getCtx().createBuffer(1, len, sr);
+    const out = nb.getChannelData(0), o = audioBuffer.getChannelData(0), a = add.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      let v = o[i] * 0.85 + (i < a.length ? a[i] * 0.85 : 0);
+      out[i] = v < -1 ? -1 : v > 1 ? 1 : v;
+    }
+    audioBuffer = nb; peaks = null; colorGrid = null; activeSeg = null;
+    renderMarkers(); setSelection(0, audioBuffer.duration); saveState();
+    toast('重ねて録音しました（イヤホン推奨）', 'ok'); vibrate(15);
+  }
+
+  // ---------- 🎼 単音の自動採譜 ----------
+  transcribeBtn.addEventListener('click', () => {
+    if (!audioBuffer) return;
+    stopPreview();
+    const { data, sr } = selectedMono();
+    const win = 2048, hop = Math.floor(sr * 0.03);
+    const midis = [];
+    for (let i = 0; i + win <= data.length; i += hop) {
+      const f = autoCorrelate(data.subarray(i, i + win), sr);
+      midis.push(f > 0 ? Math.round(69 + 12 * Math.log2(f / refA)) : -1);
+    }
+    // 3コマの中央値で細かいブレを消す
+    const med = midis.map((_, k) => {
+      const a = [midis[k - 1], midis[k], midis[k + 1]].filter(x => x !== undefined && x >= 0).sort((p, q) => p - q);
+      return a.length ? a[Math.floor(a.length / 2)] : -1;
+    });
+    // 同じ音が続く区間を1音にまとめる（0.08秒以上）
+    const minFrames = Math.max(2, Math.round(0.08 / (hop / sr)));
+    const notes = [];
+    let cur = -1, start = 0;
+    const push = (endK) => { if (cur >= 0 && endK - start >= minFrames) notes.push({ midi: cur, t: start * hop / sr, dur: (endK - start) * hop / sr }); };
+    for (let k = 0; k < med.length; k++) {
+      if (med[k] !== cur) { push(k); cur = med[k]; start = k; }
+    }
+    push(med.length);
+    if (!notes.length) { transcribeOut.classList.add('hidden'); rollCanvas.classList.add('hidden'); toast('音を検出できませんでした', 'err'); return; }
+    transcribeOut.classList.remove('hidden');
+    transcribeOut.textContent = notes.map(n => { const i = ((n.midi % 12) + 12) % 12; return NOTE_JP[i]; }).join(' ');
+    drawRoll(notes);
+  });
+  function drawRoll(notes) {
+    rollCanvas.classList.remove('hidden');
+    const { w, h, dpr } = fitCanvas(rollCanvas);
+    const g = rollCanvas.getContext('2d');
+    g.clearRect(0, 0, w, h);
+    let lo = Infinity, hi = -Infinity, tEnd = 0;
+    notes.forEach(n => { lo = Math.min(lo, n.midi); hi = Math.max(hi, n.midi); tEnd = Math.max(tEnd, n.t + n.dur); });
+    lo -= 1; hi += 1;
+    const rows = Math.max(1, hi - lo), rh = h / rows, sw = w / (tEnd || 1);
+    // 白鍵/黒鍵の横しま
+    for (let m = lo; m <= hi; m++) {
+      const black = [1, 3, 6, 8, 10].includes(((m % 12) + 12) % 12);
+      g.fillStyle = black ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)';
+      g.fillRect(0, h - (m - lo + 1) * rh, w, rh);
+    }
+    g.font = `${10 * dpr}px sans-serif`; g.textBaseline = 'middle';
+    notes.forEach(n => {
+      const x = n.t * sw, bw = Math.max(2 * dpr, n.dur * sw), y = h - (n.midi - lo + 1) * rh;
+      g.fillStyle = cssVar('--accent');
+      g.fillRect(x, y + rh * 0.15, bw, rh * 0.7);
+      const i = ((n.midi % 12) + 12) % 12;
+      g.fillStyle = '#fff';
+      if (bw > 14 * dpr) g.fillText(NOTE_JP[i], x + 3 * dpr, y + rh / 2);
+    });
+  }
+
+  // ---------- 🎯 ロングトーン採点 ----------
+  let ltStream = null, ltRAF = 0, ltActive = false;
+  ltStartBtn.addEventListener('click', async () => {
+    if (ltActive) return;
+    const ctx = getCtx();
+    setAudioSession('play-and-record');
+    try { ltStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
+    catch (e) { toast('マイクを使用できません', 'err'); return; }
+    const src = ctx.createMediaStreamSource(ltStream);
+    const an = ctx.createAnalyser(); an.fftSize = 2048; src.connect(an);
+    const buf = new Float32Array(an.fftSize);
+    ltActive = true; ltStartBtn.disabled = true;
+    ltScore.textContent = '—'; ltScore.className = 'lt-score';
+    const centsArr = [], rmsArr = []; const DURATION = 4000; const t0 = performance.now();
+    const tick = () => {
+      const el = performance.now() - t0;
+      an.getFloatTimeDomainData(buf);
+      let rms = 0; for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i]; rms = Math.sqrt(rms / buf.length);
+      const f = autoCorrelate(buf, ctx.sampleRate);
+      if (f > 0 && rms > 0.01) {
+        const midi = 69 + 12 * Math.log2(f / refA);
+        centsArr.push((midi - Math.round(midi)) * 100); rmsArr.push(rms);
+        const idx = ((Math.round(midi) % 12) + 12) % 12;
+        ltNote.innerHTML = `<b>${NOTE_JP[idx]}(${NOTE_EN[idx]})</b> をキープ… 残り ${Math.max(0, ((DURATION - el) / 1000)).toFixed(1)}秒`;
+      } else {
+        ltNote.textContent = `音を出してください… 残り ${Math.max(0, ((DURATION - el) / 1000)).toFixed(1)}秒`;
+      }
+      if (el < DURATION) { ltRAF = requestAnimationFrame(tick); }
+      else finishLongtone(centsArr, rmsArr);
+    };
+    tick();
+  });
+  function finishLongtone(centsArr, rmsArr) {
+    cancelAnimationFrame(ltRAF);
+    if (ltStream) { ltStream.getTracks().forEach(t => t.stop()); ltStream = null; }
+    ltActive = false; ltStartBtn.disabled = false;
+    if (centsArr.length < 20) { ltNote.textContent = '音が短すぎます。4秒しっかりのばしてください'; return; }
+    // 中央のセントを基準に、そこからの散らばり（安定度）を見る
+    const sorted = centsArr.slice().sort((a, b) => a - b);
+    const medC = sorted[Math.floor(sorted.length / 2)];
+    let pv = 0; for (const c of centsArr) pv += (c - medC) * (c - medC);
+    const pitchStd = Math.sqrt(pv / centsArr.length); // セントの標準偏差
+    const meanR = rmsArr.reduce((a, b) => a + b, 0) / rmsArr.length;
+    let rv = 0; for (const r of rmsArr) rv += (r - meanR) * (r - meanR);
+    const volCv = Math.sqrt(rv / rmsArr.length) / (meanR || 1e-6); // 音量のばらつき（相対）
+    // スコア化：音程70点＋音量30点
+    const pitchScore = Math.max(0, 70 - pitchStd * 3);       // 標準偏差20セントで0点
+    const volScore = Math.max(0, 30 - volCv * 60);           // 相対ばらつき0.5で0点
+    const score = Math.round(Math.max(0, Math.min(100, pitchScore + volScore)));
+    ltScore.textContent = score;
+    ltScore.className = 'lt-score ' + (score >= 80 ? 'g' : score >= 60 ? 'y' : 'r');
+    const stars = '★'.repeat(Math.round(score / 20)) + '☆'.repeat(5 - Math.round(score / 20));
+    ltNote.innerHTML = `${stars}<br>音程のブレ ±${pitchStd.toFixed(0)}セント ／ 音量のムラ ${(volCv * 100).toFixed(0)}%`;
+    vibrate(score >= 80 ? [20, 60, 20] : 20);
+  }
+
   // ---------- 初期化 ----------
   nameInput.value = defaultName();
   clearLive();
@@ -1787,7 +2025,7 @@
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      peaks = null;
+      peaks = null; colorGrid = null;
       drawWave();
       if (!(recorder && recorder.state === 'recording')) clearLive();
     }, 100);
