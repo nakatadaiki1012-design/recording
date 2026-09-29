@@ -357,6 +357,12 @@
     font-size: .82rem; color: var(--muted); line-height: 1.4; cursor: pointer; }
   .quality input { width: 20px; height: 20px; margin-top: 1px; flex-shrink: 0; }
   .quality b { color: var(--text); }
+  .microw { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 8px; font-size: .85rem; color: var(--muted); }
+  .microw select {
+    flex: 1; min-width: 0; font: inherit; font-size: 16px; color: var(--text);
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+  }
+  .michint { width: 100%; margin: 6px 0 0; font-size: .74rem; color: var(--muted); line-height: 1.5; }
 
   /* 口頭コメント録音ボタン */
   button.btn.comment { width: 100%; margin-top: 10px; }
@@ -459,6 +465,11 @@
       <button id="markBtn" class="btn mark hidden">🚩 ここに印をつける</button>
       <label class="quality"><input type="checkbox" id="hifi" checked>
         <span><b>高音質で録音</b>（音楽向け・通話用の音質処理を切る）</span></label>
+      <div class="microw">
+        <span>マイク</span>
+        <select id="micSelect"><option value="">自動（内蔵マイク優先）</option></select>
+      </div>
+      <p class="michint">車やイヤホンのBluetoothだと「通話」扱いになり音が悪くなります。内蔵マイクを選ぶと防げます。</p>
       <button id="tunerBtn" class="btn tuner-toggle">🎯 チューナーだけ使う</button>
       <button id="mediaKeyBtn" class="btn mediakey">🎧 イヤホン/ボタンで録音操作</button>
     </div>
@@ -754,6 +765,7 @@
   let playRAF = 0, playhead = null;
   let speed = 1, loopOn = false, previewURL = null;
   let hifi = true; // 高音質（音楽向け）録音
+  let mics = [], micId = ''; // マイク選択（'' = 自動・内蔵優先）
   let refA = 442;           // チューナーの基準ピッチ（Hz）
   let activeSeg = null;     // いま選んでいる区間の番号（分割保存の名前用）
   let bpm = 120, metroTimer = 0, metroOn = false; // メトロノーム
@@ -847,7 +859,18 @@
             googHighpassFilter: false, googTypingNoiseDetection: false, googAudioMirroring: false
           }
         : { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
-      mediaStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
+      mediaStream = await navigator.mediaDevices.getUserMedia({ audio: withMic(audioConstraints) });
+      // 車のBluetoothなどで「通話」扱いになるのを避け、内蔵マイクを優先して録り直す
+      if (!micId) {
+        await refreshMics();
+        const track = mediaStream.getAudioTracks()[0];
+        const builtin = mics.find(d => !isBT(d.label));
+        if (track && isBT(track.label) && builtin) {
+          mediaStream.getTracks().forEach(t => t.stop());
+          audioConstraints.deviceId = { exact: builtin.deviceId };
+          mediaStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
+        }
+      } else { refreshMics(); }
     } catch (e) {
       toast('マイクを使用できません（ブラウザの設定で許可してください）', 'err');
       statusEl.textContent = 'マイクへのアクセスが許可されていません';
@@ -1644,7 +1667,7 @@
   async function startTunerOnly() {
     const ctx = getCtx();
     try {
-      tunerStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      tunerStream = await navigator.mediaDevices.getUserMedia({ audio: withMic({ echoCancellation: false, noiseSuppression: false, autoGainControl: false }) });
     } catch (e) { toast('マイクを使用できません', 'err'); return; }
     const src = ctx.createMediaStreamSource(tunerStream);
     tunerAnalyser = ctx.createAnalyser();
@@ -1928,7 +1951,7 @@
     const ctx = getCtx();
     setAudioSession('play-and-record');
     try {
-      commentStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+      commentStream = await navigator.mediaDevices.getUserMedia({ audio: withMic({ echoCancellation: true, noiseSuppression: true, autoGainControl: true }) });
     } catch (e) { toast('マイクを使用できません', 'err'); return; }
     commentChunks = [];
     commentRec = new MediaRecorder(commentStream);
@@ -2070,7 +2093,7 @@
     stopPreview();
     const ctx = getCtx();
     setAudioSession('play-and-record');
-    try { odStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
+    try { odStream = await navigator.mediaDevices.getUserMedia({ audio: withMic({ echoCancellation: false, noiseSuppression: false, autoGainControl: false }) }); }
     catch (e) { toast('マイクを使用できません', 'err'); return; }
     odChunks = [];
     odRec = new MediaRecorder(odStream);
@@ -2172,7 +2195,7 @@
     if (ltActive) return;
     const ctx = getCtx();
     setAudioSession('play-and-record');
-    try { ltStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
+    try { ltStream = await navigator.mediaDevices.getUserMedia({ audio: withMic({ echoCancellation: false, noiseSuppression: false, autoGainControl: false }) }); }
     catch (e) { toast('マイクを使用できません', 'err'); return; }
     const src = ctx.createMediaStreamSource(ltStream);
     const an = ctx.createAnalyser(); an.fftSize = 2048; src.connect(an);
@@ -2262,7 +2285,7 @@
     if (!gameNotes) return;
     if (gameActive) { endGame(true); return; }
     const ctx = getCtx(); setAudioSession('play-and-record');
-    try { gameStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
+    try { gameStream = await navigator.mediaDevices.getUserMedia({ audio: withMic({ echoCancellation: false, noiseSuppression: false, autoGainControl: false }) }); }
     catch (e) { toast('マイクを使用できません', 'err'); return; }
     const src = ctx.createMediaStreamSource(gameStream);
     const an = ctx.createAnalyser(); an.fftSize = 2048; src.connect(an);
@@ -2517,6 +2540,29 @@
   }
   $('toRecBtn').addEventListener('click', () => { showTab('rec'); recBtn.click(); });
   $('hifi').addEventListener('change', (e) => { hifi = e.target.checked; });
+
+  // ---------- マイク選択（Bluetooth通話化を避けて内蔵マイク優先） ----------
+  const micSelect = $('micSelect');
+  function isBT(l) { return /bluetooth|hands.?free|hfp|\bcar\b|カー|ヘッドセット|イヤホン|airpods|buds|wireless|ワイヤレス|\bwf-|\bwh-|\bwi-/i.test(l || ''); }
+  function preferredMicId() {
+    if (micId) return micId;
+    const builtin = mics.find(d => !isBT(d.label)); // 自動：Bluetooth以外（＝内蔵）を優先
+    return builtin ? builtin.deviceId : '';
+  }
+  function withMic(c) { const id = preferredMicId(); if (id) c.deviceId = { exact: id }; return c; }
+  async function refreshMics() {
+    try { mics = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'audioinput'); }
+    catch (_) { mics = []; }
+    const cur = micSelect.value;
+    micSelect.innerHTML = '<option value="">自動（内蔵マイク優先）</option>' +
+      mics.map((d, i) => `<option value="${d.deviceId}">${((d.label || ('マイク ' + (i + 1))) + (isBT(d.label) ? ' 🔵' : '')).replace(/[<>]/g, '')}</option>`).join('');
+    micSelect.value = mics.some(d => d.deviceId === cur) ? cur : '';
+  }
+  micSelect.addEventListener('change', () => { micId = micSelect.value; });
+  if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+    navigator.mediaDevices.addEventListener('devicechange', refreshMics);
+  }
+  refreshMics(); // 起動時（許可後にラベルが埋まる）
 
   // ---------- 初期化 ----------
   nameInput.value = defaultName();
