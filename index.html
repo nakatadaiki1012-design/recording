@@ -121,6 +121,34 @@
   }
   .handle.end::after { border-color: var(--accent-2); }
   .handle.active::after, .handle:focus-visible::after { transform: scale(1.18); }
+  /* つまみの中の「始 / 終」ラベル */
+  .handle span {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    font-size: .72rem; font-weight: 700; color: #1b2233; pointer-events: none; z-index: 1;
+  }
+  .trim-guide { margin: 12px 0 2px; font-size: .82rem; color: var(--muted); text-align: center; }
+  .trim-guide .chip-s, .trim-guide .chip-e {
+    display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+    background: #fff; color: #1b2233; font-weight: 700; font-size: .72rem; vertical-align: middle;
+    border: 3px solid var(--accent);
+  }
+  .trim-guide .chip-e { border-color: var(--accent-2); }
+
+  /* 大きな再生ボタン */
+  .player { display: flex; align-items: center; gap: 14px; margin-top: 4px; }
+  .playbig {
+    width: 68px; height: 68px; border-radius: 50%; flex-shrink: 0; cursor: pointer;
+    border: none; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center; box-shadow: 0 6px 18px rgba(108,140,255,.4);
+    transition: transform .1s;
+  }
+  .playbig:active { transform: scale(.94); }
+  .playbig .pic { color: #fff; font-size: 1.7rem; line-height: 1; margin-left: 3px; }
+  .playbig.playing { background: linear-gradient(135deg, #ff7a85, var(--rec)); box-shadow: 0 6px 18px rgba(255,77,94,.4); }
+  .playbig.playing .pic { margin-left: 0; }
+  .player-txt { display: flex; flex-direction: column; gap: 2px; }
+  .player-txt b { font-size: 1.05rem; }
+  .player-txt span { font-size: .78rem; color: var(--muted); }
 
   .fine {
     display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: start; margin-top: 4px;
@@ -379,26 +407,27 @@
 
   <!-- 2. 波形 & トリミング -->
   <section id="editCard" class="card disabled">
-    <h2>波形とトリミング</h2>
+    <h2>① 使う部分を選ぶ</h2>
     <div class="wave-wrap">
       <canvas id="wave"></canvas>
       <div id="waveEmpty" class="wave-empty">録音するとここに波形が表示されます</div>
     </div>
 
+    <p class="trim-guide">下の <span class="chip-s">始</span> と <span class="chip-e">終</span> を左右に動かして、使う部分だけを囲みます</p>
     <div id="range" class="range">
       <div class="track"></div>
       <div id="fill" class="fill" style="left:0;width:100%"></div>
-      <div id="hStart" style="left:0%" class="handle start" role="slider" tabindex="0" aria-label="開始位置"></div>
-      <div id="hEnd" style="left:100%" class="handle end" role="slider" tabindex="0" aria-label="終了位置"></div>
+      <div id="hStart" style="left:0%" class="handle start" role="slider" tabindex="0" aria-label="開始位置"><span>始</span></div>
+      <div id="hEnd" style="left:100%" class="handle end" role="slider" tabindex="0" aria-label="終了位置"><span>終</span></div>
     </div>
 
     <div class="fine">
       <div class="col">
-        <span class="label">開始</span>
+        <span class="label">始まり</span>
         <span id="tStart" class="val">0:00.00</span>
         <div class="nudge">
-          <button data-nudge="start" data-d="-0.1">−0.1s</button>
-          <button data-nudge="start" data-d="0.1">+0.1s</button>
+          <button data-nudge="start" data-d="-0.1">◀ 0.1</button>
+          <button data-nudge="start" data-d="0.1">0.1 ▶</button>
         </div>
       </div>
       <div class="col mid">
@@ -406,31 +435,30 @@
         <span id="tLen" class="val">0:00.00</span>
       </div>
       <div class="col right">
-        <span class="label">終了</span>
+        <span class="label">終わり</span>
         <span id="tEnd" class="val">0:00.00</span>
         <div class="nudge">
-          <button data-nudge="end" data-d="-0.1">−0.1s</button>
-          <button data-nudge="end" data-d="0.1">+0.1s</button>
+          <button data-nudge="end" data-d="-0.1">◀ 0.1</button>
+          <button data-nudge="end" data-d="0.1">0.1 ▶</button>
         </div>
       </div>
     </div>
-
-    <div id="markers" class="markers hidden"></div>
-
     <div class="btn-grid">
-      <button id="autoBtn" class="btn">✂️ 前後の無音カット</button>
-      <button id="resetBtn" class="btn">↺ 全体に戻す</button>
-      <button id="addMarkBtn" class="btn">🚩 開始位置に印を追加</button>
-      <button id="splitBtn" class="btn">📁 無音で自動分割</button>
+      <button id="autoBtn" class="btn">✂️ 前後の無音を自動カット</button>
+      <button id="resetBtn" class="btn">↺ 全部を選ぶ</button>
     </div>
 
-    <div class="play-row">
-      <button id="playBtn" class="btn">▶ 選択範囲を再生</button>
-      <button id="playAllBtn" class="btn">⏮ 最初から通し再生</button>
+    <h2 style="margin-top:20px">② 聞いてみる</h2>
+    <div class="player">
+      <button id="playBtn" class="playbig" aria-label="再生 / 停止"><span class="pic">▶</span></button>
+      <div class="player-txt">
+        <b>選んだ部分を再生</b>
+        <span>もう一度押すと止まります</span>
+      </div>
     </div>
     <div class="play-row">
+      <button id="playAllBtn" class="btn">⏮ 最初から全部</button>
       <button id="loopBtn" class="btn">🔁 くり返し</button>
-      <button id="saveAllBtn" class="btn">⬇️ 全区間まとめて保存</button>
     </div>
     <div class="speed-row">
       <span class="speed-label">速さ</span>
@@ -440,10 +468,15 @@
       <span class="speed-note">音程はそのまま</span>
     </div>
 
-    <div class="play-row">
+    <h2 style="margin-top:20px">③ 印・編集</h2>
+    <div id="markers" class="markers hidden"></div>
+    <div class="btn-grid">
+      <button id="addMarkBtn" class="btn">🚩 開始位置に印を追加</button>
+      <button id="splitBtn" class="btn">📁 無音で自動分割</button>
       <button id="colorBtn" class="btn">🌈 音程で色分け</button>
       <button id="overdubBtn" class="btn">🎚 重ねて録音</button>
     </div>
+    <button id="saveAllBtn" class="btn" style="width:100%;margin-top:10px">⬇️ 全区間をまとめて保存</button>
     <button id="commentBtn" class="btn comment">🎤 口頭コメントを末尾に追加</button>
   </section>
 
@@ -1118,8 +1151,7 @@
     audioEl.currentTime = 0;
     audioEl.play().catch(() => toast('再生できませんでした', 'err'));
     playFrom = a; playTo = e; playBtnActive = btn;
-    btn.textContent = '■ 停止';
-    btn.classList.add('playing');
+    setPlayUI(btn, true);
     const tick = () => {
       if (audioEl.paused) return;
       playhead = Math.min(playTo, playFrom + audioEl.currentTime);
@@ -1140,13 +1172,19 @@
     startPlay(0, audioBuffer.duration, false, playAllBtn);
   });
 
+  // 再生ボタンの見た目切り替え（大きい再生ボタンはアイコン、他は文字）
+  function setPlayUI(btn, on) {
+    if (!btn) return;
+    btn.classList.toggle('playing', on);
+    if (btn === playBtn) { const pic = playBtn.querySelector('.pic'); if (pic) pic.textContent = on ? '■' : '▶'; }
+    else if (btn === playAllBtn) { btn.textContent = on ? '■ 停止' : '⏮ 最初から全部'; }
+  }
   function stopPreview() {
     if (!audioEl.paused) { try { audioEl.pause(); } catch (_) {} }
     cancelAnimationFrame(playRAF);
     playhead = null;
-    if (playBtnActive) { playBtnActive.classList.remove('playing'); }
-    playBtn.textContent = '▶ 選択範囲を再生';
-    playAllBtn.textContent = '⏮ 最初から通し再生';
+    if (playBtnActive) setPlayUI(playBtnActive, false);
+    setPlayUI(playBtn, false); setPlayUI(playAllBtn, false);
     playBtnActive = null;
     drawWave();
   }
