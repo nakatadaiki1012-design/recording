@@ -3,61 +3,94 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f1117">
+<meta name="theme-color" content="#eef1f7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="録音">
+<meta name="apple-mobile-web-app-title" content="Hibiki">
 <meta name="format-detection" content="telephone=no">
-<title>かんたん録音 &amp; トリミング</title>
+<title>Hibiki — 録音・チューナー・採点</title>
 <style>
   :root {
-    --bg: #0f1117;
-    --panel: #181b24;
-    --panel-2: #1f2330;
-    --border: #2a2f3d;
-    --text: #e6e8ee;
-    --muted: #8b91a3;
-    --accent: #6c8cff;
-    --accent-2: #8f6cff;
-    --rec: #ff4d5e;
-    --ok: #3ecf8e;
-    --wave: #5b6478;
-    --wave-sel: #7fa2ff;
-    --radius: 16px;
+    --bg: #eef1f7;
+    --panel: #ffffff;
+    --panel-2: #f1f4fa;
+    --border: #dde3ee;
+    --text: #1b2430;
+    --muted: #737d8c;
+    --accent: #4a63e7;
+    --accent-2: #7b5cf0;
+    --rec: #ef4b5e;
+    --ok: #14a06a;
+    --wave: #aab4c6;
+    --wave-sel: #4a63e7;
+    --ink: #12253a;      /* ゲーム/暗い面 */
+    --radius: 18px;
     --handle: 44px; /* 指で掴みやすいつまみの当たり判定 */
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; }
   html { -webkit-text-size-adjust: 100%; }
   body {
-    background: radial-gradient(900px 500px at 20% -10%, #1b2140 0%, transparent 60%), var(--bg);
+    background:
+      radial-gradient(1000px 520px at 90% -8%, rgba(123,92,240,.10) 0%, transparent 55%),
+      radial-gradient(900px 520px at -10% 0%, rgba(74,99,231,.10) 0%, transparent 55%),
+      var(--bg);
+    background-attachment: fixed;
     color: var(--text);
-    font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", "Segoe UI", sans-serif;
+    font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
     min-height: 100vh; min-height: 100dvh;
-    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
-             max(40px, calc(env(safe-area-inset-bottom) + 24px)) max(16px, env(safe-area-inset-left));
+    padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+             calc(84px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     overscroll-behavior-y: none;
   }
   button { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
   .app { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
-  header { padding: 4px 2px 0; }
-  header h1 { margin: 0; font-size: 1.25rem; letter-spacing: .02em; }
-  header p { margin: 4px 0 0; color: var(--muted); font-size: .8rem; }
+
+  /* ブランドヘッダー */
+  .brand { display: flex; align-items: center; gap: 11px; padding: 6px 2px 2px; }
+  .brand .logo {
+    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center; box-shadow: 0 6px 16px rgba(74,99,231,.28);
+  }
+  .brand .logo svg { width: 22px; height: 22px; }
+  .brand .name { font-size: 1.5rem; font-weight: 800; letter-spacing: -.01em; line-height: 1; }
+  .brand .name small { display: block; font-size: .68rem; font-weight: 500; letter-spacing: .14em; color: var(--muted); margin-top: 3px; }
 
   .card {
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 18px 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    box-shadow: 0 2px 4px rgba(20,30,50,.03), 0 12px 26px rgba(20,30,50,.06);
   }
   .card h2 {
-    margin: 0 0 12px; font-size: .75rem; font-weight: 600;
-    color: var(--muted); letter-spacing: .12em;
+    margin: 0 0 12px; font-size: .95rem; font-weight: 700;
+    color: var(--text); letter-spacing: .01em;
   }
-  .disabled { opacity: .4; pointer-events: none; }
+  .disabled { opacity: .45; pointer-events: none; }
   .hidden { display: none !important; }
+
+  /* ---------- タブ ---------- */
+  [data-tab] { display: none; }
+  [data-tab].on { display: block; }
+  .tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 100; isolation: isolate;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    background: #ffffff;
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -6px 20px rgba(20,30,50,.06);
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+  }
+  .tabbar button {
+    background: none; border: none; cursor: pointer; color: var(--muted);
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font: inherit; font-size: .68rem; font-weight: 600; padding: 6px 2px; border-radius: 12px;
+  }
+  .tabbar button svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .tabbar button.on { color: var(--accent); }
+  .tabbar button.on svg { fill: rgba(74,99,231,.12); }
 
   /* ---------- 録音 ---------- */
   .rec-area { display: flex; flex-direction: column; align-items: center; gap: 12px; }
@@ -164,7 +197,7 @@
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
     min-width: 50px; height: 36px; padding: 0 6px; cursor: pointer; white-space: nowrap;
   }
-  .nudge button:active { background: #2a3044; }
+  .nudge button:active { background: #e4e9f3; }
 
   .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
   .btn-grid .wide { grid-column: 1 / -1; }
@@ -174,7 +207,7 @@
     min-height: 50px; padding: 10px 12px; border-radius: 12px; cursor: pointer;
     transition: background .12s, border-color .12s, transform .08s;
   }
-  button.btn:active { transform: scale(.98); background: #262c3e; }
+  button.btn:active { transform: scale(.98); background: #e9edf6; }
   button.btn.primary {
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     border-color: transparent; color: #fff; font-weight: 600;
@@ -201,7 +234,7 @@
 
   /* 再生・ループ・速度 */
   .play-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-  button.btn.looping { border-color: var(--accent); color: #cdd8ff; background: rgba(108,140,255,.14); }
+  button.btn.looping { border-color: var(--accent); color: var(--accent); background: rgba(108,140,255,.14); }
   .speed-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   .speed-label { font-size: .82rem; color: var(--muted); }
   .speed-note { font-size: .72rem; color: var(--muted); margin-left: auto; }
@@ -210,21 +243,21 @@
     background: var(--panel-2); border: 1px solid var(--border);
     border-radius: 10px; height: 40px; min-width: 56px; cursor: pointer;
   }
-  button.sp.on { background: rgba(108,140,255,.2); border-color: var(--accent); color: #cdd8ff; font-weight: 600; }
+  button.sp.on { background: rgba(108,140,255,.2); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 
   /* 音程・テンポ */
   .an-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
   .an-row .btn { flex-shrink: 0; }
   .an-out { flex: 1; font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.35; }
   .an-out .sub { display: block; font-size: .78rem; font-weight: 400; color: var(--muted); }
-  .an-out.high { color: #ffb454; } .an-out.low { color: #6cc1ff; } .an-out.ok { color: var(--ok); }
+  .an-out.high { color: #c47a1e; } .an-out.low { color: #2f7fd6; } .an-out.ok { color: var(--ok); }
   .an-ref { display: flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--muted); margin-bottom: 14px; flex-wrap: wrap; }
   button.ref {
     font: inherit; font-size: .82rem; color: var(--text);
     background: var(--panel-2); border: 1px solid var(--border);
     border-radius: 8px; height: 34px; min-width: 46px; cursor: pointer;
   }
-  button.ref.on { background: rgba(108,140,255,.2); border-color: var(--accent); color: #cdd8ff; }
+  button.ref.on { background: rgba(108,140,255,.2); border-color: var(--accent); color: var(--accent); }
 
   /* ---------- ファイル名 ---------- */
   .tags { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
@@ -234,7 +267,7 @@
     border: 1px solid var(--border); border-radius: 999px; height: 40px; padding: 0 4px;
     transition: all .12s; white-space: nowrap;
   }
-  .tag.on { background: rgba(108,140,255,.2); border-color: var(--accent); color: #cdd8ff; }
+  .tag.on { background: rgba(108,140,255,.2); border-color: var(--accent); color: var(--accent); }
   .name-box {
     display: flex; align-items: center;
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px;
@@ -253,7 +286,7 @@
   .toast {
     position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 20px);
     transform: translateX(-50%) translateY(20px);
-    background: #232838; border: 1px solid var(--border); color: var(--text);
+    background: #232838; border: 1px solid #232838; color: #fff;
     padding: 12px 18px; border-radius: 12px; font-size: .9rem; text-align: center;
     opacity: 0; pointer-events: none; transition: all .25s; width: max-content; max-width: calc(100% - 32px);
     z-index: 10;
@@ -275,7 +308,7 @@
   /* チューナー */
   .tuner { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; }
   .tuner-note { font-size: 2rem; font-weight: 700; line-height: 1; min-height: 1em; }
-  .tuner-note.ok { color: var(--ok); } .tuner-note.high { color: #ffb454; } .tuner-note.low { color: #6cc1ff; }
+  .tuner-note.ok { color: var(--ok); } .tuner-note.high { color: #c47a1e; } .tuner-note.low { color: #2f7fd6; }
   .tuner-scale { display: flex; align-items: center; gap: 10px; width: 100%; color: var(--muted); font-size: .9rem; }
   .tuner-bar {
     position: relative; flex: 1; height: 26px; border-radius: 8px;
@@ -291,7 +324,7 @@
   }
   .tuner-cents { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; min-height: 1.2em; }
   button.btn.tuner-toggle { width: 100%; margin-top: 2px; }
-  button.btn.tuner-toggle.on { border-color: var(--accent); color: #cdd8ff; background: rgba(108,140,255,.14); }
+  button.btn.tuner-toggle.on { border-color: var(--accent); color: var(--accent); background: rgba(108,140,255,.14); }
 
   /* メトロノーム */
   #metroCard { padding-bottom: 16px; }
@@ -300,7 +333,7 @@
     font: inherit; font-size: 1rem; color: var(--text); background: var(--panel-2);
     border: 1px solid var(--border); border-radius: 10px; width: 56px; height: 48px; cursor: pointer;
   }
-  .metro-adj:active { background: #2a3044; }
+  .metro-adj:active { background: #e4e9f3; }
   .metro-bpm { flex: 1; text-align: center; }
   .metro-bpm b { font-size: 1.8rem; font-variant-numeric: tabular-nums; }
   .metro-bpm small { color: var(--muted); margin-left: 4px; }
@@ -311,7 +344,7 @@
 
   /* 口頭コメント録音ボタン */
   button.btn.comment { width: 100%; margin-top: 10px; }
-  button.btn.comment.rec { border-color: var(--rec); color: #ffd0d5; background: rgba(255,77,94,.14); }
+  button.btn.comment.rec { border-color: var(--rec); color: var(--rec); background: rgba(255,77,94,.14); }
 
   /* 音程の推移グラフ・採譜ロール */
   #pitchGraph, #rollCanvas { width: 100%; height: 150px; display: block; margin-top: 8px;
@@ -322,24 +355,24 @@
   .lt-row { display: flex; align-items: center; gap: 12px; }
   .lt-row .btn { flex-shrink: 0; }
   .lt-score { flex: 1; text-align: center; font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .lt-score.g { color: var(--ok); } .lt-score.y { color: #ffb454; } .lt-score.r { color: var(--rec); }
+  .lt-score.g { color: var(--ok); } .lt-score.y { color: #c47a1e; } .lt-score.r { color: var(--rec); }
   .lt-note { margin-top: 10px; text-align: center; font-size: .9rem; color: var(--muted); min-height: 1.3em; }
   .lt-note b { color: var(--text); font-size: 1.1rem; }
 
   /* ゲーム・ハモリ・通知表 */
   .game-setup { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
   #gameCanvas { width: 100%; height: 220px; display: block; margin-top: 10px;
-    background: #0b0e16; border: 1px solid var(--border); border-radius: 12px; }
+    background: var(--ink); border: 1px solid var(--ink); border-radius: 12px; }
   .game-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
   .game-row .btn { flex-shrink: 0; }
   #gameScore { flex: 1; text-align: center; font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-  #gameScore.g { color: var(--ok); } #gameScore.y { color: #ffb454; } #gameScore.r { color: var(--rec); }
+  #gameScore.g { color: var(--ok); } #gameScore.y { color: #c47a1e; } #gameScore.r { color: var(--rec); }
   .harm-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   button.harm {
     font: inherit; font-size: .85rem; color: var(--text);
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; height: 40px; min-width: 62px; cursor: pointer;
   }
-  button.harm.on { background: rgba(143,108,255,.22); border-color: var(--accent-2); color: #d7ccff; font-weight: 600; }
+  button.harm.on { background: rgba(143,108,255,.22); border-color: var(--accent-2); color: var(--accent-2); font-weight: 600; }
   #reportCanvas { width: 100%; display: block; margin-top: 10px; border-radius: 12px; border: 1px solid var(--border); }
 
   /* イヤホン/ボタン操作 */
@@ -360,7 +393,7 @@
     background: none; border: 1px solid var(--border); border-radius: 8px;
     width: 40px; height: 40px; cursor: pointer; flex-shrink: 0;
   }
-  .lib-item button:active { background: #2a3044; }
+  .lib-item button:active { background: #e4e9f3; }
   .lib-item button.playing { border-color: var(--ok); color: var(--ok); }
 
   @media (min-width: 700px) {
@@ -371,12 +404,16 @@
 </head>
 <body>
 <div class="app">
-  <header>
-    <h1>🎙 かんたん録音 &amp; トリミング</h1>
-    <p>すべて端末内で処理されます（サーバー送信なし）</p>
-  </header>
+  <div class="brand">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round">
+        <path d="M4 12h2l2 6 4-14 3 10 2-4h3"/>
+      </svg>
+    </div>
+    <div class="name">Hibiki<small>録る・整える・磨く</small></div>
+  </div>
 
-  <div id="restoreBar" class="restore hidden">
+  <div id="restoreBar" class="restore hidden" data-tab="rec">
     <span id="restoreText">前回の録音があります</span>
     <div class="restore-btns">
       <button id="restoreBtn" class="btn primary">復元する</button>
@@ -385,7 +422,7 @@
   </div>
 
   <!-- 1. 録音 -->
-  <section class="card">
+  <section class="card" data-tab="rec">
     <h2>録音</h2>
     <div class="rec-area">
       <button id="recBtn" class="rec-btn" aria-label="録音開始 / 停止"><span class="dot"></span></button>
@@ -410,7 +447,7 @@
   </section>
 
   <!-- メトロノーム -->
-  <section class="card" id="metroCard">
+  <section class="card" id="metroCard" data-tab="rec">
     <h2>メトロノーム</h2>
     <div class="metro-row">
       <button class="metro-adj" data-bpm="-5">−5</button>
@@ -422,7 +459,7 @@
   </section>
 
   <!-- 2. 波形 & トリミング -->
-  <section id="editCard" class="card disabled">
+  <section id="editCard" class="card disabled" data-tab="edit">
     <h2>① 使う部分を選ぶ</h2>
     <div class="wave-wrap">
       <canvas id="wave"></canvas>
@@ -497,7 +534,7 @@
   </section>
 
   <!-- ロングトーン採点 -->
-  <section class="card" id="longtoneCard">
+  <section class="card" id="longtoneCard" data-tab="practice">
     <h2>ロングトーン採点（基礎練）</h2>
     <p class="hint" style="margin-top:0">同じ音を4秒のばすと、音程と音量の「安定度」を採点します。</p>
     <div class="lt-row">
@@ -508,7 +545,7 @@
   </section>
 
   <!-- 🎮 音程ハイウェイ・ゲーム -->
-  <section class="card" id="gameCard">
+  <section class="card" id="gameCard" data-tab="practice">
     <h2>🎮 音程ハイウェイ・ゲーム</h2>
     <p class="hint" style="margin-top:0">お手本の音符が流れてきます。合わせて演奏すると、玉が道の上を光りながら走ります。</p>
     <div class="game-setup">
@@ -524,7 +561,7 @@
   </section>
 
   <!-- 🎭 ひとりアンサンブル（自動ハモリ） -->
-  <section class="card" id="harmonyCard">
+  <section class="card" id="harmonyCard" data-tab="practice">
     <h2>🎭 ひとりアンサンブル（自動ハモリ）</h2>
     <p class="hint" style="margin-top:0">選んだメロディに、ハモリを自動で重ねます（単音のメロディ向け）。</p>
     <div class="harm-row">
@@ -542,7 +579,7 @@
   </section>
 
   <!-- 🗺 合奏まるごと通知表 -->
-  <section class="card" id="reportCard">
+  <section class="card" id="reportCard" data-tab="practice">
     <h2>🗺 合奏まるごと通知表</h2>
     <p class="hint" style="margin-top:0">選んだ範囲を、音程・テンポ・音量の「成績表」画像にまとめます。</p>
     <button id="reportBtn" class="btn primary" style="width:100%">📊 通知表を作る</button>
@@ -554,7 +591,7 @@
   </section>
 
   <!-- 音程・テンポ -->
-  <section id="analyzeCard" class="card disabled">
+  <section id="analyzeCard" class="card disabled" data-tab="practice">
     <h2>音程・テンポの確認（吹奏楽向け）</h2>
     <div class="an-row">
       <button id="pitchBtn" class="btn">🎵 音程を測定</button>
@@ -581,13 +618,13 @@
   </section>
 
   <!-- 3. ファイル名 & 保存 -->
-  <section id="saveCard" class="card disabled">
+  <section id="saveCard" class="card disabled" data-tab="edit">
     <h2>ファイル名と保存</h2>
     <div class="tags">
-      <button class="tag" data-tag="[会議]">[会議]</button>
-      <button class="tag" data-tag="[アイデア]">[アイデア]</button>
-      <button class="tag" data-tag="[メモ]">[メモ]</button>
-      <button class="tag" data-tag="[取材]">[取材]</button>
+      <button class="tag" data-tag="[合奏]">[合奏]</button>
+      <button class="tag" data-tag="[パート]">[パート]</button>
+      <button class="tag" data-tag="[個人]">[個人]</button>
+      <button class="tag" data-tag="[本番]">[本番]</button>
     </div>
     <label class="name-box">
       <input id="nameInput" type="text" spellcheck="false" autocomplete="off" autocapitalize="off"
@@ -606,13 +643,32 @@
   </section>
 
   <!-- 保存一覧 -->
-  <section id="libCard" class="card">
+  <section id="libCard" class="card" data-tab="lib">
     <h2>保存したもの（この端末だけ）</h2>
     <div id="libList" class="lib-list">
       <p class="hint" id="libEmpty">まだありません。保存するとここに一覧が出ます（聴き返し・再共有・削除ができます）。</p>
     </div>
   </section>
 </div>
+
+<nav class="tabbar" id="tabbar">
+  <button data-go="rec" class="on">
+    <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4"/></svg>
+    録音
+  </button>
+  <button data-go="edit">
+    <svg viewBox="0 0 24 24"><path d="M4 12h2l2-5 3 12 3-9 2 4h4"/></svg>
+    編集
+  </button>
+  <button data-go="practice">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>
+    練習
+  </button>
+  <button data-go="lib">
+    <svg viewBox="0 0 24 24"><path d="M5 4h14v16l-7-4-7 4z"/></svg>
+    保存
+  </button>
+</nav>
 
 <div id="toast" class="toast"></div>
 
@@ -934,6 +990,7 @@
     renderMarkers();
     setSelection(0, audioBuffer.duration);
     saveState(); // 端末内に自動保存
+    showTab('edit'); // 録音が終わったら編集タブへ
   }
 
   // 印のチップを描く。タップで「その印から次の印まで」を選択
@@ -1021,7 +1078,7 @@
         g.fillStyle = (x >= sx && x <= ex) ? cIn : cOut;
         g.fillRect(x, y1, 1, Math.max(1, y2 - y1));
       }
-      g.fillStyle = 'rgba(10,12,18,0.55)';
+      g.fillStyle = 'rgba(241,244,250,0.6)';
       g.fillRect(0, 0, sx, h);
       g.fillRect(ex, 0, w - ex, h);
     }
@@ -1527,7 +1584,7 @@
     tunerNote.textContent = NOTE_JP[idx] + '(' + NOTE_EN[idx] + Math.floor(nearest / 12 - 1) + ')';
     tunerNote.className = 'tuner-note ' + cls;
     tunerNeedle.style.left = (50 + Math.max(-50, Math.min(50, cents))) + '%';
-    tunerNeedle.style.background = cls === 'ok' ? 'var(--ok)' : (cls === 'high' ? '#ffb454' : '#6cc1ff');
+    tunerNeedle.style.background = cls === 'ok' ? 'var(--ok)' : (cls === 'high' ? '#ffb454' : '#2f7fd6');
     tunerCents.textContent = (cents > 0 ? '+' : '') + cents + ' セント ／ ' + f.toFixed(1) + ' Hz';
   }
 
@@ -1808,6 +1865,7 @@
     renderMarkers();
     setSelection(0, audioBuffer.duration);
     restoreBar.classList.add('hidden');
+    showTab('edit');
     vibrate(20);
   });
   discardBtn.addEventListener('click', () => { clearState(); restoreBar.classList.add('hidden'); });
@@ -2328,35 +2386,39 @@
     reportCanvas.width = dispW * dpr; reportCanvas.height = dispH * dpr;
     const W = reportCanvas.width, H = reportCanvas.height, g = reportCanvas.getContext('2d');
     const P = 16 * dpr;
-    g.fillStyle = '#151824'; g.fillRect(0, 0, W, H);
-    g.fillStyle = '#e6e8ee'; g.textBaseline = 'top';
-    g.font = `700 ${17 * dpr}px sans-serif`; g.fillText('🎼 合奏の通知表', P, P);
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#f4f0ff'; g.fillRect(0, 0, W, 6 * dpr); // 上部アクセント帯
+    const grad = g.createLinearGradient(0, 0, W, 0); grad.addColorStop(0, '#4a63e7'); grad.addColorStop(1, '#7b5cf0');
+    g.fillStyle = grad; g.fillRect(0, 0, W, 5 * dpr);
+    g.fillStyle = '#1b2430'; g.textBaseline = 'top';
+    g.font = `800 ${17 * dpr}px sans-serif`; g.fillText('合奏の通知表', P, P + 4 * dpr);
     const d = new Date();
-    g.fillStyle = '#8b91a3'; g.font = `${11 * dpr}px sans-serif`;
-    g.fillText(`${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}  ${(sanitize(nameInput.value) || '').slice(0, 20)}`, P, P + 24 * dpr);
+    g.fillStyle = '#737d8c'; g.font = `${11 * dpr}px sans-serif`;
+    g.fillText(`${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}  ${(sanitize(nameInput.value) || '').slice(0, 20)}`, P, P + 28 * dpr);
     const pitchScore = Math.max(0, Math.min(100, Math.round(100 - s.avgCent * 2.2)));
     const tiles = [
-      { t: '音程スコア', v: pitchScore + '点', c: pitchScore >= 80 ? '#3ecf8e' : pitchScore >= 60 ? '#ffb454' : '#ff6b6b' },
-      { t: '合ってる割合', v: Math.round(s.inTuneRatio * 100) + '%', c: '#7fa2ff' },
-      { t: 'テンポ', v: s.tempo ? '♩=' + s.tempo : '—', c: '#8f6cff' },
-      { t: '長さ', v: s.dur.toFixed(1) + '秒', c: '#e6e8ee' }
+      { t: '音程スコア', v: pitchScore + '点', c: pitchScore >= 80 ? '#14a06a' : pitchScore >= 60 ? '#c47a1e' : '#ef4b5e' },
+      { t: '合ってる割合', v: Math.round(s.inTuneRatio * 100) + '%', c: '#4a63e7' },
+      { t: 'テンポ', v: s.tempo ? '♩=' + s.tempo : '—', c: '#7b5cf0' },
+      { t: '長さ', v: s.dur.toFixed(1) + '秒', c: '#1b2430' }
     ];
-    const tw = (W - P * 2 - 3 * 10 * dpr) / 4, ty = P + 50 * dpr, th = 62 * dpr;
+    const tw = (W - P * 2 - 3 * 10 * dpr) / 4, ty = P + 54 * dpr, th = 62 * dpr;
     tiles.forEach((tile, i) => {
       const x = P + i * (tw + 10 * dpr);
-      g.fillStyle = '#1f2330'; roundRect(g, x, ty, tw, th, 8 * dpr); g.fill();
-      g.fillStyle = '#8b91a3'; g.font = `${9.5 * dpr}px sans-serif`; g.textAlign = 'center';
+      g.fillStyle = '#f1f4fa'; roundRect(g, x, ty, tw, th, 8 * dpr); g.fill();
+      g.fillStyle = '#737d8c'; g.font = `${9.5 * dpr}px sans-serif`; g.textAlign = 'center';
       g.fillText(tile.t, x + tw / 2, ty + 8 * dpr);
-      g.fillStyle = tile.c; g.font = `700 ${16 * dpr}px sans-serif`;
+      g.fillStyle = tile.c; g.font = `800 ${16 * dpr}px sans-serif`;
       g.fillText(tile.v, x + tw / 2, ty + 30 * dpr);
       g.textAlign = 'left';
     });
     // 音程の推移ミニグラフ
     const gy = ty + th + 16 * dpr, gh = H - gy - 44 * dpr, gw = W - P * 2;
-    g.fillStyle = '#0f1117'; roundRect(g, P, gy, gw, gh, 8 * dpr); g.fill();
-    g.strokeStyle = 'rgba(62,207,142,.25)'; g.lineWidth = dpr;
+    g.fillStyle = '#f7f9fd'; roundRect(g, P, gy, gw, gh, 8 * dpr); g.fill();
+    g.fillStyle = 'rgba(20,160,106,.10)'; g.fillRect(P, gy + gh / 2 - gh * 0.18, gw, gh * 0.36);
+    g.strokeStyle = 'rgba(20,160,106,.4)'; g.lineWidth = dpr;
     g.beginPath(); g.moveTo(P, gy + gh / 2); g.lineTo(P + gw, gy + gh / 2); g.stroke();
-    g.strokeStyle = '#6c8cff'; g.lineWidth = 2 * dpr; g.beginPath();
+    g.strokeStyle = '#4a63e7'; g.lineWidth = 2 * dpr; g.beginPath();
     let started = false;
     for (let i = 0; i < s.cents.length; i++) {
       const c = s.cents[i]; if (c == null) { g.stroke(); g.beginPath(); started = false; continue; }
@@ -2367,8 +2429,10 @@
     g.stroke();
     // ひとことコメント
     let msg = pitchScore >= 80 ? 'すばらしい音程！この調子で。' : pitchScore >= 60 ? '音程まずまず。のばす音を意識しよう。' : 'まずはチューナーで基準を合わせよう。';
-    g.fillStyle = '#8b91a3'; g.font = `${11 * dpr}px sans-serif`; g.textBaseline = 'bottom';
+    g.fillStyle = '#737d8c'; g.font = `${11 * dpr}px sans-serif`; g.textBaseline = 'bottom';
     g.fillText(msg, P, H - 14 * dpr);
+    g.fillStyle = '#b6bdc9'; g.font = `${9 * dpr}px sans-serif`; g.textAlign = 'right';
+    g.fillText('Hibiki', W - P, H - 14 * dpr); g.textAlign = 'left';
     reportCanvas.classList.remove('hidden');
   }
   function roundRect(g, x, y, w, h, r) {
@@ -2385,10 +2449,21 @@
     }, 'image/png');
   });
 
+  // ---------- タブ切り替え ----------
+  const tabPanels = Array.from(document.querySelectorAll('[data-tab]'));
+  const tabBtns = Array.from(document.querySelectorAll('.tabbar button'));
+  function showTab(name) {
+    tabPanels.forEach(el => el.classList.toggle('on', el.getAttribute('data-tab') === name));
+    tabBtns.forEach(b => b.classList.toggle('on', b.dataset.go === name));
+    window.scrollTo(0, 0);
+  }
+  tabBtns.forEach(b => b.addEventListener('click', () => showTab(b.dataset.go)));
+
   // ---------- 初期化 ----------
   nameInput.value = defaultName();
   clearLive();
   renderLibrary();
+  showTab('rec');
   loadState().then(st => {
     if (st) {
       const d = new Date(st.at);
