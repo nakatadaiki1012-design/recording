@@ -381,14 +381,15 @@
   .lt-note { margin-top: 10px; text-align: center; font-size: .9rem; color: var(--muted); min-height: 1.3em; }
   .lt-note b { color: var(--text); font-size: 1.1rem; }
 
-  /* ゲーム・ハモリ・通知表 */
+  /* ループ・ハモリ・通知表 */
   .game-setup { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-  #gameCanvas { width: 100%; height: 220px; display: block; margin-top: 10px;
-    background: var(--ink); border: 1px solid var(--ink); border-radius: 12px; }
-  .game-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
-  .game-row .btn { flex-shrink: 0; }
-  #gameScore { flex: 1; text-align: center; font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-  #gameScore.g { color: var(--ok); } #gameScore.y { color: #c47a1e; } #gameScore.r { color: var(--rec); }
+  .loop-adj { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: .82rem; color: var(--muted); flex-wrap: wrap; }
+  button.loopoff {
+    font: inherit; font-size: .8rem; color: var(--text);
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; height: 38px; padding: 0 10px; cursor: pointer;
+  }
+  button.loopoff.on { background: rgba(74,99,231,.16); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  #loopPlay.playing, #loopOver.rec { border-color: var(--rec); color: var(--rec); }
   .harm-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   button.harm {
     font: inherit; font-size: .85rem; color: var(--text);
@@ -585,20 +586,29 @@
     <div id="ltNote" class="lt-note">マイクに向かって音をのばしてください</div>
   </section>
 
-  <!-- 🎮 音程ハイウェイ・ゲーム -->
-  <section class="card" id="gameCard" data-tab="practice">
-    <h2>🎮 音程ハイウェイ・ゲーム</h2>
-    <p class="hint" style="margin-top:0">お手本の音符が流れてきます。合わせて演奏すると、玉が道の上を光りながら走ります。</p>
+  <!-- 🔁 ループ重ね録り（ルーパー） -->
+  <section class="card" id="looperCard" data-tab="practice">
+    <h2>🔁 ループ重ね録り</h2>
+    <p class="hint" style="margin-top:0">土台のループを作り、その上に演奏を何回も重ねられます（イヤホン推奨）。</p>
     <div class="game-setup">
-      <button id="gameFromRec" class="btn">🎼 いまの選択範囲をお手本に</button>
-      <button id="gamePreset" class="btn">🎵 きらきら星（お試し）</button>
+      <button id="loopBase" class="btn">① 選択範囲を土台に</button>
+      <button id="loopPlay" class="btn">▶ ループ再生</button>
     </div>
-    <div id="gameReady" class="lt-note">まず上のどちらかでお手本を用意してください</div>
-    <canvas id="gameCanvas" class="hidden"></canvas>
-    <div class="game-row hidden" id="gameControls">
-      <button id="gameStart" class="btn primary">▶ スタート</button>
-      <div id="gameScore" class="lt-score">—</div>
+    <div class="game-setup">
+      <button id="loopOver" class="btn primary">🎙 重ねて録る（1周）</button>
+      <button id="loopUndo" class="btn">↶ 1つ戻す</button>
     </div>
+    <div class="loop-adj">
+      <span>ズレ調整</span>
+      <button class="loopoff" data-off="-0.12">◀ 早める</button>
+      <button class="loopoff on" data-off="0">0</button>
+      <button class="loopoff" data-off="0.06">遅らせる ▶</button>
+    </div>
+    <div class="game-setup">
+      <button id="loopReset" class="btn">↺ リセット</button>
+      <button id="loopSave" class="btn">💾 ループを保存</button>
+    </div>
+    <div id="loopNote" class="lt-note">「①選択範囲を土台に」から始めてください</div>
   </section>
 
   <!-- 🎭 ひとりアンサンブル（自動ハモリ） -->
@@ -742,8 +752,8 @@
   const colorBtn = $('colorBtn'), overdubBtn = $('overdubBtn');
   const transcribeBtn = $('transcribeBtn'), transcribeOut = $('transcribeOut'), rollCanvas = $('rollCanvas');
   const ltStartBtn = $('ltStartBtn'), ltScore = $('ltScore'), ltNote = $('ltNote');
-  const gameFromRec = $('gameFromRec'), gamePreset = $('gamePreset'), gameReady = $('gameReady');
-  const gameCanvas = $('gameCanvas'), gameControls = $('gameControls'), gameStart = $('gameStart'), gameScore = $('gameScore');
+  const loopBase = $('loopBase'), loopPlay = $('loopPlay'), loopOver = $('loopOver'), loopUndo = $('loopUndo');
+  const loopReset = $('loopReset'), loopSave = $('loopSave'), loopNote = $('loopNote');
   const harmPlay = $('harmPlay'), harmSave = $('harmSave'), harmNote = $('harmNote');
   const reportBtn = $('reportBtn'), reportCanvas = $('reportCanvas'), reportActions = $('reportActions'), reportSave = $('reportSave'), reportShare = $('reportShare');
 
@@ -754,6 +764,7 @@
   // ---------- 状態 ----------
   let audioCtx = null;
   let mediaStream = null, recorder = null, chunks = [];
+  let micSource = null, pcmMode = false, pcmProc = null, pcmZero = null, pcmChunks = [], pcmRate = 0, pcmFrames = 0;
   let analyser = null, liveRAF = 0;
   let recStartTime = 0, timerRAF = 0;
   let wakeLock = null;
@@ -828,13 +839,13 @@
     } catch (_) { wakeLock = null; }
   }
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && recorder && recorder.state === 'recording') keepScreenOn(true);
+    if (document.visibilityState === 'visible' && isRecording()) keepScreenOn(true);
   });
 
   // ---------- 1. 録音 ----------
   let capturePending = false, countinTimer = 0;
   recBtn.addEventListener('click', () => {
-    if (recorder && recorder.state === 'recording') stopRecording();
+    if (isRecording()) stopRecording();
     else if (capturePending) cancelCountIn();
     else startRecording();
   });
@@ -876,13 +887,13 @@
       statusEl.textContent = 'マイクへのアクセスが許可されていません';
       return;
     }
-    const src = ctx.createMediaStreamSource(mediaStream);
+    micSource = ctx.createMediaStreamSource(mediaStream);
     analyser = ctx.createAnalyser();
     analyser.fftSize = 2048; // チューナーの精度のため大きめ
-    src.connect(analyser);
+    micSource.connect(analyser);
     // 電話の着信などでマイクが切れたら録音を止める
     mediaStream.getAudioTracks().forEach(t => t.addEventListener('ended', () => {
-      if (recorder && recorder.state === 'recording') stopRecording();
+      if (isRecording()) stopRecording();
     }));
 
     markers = [];
@@ -914,16 +925,21 @@
     if (!mediaStream) return;
     capturePending = false;
     chunks = [];
-    // できるだけ高音質のコーデック・ビットレートで録る（間に入る圧縮の劣化を最小化）
-    const opts = {};
-    const types = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4', 'audio/webm'];
-    for (const t of types) { if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) { opts.mimeType = t; break; } }
-    opts.audioBitsPerSecond = hifi ? 256000 : 64000;
-    try { recorder = new MediaRecorder(mediaStream, opts); }
-    catch (_) { recorder = new MediaRecorder(mediaStream); }
-    recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
-    recorder.onstop = onRecordingStopped;
-    recorder.start(1000);
+    if (hifi) {
+      // 高音質＝リニアPCMで録音（圧縮も音量自動調整もなし）
+      startPcmCapture();
+    } else {
+      // 軽量＝圧縮録音（ファイル小さめ）
+      const opts = {};
+      const types = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4', 'audio/webm'];
+      for (const t of types) { if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) { opts.mimeType = t; break; } }
+      opts.audioBitsPerSecond = 64000;
+      try { recorder = new MediaRecorder(mediaStream, opts); }
+      catch (_) { recorder = new MediaRecorder(mediaStream); }
+      recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+      recorder.onstop = onRecordingStopped;
+      recorder.start(1000);
+    }
     recStartTime = performance.now();
     statusEl.textContent = '● 録音中… もう一度押すと停止';
     markBtn.classList.remove('hidden');
@@ -944,8 +960,10 @@
     keepScreenOn(false);
   }
 
+  function isRecording() { return pcmMode || (recorder && recorder.state === 'recording'); }
   function stopRecording() {
-    if (recorder && recorder.state !== 'inactive') recorder.stop();
+    if (pcmMode) stopPcmCapture();
+    else if (recorder && recorder.state !== 'inactive') recorder.stop();
     if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
     cancelAnimationFrame(timerRAF);
     cancelAnimationFrame(liveRAF);
@@ -968,7 +986,7 @@
 
   // 録音中に印をつける
   markBtn.addEventListener('click', () => {
-    if (!(recorder && recorder.state === 'recording')) return;
+    if (!isRecording()) return;
     const t = (performance.now() - recStartTime) / 1000;
     markers.push(t);
     vibrate(20);
@@ -1030,21 +1048,54 @@
     }
   }
 
+  // リニアPCM録音（無圧縮・音量自動調整なし）
+  function startPcmCapture() {
+    const ctx = getCtx();
+    pcmMode = true; pcmChunks = []; pcmFrames = 0; pcmRate = ctx.sampleRate;
+    pcmProc = ctx.createScriptProcessor(4096, 1, 1);
+    pcmZero = ctx.createGain(); pcmZero.gain.value = 0; // 自分の声が返らないよう無音で経由
+    pcmProc.onaudioprocess = (e) => {
+      if (!pcmMode) return;
+      const d = e.inputBuffer.getChannelData(0);
+      pcmChunks.push(new Float32Array(d)); pcmFrames += d.length;
+    };
+    micSource.connect(pcmProc); pcmProc.connect(pcmZero); pcmZero.connect(ctx.destination);
+    statusEl.textContent = '● 録音中（高音質PCM）… もう一度押すと停止';
+  }
+  function stopPcmCapture() {
+    pcmMode = false;
+    try { micSource.disconnect(pcmProc); } catch (_) {}
+    try { pcmProc.disconnect(); } catch (_) {}
+    try { pcmZero.disconnect(); } catch (_) {}
+    const buf = getCtx().createBuffer(1, Math.max(1, pcmFrames), pcmRate);
+    const out = buf.getChannelData(0); let o = 0;
+    for (const c of pcmChunks) { out.set(c.subarray(0, Math.min(c.length, out.length - o)), o); o += c.length; }
+    pcmChunks = [];
+    finalizeRecording(buf);
+  }
+
   async function onRecordingStopped() {
     const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
     chunks = [];
+    let decoded;
     try {
       const arr = await blob.arrayBuffer();
-      const decoded = await new Promise((res, rej) => {
+      decoded = await new Promise((res, rej) => {
         const p = getCtx().decodeAudioData(arr, res, rej); // 古い Safari はコールバック形式
         if (p && p.then) p.then(res, rej);
       });
-      audioBuffer = await toMonoLowRate(decoded);
     } catch (e) {
       statusEl.textContent = '音声の読み込みに失敗しました';
       toast('音声の解析に失敗しました', 'err');
       return;
     }
+    await finalizeRecording(decoded);
+  }
+
+  // 録音データを受け取って編集できる状態にする（PCM/圧縮 共通）
+  async function finalizeRecording(rawBuf) {
+    try { audioBuffer = await toMonoLowRate(rawBuf); }
+    catch (e) { statusEl.textContent = '音声の処理に失敗しました'; toast('音声の処理に失敗しました', 'err'); return; }
     timerEl.textContent = fmtTimer(audioBuffer.duration);
     statusEl.textContent = `録音完了（${fmtTime(audioBuffer.duration)}）`;
     editCard.classList.remove('disabled');
@@ -1052,16 +1103,15 @@
     analyzeCard.classList.remove('disabled');
     waveEmpty.style.display = 'none';
     peaks = null; colorGrid = null;
-    // 録音の実測時間よりわずかに長い印は末尾に丸める
     markers = markers.map(t => Math.min(t, audioBuffer.duration)).filter(t => t >= 0).sort((a, b) => a - b);
     pitchOut.textContent = tempoOut.textContent = '—';
     pitchOut.className = tempoOut.className = 'an-out';
     activeSeg = null;
     renderMarkers();
     setSelection(0, audioBuffer.duration);
-    saveState(); // 端末内に自動保存
+    saveState();
     refreshEditTab();
-    showTab('edit'); // 録音が終わったら編集タブへ
+    showTab('edit');
   }
 
   // 印のチップを描く。タップで「その印から次の印まで」を選択
@@ -1661,7 +1711,7 @@
 
   // 録音せずにチューナーだけ使う
   tunerBtn.addEventListener('click', () => {
-    if (recorder && recorder.state === 'recording') return;
+    if (isRecording()) return;
     if (tunerStream) { stopTunerOnly(); } else { startTunerOnly(); }
   });
   async function startTunerOnly() {
@@ -1690,7 +1740,7 @@
     cancelAnimationFrame(tunerRAF);
     tunerBtn.classList.remove('on');
     tunerBtn.textContent = '🎯 チューナーだけ使う';
-    if (!(recorder && recorder.state === 'recording')) { tunerBox.classList.add('hidden'); showTuner(-1); }
+    if (!isRecording()) { tunerBox.classList.add('hidden'); showTuner(-1); }
   }
 
   // ---------- メトロノーム ----------
@@ -2056,8 +2106,8 @@
       navigator.mediaSession.metadata = new MediaMetadata({ title: '録音アプリ', artist: 'ボタンで録音操作' });
       navigator.mediaSession.setActionHandler('play', () => recBtn.click());
       navigator.mediaSession.setActionHandler('pause', () => recBtn.click());
-      navigator.mediaSession.setActionHandler('nexttrack', () => { if (recorder && recorder.state === 'recording') markBtn.click(); });
-      navigator.mediaSession.setActionHandler('previoustrack', () => { if (recorder && recorder.state === 'recording') markBtn.click(); });
+      navigator.mediaSession.setActionHandler('nexttrack', () => { if (isRecording()) markBtn.click(); });
+      navigator.mediaSession.setActionHandler('previoustrack', () => { if (isRecording()) markBtn.click(); });
     } catch (_) {}
     mediaKeyOn = true; mediaKeyBtn.classList.add('on'); mediaKeyBtn.textContent = '🎧 ボタン操作：オン';
     toast('イヤホン等の再生ボタンで録音の開始/停止ができます', 'ok');
@@ -2072,7 +2122,7 @@
     const tag = (e.target && e.target.tagName || '').toLowerCase();
     if (tag === 'input' || tag === 'textarea' || tag === 'button') return; // 二重発火や入力の邪魔を防ぐ
     if (e.code === 'Space') { e.preventDefault(); recBtn.click(); }
-    else if (e.key === 'm' || e.key === 'M') { if (recorder && recorder.state === 'recording') { e.preventDefault(); markBtn.click(); } }
+    else if (e.key === 'm' || e.key === 'M') { if (isRecording()) { e.preventDefault(); markBtn.click(); } }
   });
 
   // ---------- 🌈 音程で色分け表示 ----------
@@ -2245,121 +2295,93 @@
     vibrate(score >= 80 ? [20, 60, 20] : 20);
   }
 
-  // ========== 🎮 音程ハイウェイ・ゲーム ==========
-  let gameNotes = null, gameLo = 0, gameHi = 0, gameGuide = null;
-  let gameStream = null, gameRAF = 0, gameT0 = 0, gameActive = false, gameHitByNote = null;
-  function computeGameRange() {
-    gameLo = Infinity; gameHi = -Infinity;
-    gameNotes.forEach(n => { gameLo = Math.min(gameLo, n.midi); gameHi = Math.max(gameHi, n.midi); });
-    gameLo -= 3; gameHi += 3;
-  }
-  function setGameNotes(notes) {
-    if (!notes || !notes.length) { toast('お手本が用意できませんでした', 'err'); return; }
-    gameNotes = notes; computeGameRange();
-    const end = notes[notes.length - 1].t + notes[notes.length - 1].dur;
-    gameReady.textContent = `お手本：${notes.length}音・${end.toFixed(1)}秒。スタートを押してね`;
-    gameCanvas.classList.remove('hidden'); gameControls.classList.remove('hidden');
-    drawGame(-1.2, null, end);
-  }
-  gameFromRec.addEventListener('click', () => {
+  // ========== 🔁 ループ重ね録り（ルーパー） ==========
+  let loopBuf = null, loopHist = [], loopSrc = null, loopPlaying = false, loopOff = 0, loopBusy = false;
+  function loopSetNote(t) { loopNote.textContent = t; }
+  loopBase.addEventListener('click', () => {
     if (!audioBuffer) { toast('先に録音してください', 'err'); return; }
-    stopPreview(); setGameNotes(transcribeNotes());
+    stopLoop();
+    const { data, sr } = selectedMono();
+    if (data.length < sr * 0.2) { toast('もう少し長い範囲を選んでください', 'err'); return; }
+    const nb = getCtx().createBuffer(1, data.length, sr);
+    nb.getChannelData(0).set(data);
+    loopBuf = nb; loopHist = [];
+    loopSetNote(`土台ループ ${nb.duration.toFixed(1)}秒。▶ループ再生や🎙重ねて録るへ`);
+    toast('土台ループを作りました', 'ok'); vibrate(15);
   });
-  gamePreset.addEventListener('click', () => {
-    const seq = [0,0,7,7,9,9,7, 5,5,4,4,2,2,0, 7,7,5,5,4,4,2, 7,7,5,5,4,4,2, 0,0,7,7,9,9,7, 5,5,4,4,2,2,0];
-    const base = 60, beat = 0.5;
-    setGameNotes(seq.map((s, i) => ({ midi: base + s, t: i * beat, dur: beat * 0.9 })));
-  });
-  function makeGuide(ctx) {
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = 'triangle'; g.gain.value = 0; o.connect(g); g.connect(ctx.destination); o.start();
-    return {
-      update: (midi, on) => {
-        if (midi != null && on) { o.frequency.setTargetAtTime(refA * Math.pow(2, (midi - 69) / 12), ctx.currentTime, 0.01); g.gain.setTargetAtTime(0.05, ctx.currentTime, 0.02); }
-        else g.gain.setTargetAtTime(0, ctx.currentTime, 0.02);
-      },
-      stop: () => { try { o.stop(); } catch (_) {} }
-    };
+  function startLoop() {
+    if (!loopBuf) return;
+    const ctx = getCtx();
+    loopSrc = ctx.createBufferSource(); loopSrc.buffer = loopBuf; loopSrc.loop = true;
+    loopSrc.connect(ctx.destination); loopSrc.start();
+    loopPlaying = true; loopPlay.textContent = '■ 停止'; loopPlay.classList.add('playing');
   }
-  gameStart.addEventListener('click', async () => {
-    if (!gameNotes) return;
-    if (gameActive) { endGame(true); return; }
+  function stopLoop() {
+    if (loopSrc) { try { loopSrc.stop(); } catch (_) {} loopSrc = null; }
+    loopPlaying = false; loopPlay.textContent = '▶ ループ再生'; loopPlay.classList.remove('playing');
+  }
+  loopPlay.addEventListener('click', () => {
+    if (!loopBuf) { toast('先に土台ループを作ってください', 'err'); return; }
+    loopPlaying ? stopLoop() : startLoop();
+  });
+  // ループを1周ぶん再生しながら録音し、重ねる
+  loopOver.addEventListener('click', async () => {
+    if (!loopBuf) { toast('先に土台ループを作ってください', 'err'); return; }
+    if (loopBusy) return;
+    loopBusy = true; stopLoop();
     const ctx = getCtx(); setAudioSession('play-and-record');
-    try { gameStream = await navigator.mediaDevices.getUserMedia({ audio: withMic({ echoCancellation: false, noiseSuppression: false, autoGainControl: false }) }); }
-    catch (e) { toast('マイクを使用できません', 'err'); return; }
-    const src = ctx.createMediaStreamSource(gameStream);
-    const an = ctx.createAnalyser(); an.fftSize = 2048; src.connect(an);
-    const buf = new Float32Array(an.fftSize);
-    gameActive = true; gameStart.textContent = '■ やめる';
-    gameScore.textContent = '—'; gameScore.className = 'lt-score';
-    gameHitByNote = gameNotes.map(() => ({ hit: 0, total: 0 }));
-    gameGuide = makeGuide(ctx);
-    const total = gameNotes[gameNotes.length - 1].t + gameNotes[gameNotes.length - 1].dur;
-    gameT0 = performance.now() / 1000 + 1.5; // 1.5秒の助走
-    const loop = () => {
-      const now = performance.now() / 1000 - gameT0;
-      an.getFloatTimeDomainData(buf);
-      let rms = 0; for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i]; rms = Math.sqrt(rms / buf.length);
-      const f = autoCorrelate(buf, ctx.sampleRate);
-      const liveMidi = (f > 0 && rms > 0.01) ? (69 + 12 * Math.log2(f / refA)) : null;
-      let targetMidi = null, activeIdx = -1;
-      for (let i = 0; i < gameNotes.length; i++) { const n = gameNotes[i]; if (now >= n.t && now < n.t + n.dur) { targetMidi = n.midi; activeIdx = i; break; } }
-      if (activeIdx >= 0 && now >= 0) { gameHitByNote[activeIdx].total++; if (liveMidi != null && Math.abs(liveMidi - targetMidi) <= 0.6) gameHitByNote[activeIdx].hit++; }
-      if (gameGuide) gameGuide.update(targetMidi, now >= 0);
-      drawGame(now, liveMidi, total);
-      if (now < total + 0.5) gameRAF = requestAnimationFrame(loop);
-      else endGame(false);
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: withMic({ echoCancellation: false, noiseSuppression: false, autoGainControl: false }) }); }
+    catch (e) { toast('マイクを使用できません', 'err'); loopBusy = false; return; }
+    const rate = loopBuf.sampleRate, len = loopBuf.length;
+    const rec = new Float32Array(len); let pos = 0;
+    const src = ctx.createMediaStreamSource(stream);
+    const proc = ctx.createScriptProcessor(2048, 1, 1);
+    const zero = ctx.createGain(); zero.gain.value = 0;
+    src.connect(proc); proc.connect(zero); zero.connect(ctx.destination);
+    const play = ctx.createBufferSource(); play.buffer = loopBuf; play.connect(ctx.destination); play.start();
+    proc.onaudioprocess = (e) => {
+      const d = e.inputBuffer.getChannelData(0);
+      for (let i = 0; i < d.length && pos < len; i++) rec[pos++] = d[i];
     };
-    loop();
+    loopOver.classList.add('rec'); loopOver.textContent = '● 重ね録り中…'; loopSetNote('演奏してください（1周）');
+    await new Promise(r => setTimeout(r, loopBuf.duration * 1000 + 250));
+    proc.disconnect(); zero.disconnect(); try { src.disconnect(); } catch (_) {}
+    stream.getTracks().forEach(t => t.stop());
+    try { play.stop(); } catch (_) {}
+    const shift = Math.round(loopOff * rate);
+    loopHist.push(loopBuf);
+    if (loopHist.length > 12) loopHist.shift();
+    const nb = ctx.createBuffer(1, len, rate), out = nb.getChannelData(0), base = loopBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      const j = ((i + shift) % len + len) % len; // ループなので回り込み
+      let v = base[i] * 0.92 + rec[j] * 0.92;
+      out[i] = v < -1 ? -1 : v > 1 ? 1 : v;
+    }
+    loopBuf = nb;
+    loopOver.classList.remove('rec'); loopOver.textContent = '🎙 重ねて録る（1周）';
+    loopSetNote(`重ねました（${loopHist.length}回）。続けて重ねる／▶で聴く／💾保存`);
+    vibrate(15); loopBusy = false;
+    startLoop();
   });
-  function endGame(cancelled) {
-    cancelAnimationFrame(gameRAF);
-    if (gameStream) { gameStream.getTracks().forEach(t => t.stop()); gameStream = null; }
-    if (gameGuide) { gameGuide.stop(); gameGuide = null; }
-    gameActive = false; gameStart.textContent = '▶ スタート';
-    if (cancelled) return;
-    let sum = 0, cnt = 0;
-    gameHitByNote.forEach(o => { if (o.total > 0) { sum += o.hit / o.total; cnt++; } });
-    const score = cnt ? Math.round(sum / cnt * 100) : 0;
-    gameScore.textContent = score;
-    gameScore.className = 'lt-score ' + (score >= 80 ? 'g' : score >= 50 ? 'y' : 'r');
-    const st = Math.round(score / 20);
-    gameReady.innerHTML = '★'.repeat(st) + '☆'.repeat(5 - st) + ` ／ ${score}点`;
-    vibrate(score >= 80 ? [20, 60, 20] : 20);
-  }
-  function drawGame(now, liveMidi, total) {
-    if (!gameNotes) return;
-    const { w, h, dpr } = fitCanvas(gameCanvas), g = gameCanvas.getContext('2d');
-    g.clearRect(0, 0, w, h);
-    const nowX = w * 0.28, pps = w / 3.2, lo = gameLo, hi = gameHi, rows = hi - lo || 1;
-    const y = m => h - ((m - lo) / rows) * h;
-    for (let m = Math.ceil(lo); m <= hi; m++) {
-      const yy = y(m), c = ((m % 12) + 12) % 12;
-      g.strokeStyle = c === 0 ? 'rgba(255,255,255,.14)' : 'rgba(255,255,255,.04)';
-      g.lineWidth = dpr; g.beginPath(); g.moveTo(0, yy); g.lineTo(w, yy); g.stroke();
-      if (c === 0) { g.fillStyle = 'rgba(255,255,255,.3)'; g.font = `${10 * dpr}px sans-serif`; g.textBaseline = 'bottom'; g.fillText('ド', 3 * dpr, yy - 2 * dpr); }
-    }
-    gameNotes.forEach((n, i) => {
-      const x1 = nowX + (n.t - now) * pps, x2 = nowX + (n.t + n.dur - now) * pps;
-      if (x2 < 0 || x1 > w) return;
-      const yy = y(n.midi), bh = Math.max(6 * dpr, h / rows * 0.7);
-      const active = now >= n.t && now < n.t + n.dur;
-      g.fillStyle = active ? '#ffd36c' : 'rgba(108,140,255,.7)';
-      g.fillRect(x1, yy - bh / 2, Math.max(3 * dpr, x2 - x1), bh);
-      const c = ((n.midi % 12) + 12) % 12;
-      if (x2 - x1 > 14 * dpr) { g.fillStyle = '#0b0e16'; g.font = `${10 * dpr}px sans-serif`; g.textBaseline = 'middle'; g.fillText(NOTE_JP[c], x1 + 3 * dpr, yy); }
-    });
-    g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 2 * dpr; g.beginPath(); g.moveTo(nowX, 0); g.lineTo(nowX, h); g.stroke();
-    if (liveMidi != null) {
-      const my = y(Math.max(lo, Math.min(hi, liveMidi)));
-      let good = false;
-      gameNotes.forEach(n => { if (now >= n.t && now < n.t + n.dur && Math.abs(liveMidi - n.midi) <= 0.6) good = true; });
-      g.fillStyle = good ? '#3ecf8e' : '#ff6b6b'; g.beginPath(); g.arc(nowX, my, 9 * dpr, 0, Math.PI * 2); g.fill();
-      g.strokeStyle = '#fff'; g.lineWidth = 2 * dpr; g.stroke();
-    }
-    const prog = Math.max(0, Math.min(1, now / (total || 1)));
-    g.fillStyle = 'rgba(108,140,255,.6)'; g.fillRect(0, h - 3 * dpr, w * prog, 3 * dpr);
-  }
+  loopUndo.addEventListener('click', () => {
+    if (!loopHist.length) { toast('戻せる履歴がありません', 'err'); return; }
+    stopLoop(); loopBuf = loopHist.pop();
+    loopSetNote(`1つ戻しました（残り履歴 ${loopHist.length}）`);
+  });
+  loopReset.addEventListener('click', () => { stopLoop(); loopBuf = null; loopHist = []; loopSetNote('リセットしました。「①選択範囲を土台に」から'); });
+  document.querySelectorAll('.loopoff').forEach(b => b.addEventListener('click', () => {
+    loopOff = parseFloat(b.dataset.off);
+    document.querySelectorAll('.loopoff').forEach(x => x.classList.toggle('on', x === b));
+  }));
+  loopSave.addEventListener('click', async () => {
+    if (!loopBuf) { toast('先にループを作ってください', 'err'); return; }
+    stopLoop();
+    const blob = encodeWav(loopBuf, 0, loopBuf.duration);
+    const name = await uniqueName((sanitize(nameInput.value) || defaultName()) + '_ループ');
+    downloadBlob(blob, name); await libAdd(name, blob); renderLibrary();
+    toast('ループを保存しました', 'ok');
+  });
 
   // ========== 🎭 ひとりアンサンブル（自動ハモリ） ==========
   let harmSemi = -3, harmSrc = null;
@@ -2583,7 +2605,7 @@
     resizeTimer = setTimeout(() => {
       peaks = null; colorGrid = null;
       drawWave();
-      if (!(recorder && recorder.state === 'recording')) clearLive();
+      if (!isRecording()) clearLive();
     }, 100);
   });
 })();
