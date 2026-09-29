@@ -363,6 +363,10 @@
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
   }
   .michint { width: 100%; margin: 6px 0 0; font-size: .74rem; color: var(--muted); line-height: 1.5; }
+  .stt-text { width: 100%; margin-top: 10px; font: inherit; font-size: 16px; color: var(--text);
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px;
+    line-height: 1.7; resize: vertical; min-height: 120px; }
+  #sttToggle.rec { background: linear-gradient(135deg, #ff7a85, var(--rec)); }
 
   /* 口頭コメント録音ボタン */
   button.btn.comment { width: 100%; margin-top: 10px; }
@@ -486,6 +490,22 @@
       <button id="metroToggle" class="btn">▶ 鳴らす</button>
     </div>
     <label class="metro-check"><input type="checkbox" id="countin"> 録音前に1小節（4拍）カウントインする</label>
+  </section>
+
+  <!-- 📝 文字起こし（実験） -->
+  <section class="card" id="sttCard" data-tab="rec">
+    <h2>📝 文字起こし（実験）</h2>
+    <p class="hint" style="margin-top:0">話した言葉を文字にします。<b>ネット接続が必要</b>で、Chrome/Android向けです（iPhoneのSafariは使えないことがあります）。</p>
+    <div class="game-setup">
+      <button id="sttToggle" class="btn primary">🎙 文字起こし開始</button>
+      <button id="sttClear" class="btn">クリア</button>
+    </div>
+    <textarea id="sttText" class="stt-text" placeholder="ここに文字が表示されます" rows="5"></textarea>
+    <div class="game-setup">
+      <button id="sttCopy" class="btn">📋 コピー</button>
+      <button id="sttSave" class="btn">💾 テキスト保存(.txt)</button>
+    </div>
+    <div id="sttNote" class="lt-note"></div>
   </section>
 
   <!-- 録音がまだ無いときの案内（編集タブ） -->
@@ -2117,6 +2137,59 @@
     try { ['play', 'pause', 'nexttrack', 'previoustrack'].forEach(a => navigator.mediaSession.setActionHandler(a, null)); } catch (_) {}
     mediaKeyOn = false; mediaKeyBtn.classList.remove('on'); mediaKeyBtn.textContent = '🎧 イヤホン/ボタンで録音操作';
   }
+  // ---------- 📝 文字起こし（実験・Web Speech API） ----------
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const sttToggle = $('sttToggle'), sttClear = $('sttClear'), sttText = $('sttText'), sttCopy = $('sttCopy'), sttSave = $('sttSave'), sttNote = $('sttNote');
+  let sttRec = null, sttOn = false, sttFinal = '';
+  if (!SR) {
+    sttToggle.disabled = true; sttToggle.classList.add('disabled');
+    sttNote.textContent = 'この端末/ブラウザでは使えません（Chromeを試してください）';
+  }
+  sttToggle.addEventListener('click', () => { sttOn ? sttStop() : sttStart(); });
+  function sttStart() {
+    if (!SR) return;
+    try {
+      sttRec = new SR(); sttRec.lang = 'ja-JP'; sttRec.continuous = true; sttRec.interimResults = true;
+      sttRec.onresult = (e) => {
+        let interim = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const r = e.results[i];
+          if (r.isFinal) sttFinal += r[0].transcript; else interim += r[0].transcript;
+        }
+        sttText.value = sttFinal;
+        sttNote.textContent = interim ? '認識中… ' + interim : '';
+        sttText.scrollTop = sttText.scrollHeight;
+      };
+      sttRec.onerror = (e) => {
+        sttNote.textContent = 'エラー: ' + (e.error === 'not-allowed' ? 'マイクが許可されていません' : e.error === 'network' ? 'ネット接続が必要です' : e.error);
+      };
+      sttRec.onend = () => {
+        if (sttOn) { try { sttRec.start(); } catch (_) {} } // 無音で止まったら自動再開
+        else { sttToggle.textContent = '🎙 文字起こし開始'; sttToggle.classList.remove('rec'); }
+      };
+      sttOn = true; sttRec.start();
+      sttToggle.textContent = '■ 停止'; sttToggle.classList.add('rec'); sttNote.textContent = '話してください…';
+    } catch (e) { sttNote.textContent = '開始できませんでした'; }
+  }
+  function sttStop() {
+    sttOn = false;
+    if (sttRec) { try { sttRec.stop(); } catch (_) {} }
+    sttToggle.textContent = '🎙 文字起こし開始'; sttToggle.classList.remove('rec');
+  }
+  sttText.addEventListener('input', () => { sttFinal = sttText.value; }); // 手直しを反映
+  sttClear.addEventListener('click', () => { sttFinal = ''; sttText.value = ''; sttNote.textContent = ''; });
+  sttCopy.addEventListener('click', async () => {
+    if (!sttText.value.trim()) { toast('文字がありません', 'err'); return; }
+    try { await navigator.clipboard.writeText(sttText.value); toast('コピーしました', 'ok'); }
+    catch (_) { toast('コピーできませんでした', 'err'); }
+  });
+  sttSave.addEventListener('click', () => {
+    const t = sttText.value.trim();
+    if (!t) { toast('文字がありません', 'err'); return; }
+    downloadBlob(new Blob([t], { type: 'text/plain' }), (sanitize(nameInput.value) || defaultName()) + '_文字起こし.txt');
+    toast('テキストを保存しました', 'ok');
+  });
+
   // キーボード（BTキーボードや一部リモコン）：スペース＝録音/停止、M＝印
   document.addEventListener('keydown', (e) => {
     const tag = (e.target && e.target.tagName || '').toLowerCase();
