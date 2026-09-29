@@ -839,7 +839,13 @@
     try {
       // 高音質（音楽向け）は通話用処理をOFFにして、マイクを高音質モードのまま使う
       const audioConstraints = hifi
-        ? { echoCancellation: false, noiseSuppression: false, autoGainControl: false, sampleRate: 48000, channelCount: 1 }
+        ? {
+            echoCancellation: false, noiseSuppression: false, autoGainControl: false,
+            sampleRate: 48000, channelCount: 1,
+            // 一部ブラウザ用の追加指定：内蔵のノイズ処理・ハイパスフィルタも切る
+            googEchoCancellation: false, googAutoGainControl: false, googNoiseSuppression: false,
+            googHighpassFilter: false, googTypingNoiseDetection: false, googAudioMirroring: false
+          }
         : { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
       mediaStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
     } catch (e) {
@@ -885,7 +891,13 @@
     if (!mediaStream) return;
     capturePending = false;
     chunks = [];
-    recorder = new MediaRecorder(mediaStream);
+    // できるだけ高音質のコーデック・ビットレートで録る（間に入る圧縮の劣化を最小化）
+    const opts = {};
+    const types = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4', 'audio/webm'];
+    for (const t of types) { if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) { opts.mimeType = t; break; } }
+    opts.audioBitsPerSecond = hifi ? 256000 : 64000;
+    try { recorder = new MediaRecorder(mediaStream, opts); }
+    catch (_) { recorder = new MediaRecorder(mediaStream); }
     recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
     recorder.onstop = onRecordingStopped;
     recorder.start(1000);
