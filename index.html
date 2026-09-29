@@ -326,6 +326,22 @@
   .lt-note { margin-top: 10px; text-align: center; font-size: .9rem; color: var(--muted); min-height: 1.3em; }
   .lt-note b { color: var(--text); font-size: 1.1rem; }
 
+  /* ゲーム・ハモリ・通知表 */
+  .game-setup { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  #gameCanvas { width: 100%; height: 220px; display: block; margin-top: 10px;
+    background: #0b0e16; border: 1px solid var(--border); border-radius: 12px; }
+  .game-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  .game-row .btn { flex-shrink: 0; }
+  #gameScore { flex: 1; text-align: center; font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  #gameScore.g { color: var(--ok); } #gameScore.y { color: #ffb454; } #gameScore.r { color: var(--rec); }
+  .harm-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  button.harm {
+    font: inherit; font-size: .85rem; color: var(--text);
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; height: 40px; min-width: 62px; cursor: pointer;
+  }
+  button.harm.on { background: rgba(143,108,255,.22); border-color: var(--accent-2); color: #d7ccff; font-weight: 600; }
+  #reportCanvas { width: 100%; display: block; margin-top: 10px; border-radius: 12px; border: 1px solid var(--border); }
+
   /* イヤホン/ボタン操作 */
   button.btn.mediakey { width: 100%; margin-top: 2px; }
   button.btn.mediakey.on { border-color: var(--ok); color: var(--ok); background: rgba(62,207,142,.12); }
@@ -491,6 +507,52 @@
     <div id="ltNote" class="lt-note">マイクに向かって音をのばしてください</div>
   </section>
 
+  <!-- 🎮 音程ハイウェイ・ゲーム -->
+  <section class="card" id="gameCard">
+    <h2>🎮 音程ハイウェイ・ゲーム</h2>
+    <p class="hint" style="margin-top:0">お手本の音符が流れてきます。合わせて演奏すると、玉が道の上を光りながら走ります。</p>
+    <div class="game-setup">
+      <button id="gameFromRec" class="btn">🎼 いまの選択範囲をお手本に</button>
+      <button id="gamePreset" class="btn">🎵 きらきら星（お試し）</button>
+    </div>
+    <div id="gameReady" class="lt-note">まず上のどちらかでお手本を用意してください</div>
+    <canvas id="gameCanvas" class="hidden"></canvas>
+    <div class="game-row hidden" id="gameControls">
+      <button id="gameStart" class="btn primary">▶ スタート</button>
+      <div id="gameScore" class="lt-score">—</div>
+    </div>
+  </section>
+
+  <!-- 🎭 ひとりアンサンブル（自動ハモリ） -->
+  <section class="card" id="harmonyCard">
+    <h2>🎭 ひとりアンサンブル（自動ハモリ）</h2>
+    <p class="hint" style="margin-top:0">選んだメロディに、ハモリを自動で重ねます（単音のメロディ向け）。</p>
+    <div class="harm-row">
+      <span class="speed-label">ハモリ</span>
+      <button class="harm on" data-semi="-3">3度下</button>
+      <button class="harm" data-semi="4">3度上</button>
+      <button class="harm" data-semi="7">5度上</button>
+      <button class="harm" data-semi="-12">8度下</button>
+    </div>
+    <div class="game-setup">
+      <button id="harmPlay" class="btn primary">🎧 ハモリを聴く</button>
+      <button id="harmSave" class="btn">💾 ハモリ入りを保存</button>
+    </div>
+    <div id="harmNote" class="lt-note">合唱・二重奏の練習に。イヤホン推奨。</div>
+  </section>
+
+  <!-- 🗺 合奏まるごと通知表 -->
+  <section class="card" id="reportCard">
+    <h2>🗺 合奏まるごと通知表</h2>
+    <p class="hint" style="margin-top:0">選んだ範囲を、音程・テンポ・音量の「成績表」画像にまとめます。</p>
+    <button id="reportBtn" class="btn primary" style="width:100%">📊 通知表を作る</button>
+    <canvas id="reportCanvas" class="hidden"></canvas>
+    <div class="game-setup hidden" id="reportActions">
+      <button id="reportSave" class="btn">⬇️ 画像を保存</button>
+      <button id="reportShare" class="btn hidden">📤 画像を共有</button>
+    </div>
+  </section>
+
   <!-- 音程・テンポ -->
   <section id="analyzeCard" class="card disabled">
     <h2>音程・テンポの確認（吹奏楽向け）</h2>
@@ -583,6 +645,10 @@
   const colorBtn = $('colorBtn'), overdubBtn = $('overdubBtn');
   const transcribeBtn = $('transcribeBtn'), transcribeOut = $('transcribeOut'), rollCanvas = $('rollCanvas');
   const ltStartBtn = $('ltStartBtn'), ltScore = $('ltScore'), ltNote = $('ltNote');
+  const gameFromRec = $('gameFromRec'), gamePreset = $('gamePreset'), gameReady = $('gameReady');
+  const gameCanvas = $('gameCanvas'), gameControls = $('gameControls'), gameStart = $('gameStart'), gameScore = $('gameScore');
+  const harmPlay = $('harmPlay'), harmSave = $('harmSave'), harmNote = $('harmNote');
+  const reportBtn = $('reportBtn'), reportCanvas = $('reportCanvas'), reportActions = $('reportActions'), reportSave = $('reportSave'), reportShare = $('reportShare');
 
   const TARGET_RATE = 24000;   // 声の録音に十分な音質で、ファイルサイズを約半分にする
   const MIN_LEN = 0.05;        // 選択範囲の最小の長さ（秒）
@@ -1937,9 +2003,8 @@
   }
 
   // ---------- 🎼 単音の自動採譜 ----------
-  transcribeBtn.addEventListener('click', () => {
-    if (!audioBuffer) return;
-    stopPreview();
+  // 選択範囲を採譜して音符の並び [{midi, t, dur}] を返す（ゲームなどでも使う）
+  function transcribeNotes() {
     const { data, sr } = selectedMono();
     const win = 2048, hop = Math.floor(sr * 0.03);
     const midis = [];
@@ -1947,20 +2012,22 @@
       const f = autoCorrelate(data.subarray(i, i + win), sr);
       midis.push(f > 0 ? Math.round(69 + 12 * Math.log2(f / refA)) : -1);
     }
-    // 3コマの中央値で細かいブレを消す
     const med = midis.map((_, k) => {
       const a = [midis[k - 1], midis[k], midis[k + 1]].filter(x => x !== undefined && x >= 0).sort((p, q) => p - q);
       return a.length ? a[Math.floor(a.length / 2)] : -1;
     });
-    // 同じ音が続く区間を1音にまとめる（0.08秒以上）
     const minFrames = Math.max(2, Math.round(0.08 / (hop / sr)));
     const notes = [];
     let cur = -1, start = 0;
     const push = (endK) => { if (cur >= 0 && endK - start >= minFrames) notes.push({ midi: cur, t: start * hop / sr, dur: (endK - start) * hop / sr }); };
-    for (let k = 0; k < med.length; k++) {
-      if (med[k] !== cur) { push(k); cur = med[k]; start = k; }
-    }
+    for (let k = 0; k < med.length; k++) { if (med[k] !== cur) { push(k); cur = med[k]; start = k; } }
     push(med.length);
+    return notes;
+  }
+  transcribeBtn.addEventListener('click', () => {
+    if (!audioBuffer) return;
+    stopPreview();
+    const notes = transcribeNotes();
     if (!notes.length) { transcribeOut.classList.add('hidden'); rollCanvas.classList.add('hidden'); toast('音を検出できませんでした', 'err'); return; }
     transcribeOut.classList.remove('hidden');
     transcribeOut.textContent = notes.map(n => { const i = ((n.midi % 12) + 12) % 12; return NOTE_JP[i]; }).join(' ');
@@ -2047,6 +2114,276 @@
     ltNote.innerHTML = `${stars}<br>音程のブレ ±${pitchStd.toFixed(0)}セント ／ 音量のムラ ${(volCv * 100).toFixed(0)}%`;
     vibrate(score >= 80 ? [20, 60, 20] : 20);
   }
+
+  // ========== 🎮 音程ハイウェイ・ゲーム ==========
+  let gameNotes = null, gameLo = 0, gameHi = 0, gameGuide = null;
+  let gameStream = null, gameRAF = 0, gameT0 = 0, gameActive = false, gameHitByNote = null;
+  function computeGameRange() {
+    gameLo = Infinity; gameHi = -Infinity;
+    gameNotes.forEach(n => { gameLo = Math.min(gameLo, n.midi); gameHi = Math.max(gameHi, n.midi); });
+    gameLo -= 3; gameHi += 3;
+  }
+  function setGameNotes(notes) {
+    if (!notes || !notes.length) { toast('お手本が用意できませんでした', 'err'); return; }
+    gameNotes = notes; computeGameRange();
+    const end = notes[notes.length - 1].t + notes[notes.length - 1].dur;
+    gameReady.textContent = `お手本：${notes.length}音・${end.toFixed(1)}秒。スタートを押してね`;
+    gameCanvas.classList.remove('hidden'); gameControls.classList.remove('hidden');
+    drawGame(-1.2, null, end);
+  }
+  gameFromRec.addEventListener('click', () => {
+    if (!audioBuffer) { toast('先に録音してください', 'err'); return; }
+    stopPreview(); setGameNotes(transcribeNotes());
+  });
+  gamePreset.addEventListener('click', () => {
+    const seq = [0,0,7,7,9,9,7, 5,5,4,4,2,2,0, 7,7,5,5,4,4,2, 7,7,5,5,4,4,2, 0,0,7,7,9,9,7, 5,5,4,4,2,2,0];
+    const base = 60, beat = 0.5;
+    setGameNotes(seq.map((s, i) => ({ midi: base + s, t: i * beat, dur: beat * 0.9 })));
+  });
+  function makeGuide(ctx) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'triangle'; g.gain.value = 0; o.connect(g); g.connect(ctx.destination); o.start();
+    return {
+      update: (midi, on) => {
+        if (midi != null && on) { o.frequency.setTargetAtTime(refA * Math.pow(2, (midi - 69) / 12), ctx.currentTime, 0.01); g.gain.setTargetAtTime(0.05, ctx.currentTime, 0.02); }
+        else g.gain.setTargetAtTime(0, ctx.currentTime, 0.02);
+      },
+      stop: () => { try { o.stop(); } catch (_) {} }
+    };
+  }
+  gameStart.addEventListener('click', async () => {
+    if (!gameNotes) return;
+    if (gameActive) { endGame(true); return; }
+    const ctx = getCtx(); setAudioSession('play-and-record');
+    try { gameStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
+    catch (e) { toast('マイクを使用できません', 'err'); return; }
+    const src = ctx.createMediaStreamSource(gameStream);
+    const an = ctx.createAnalyser(); an.fftSize = 2048; src.connect(an);
+    const buf = new Float32Array(an.fftSize);
+    gameActive = true; gameStart.textContent = '■ やめる';
+    gameScore.textContent = '—'; gameScore.className = 'lt-score';
+    gameHitByNote = gameNotes.map(() => ({ hit: 0, total: 0 }));
+    gameGuide = makeGuide(ctx);
+    const total = gameNotes[gameNotes.length - 1].t + gameNotes[gameNotes.length - 1].dur;
+    gameT0 = performance.now() / 1000 + 1.5; // 1.5秒の助走
+    const loop = () => {
+      const now = performance.now() / 1000 - gameT0;
+      an.getFloatTimeDomainData(buf);
+      let rms = 0; for (let i = 0; i < buf.length; i++) rms += buf[i] * buf[i]; rms = Math.sqrt(rms / buf.length);
+      const f = autoCorrelate(buf, ctx.sampleRate);
+      const liveMidi = (f > 0 && rms > 0.01) ? (69 + 12 * Math.log2(f / refA)) : null;
+      let targetMidi = null, activeIdx = -1;
+      for (let i = 0; i < gameNotes.length; i++) { const n = gameNotes[i]; if (now >= n.t && now < n.t + n.dur) { targetMidi = n.midi; activeIdx = i; break; } }
+      if (activeIdx >= 0 && now >= 0) { gameHitByNote[activeIdx].total++; if (liveMidi != null && Math.abs(liveMidi - targetMidi) <= 0.6) gameHitByNote[activeIdx].hit++; }
+      if (gameGuide) gameGuide.update(targetMidi, now >= 0);
+      drawGame(now, liveMidi, total);
+      if (now < total + 0.5) gameRAF = requestAnimationFrame(loop);
+      else endGame(false);
+    };
+    loop();
+  });
+  function endGame(cancelled) {
+    cancelAnimationFrame(gameRAF);
+    if (gameStream) { gameStream.getTracks().forEach(t => t.stop()); gameStream = null; }
+    if (gameGuide) { gameGuide.stop(); gameGuide = null; }
+    gameActive = false; gameStart.textContent = '▶ スタート';
+    if (cancelled) return;
+    let sum = 0, cnt = 0;
+    gameHitByNote.forEach(o => { if (o.total > 0) { sum += o.hit / o.total; cnt++; } });
+    const score = cnt ? Math.round(sum / cnt * 100) : 0;
+    gameScore.textContent = score;
+    gameScore.className = 'lt-score ' + (score >= 80 ? 'g' : score >= 50 ? 'y' : 'r');
+    const st = Math.round(score / 20);
+    gameReady.innerHTML = '★'.repeat(st) + '☆'.repeat(5 - st) + ` ／ ${score}点`;
+    vibrate(score >= 80 ? [20, 60, 20] : 20);
+  }
+  function drawGame(now, liveMidi, total) {
+    if (!gameNotes) return;
+    const { w, h, dpr } = fitCanvas(gameCanvas), g = gameCanvas.getContext('2d');
+    g.clearRect(0, 0, w, h);
+    const nowX = w * 0.28, pps = w / 3.2, lo = gameLo, hi = gameHi, rows = hi - lo || 1;
+    const y = m => h - ((m - lo) / rows) * h;
+    for (let m = Math.ceil(lo); m <= hi; m++) {
+      const yy = y(m), c = ((m % 12) + 12) % 12;
+      g.strokeStyle = c === 0 ? 'rgba(255,255,255,.14)' : 'rgba(255,255,255,.04)';
+      g.lineWidth = dpr; g.beginPath(); g.moveTo(0, yy); g.lineTo(w, yy); g.stroke();
+      if (c === 0) { g.fillStyle = 'rgba(255,255,255,.3)'; g.font = `${10 * dpr}px sans-serif`; g.textBaseline = 'bottom'; g.fillText('ド', 3 * dpr, yy - 2 * dpr); }
+    }
+    gameNotes.forEach((n, i) => {
+      const x1 = nowX + (n.t - now) * pps, x2 = nowX + (n.t + n.dur - now) * pps;
+      if (x2 < 0 || x1 > w) return;
+      const yy = y(n.midi), bh = Math.max(6 * dpr, h / rows * 0.7);
+      const active = now >= n.t && now < n.t + n.dur;
+      g.fillStyle = active ? '#ffd36c' : 'rgba(108,140,255,.7)';
+      g.fillRect(x1, yy - bh / 2, Math.max(3 * dpr, x2 - x1), bh);
+      const c = ((n.midi % 12) + 12) % 12;
+      if (x2 - x1 > 14 * dpr) { g.fillStyle = '#0b0e16'; g.font = `${10 * dpr}px sans-serif`; g.textBaseline = 'middle'; g.fillText(NOTE_JP[c], x1 + 3 * dpr, yy); }
+    });
+    g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 2 * dpr; g.beginPath(); g.moveTo(nowX, 0); g.lineTo(nowX, h); g.stroke();
+    if (liveMidi != null) {
+      const my = y(Math.max(lo, Math.min(hi, liveMidi)));
+      let good = false;
+      gameNotes.forEach(n => { if (now >= n.t && now < n.t + n.dur && Math.abs(liveMidi - n.midi) <= 0.6) good = true; });
+      g.fillStyle = good ? '#3ecf8e' : '#ff6b6b'; g.beginPath(); g.arc(nowX, my, 9 * dpr, 0, Math.PI * 2); g.fill();
+      g.strokeStyle = '#fff'; g.lineWidth = 2 * dpr; g.stroke();
+    }
+    const prog = Math.max(0, Math.min(1, now / (total || 1)));
+    g.fillStyle = 'rgba(108,140,255,.6)'; g.fillRect(0, h - 3 * dpr, w * prog, 3 * dpr);
+  }
+
+  // ========== 🎭 ひとりアンサンブル（自動ハモリ） ==========
+  let harmSemi = -3, harmSrc = null;
+  document.querySelectorAll('.harm').forEach(b => b.addEventListener('click', () => {
+    harmSemi = parseInt(b.dataset.semi, 10);
+    document.querySelectorAll('.harm').forEach(x => x.classList.toggle('on', x === b));
+  }));
+  function buildHarmony() {
+    const { data, sr } = selectedMono();
+    const win = 2048, hop = Math.floor(sr * 0.02);
+    const nb = getCtx().createBuffer(1, data.length, sr), out = nb.getChannelData(0);
+    for (let i = 0; i < data.length; i++) out[i] = data[i] * 0.9;
+    let phase = 0;
+    for (let k = 0; k * hop + win <= data.length; k++) {
+      const i = k * hop, seg = data.subarray(i, i + win);
+      const f = autoCorrelate(seg, sr);
+      let rms = 0; for (let j = 0; j < win; j++) rms += seg[j] * seg[j]; rms = Math.sqrt(rms / win);
+      const hz = f > 0 ? f * Math.pow(2, harmSemi / 12) : 0;
+      const end = Math.min(data.length, i + hop);
+      for (let n = i; n < end; n++) {
+        if (hz > 0) { phase += 2 * Math.PI * hz / sr; out[n] += (Math.sin(phase) + 0.3 * Math.sin(2 * phase) + 0.15 * Math.sin(3 * phase)) * Math.min(0.5, rms * 1.2) * 0.5; }
+      }
+      if (hz <= 0) phase = 0;
+    }
+    for (let i = 0; i < out.length; i++) out[i] = out[i] < -1 ? -1 : out[i] > 1 ? 1 : out[i];
+    return nb;
+  }
+  harmPlay.addEventListener('click', () => {
+    if (!audioBuffer) { toast('先に録音してください', 'err'); return; }
+    if (harmSrc) { try { harmSrc.stop(); } catch (_) {} harmSrc = null; harmPlay.textContent = '🎧 ハモリを聴く'; return; }
+    stopPreview();
+    harmNote.textContent = '合成中…';
+    setTimeout(() => {
+      const nb = buildHarmony(), ctx = getCtx();
+      const s = ctx.createBufferSource(); s.buffer = nb; s.connect(ctx.destination); s.start();
+      harmSrc = s; harmPlay.textContent = '■ 停止'; harmNote.textContent = 'ハモリ再生中（イヤホン推奨）';
+      s.onended = () => { if (harmSrc === s) { harmSrc = null; harmPlay.textContent = '🎧 ハモリを聴く'; harmNote.textContent = '合唱・二重奏の練習に。イヤホン推奨。'; } };
+    }, 30);
+  });
+  harmSave.addEventListener('click', async () => {
+    if (!audioBuffer) { toast('先に録音してください', 'err'); return; }
+    harmNote.textContent = '合成中…';
+    setTimeout(async () => {
+      const nb = buildHarmony();
+      const blob = encodeWav(nb, 0, nb.duration);
+      const name = await uniqueName(baseName() + '_ハモリ');
+      downloadBlob(blob, name); await libAdd(name, blob); renderLibrary();
+      harmNote.textContent = `「${name}」を保存しました`;
+      toast('ハモリ入りを保存しました', 'ok');
+    }, 30);
+  });
+
+  // ========== 🗺 合奏まるごと通知表 ==========
+  function estimateTempo(data, sr) {
+    const hop = Math.max(1, Math.floor(sr * 0.005)), n = Math.floor(data.length / hop);
+    if (n < 40) return 0;
+    const nov = new Float32Array(n); let prev = 0, mean = 0;
+    for (let k = 0; k < n; k++) { let s = 0; for (let i = k * hop; i < (k + 1) * hop; i++) s += data[i] * data[i]; const e = Math.sqrt(s / hop); nov[k] = Math.max(0, e - prev); prev = e; mean += nov[k]; }
+    mean /= n; for (let k = 0; k < n; k++) nov[k] -= mean;
+    const hopT = hop / sr, minLag = Math.max(1, Math.round(60 / 240 / hopT)), maxLag = Math.min(n - 1, Math.round(60 / 40 / hopT));
+    const ac = new Float32Array(maxLag + 2); let gm = 0;
+    for (let lag = minLag; lag <= maxLag; lag++) { let c = 0; for (let i = 0; i < n - lag; i++) c += nov[i] * nov[i + lag]; ac[lag] = c / (n - lag); if (ac[lag] > gm) gm = ac[lag]; }
+    if (gm <= 0) return 0; const thr = 0.75 * gm; let best = -1;
+    for (let lag = minLag + 1; lag < maxLag; lag++) { if (ac[lag] >= thr && ac[lag] >= ac[lag - 1] && ac[lag] > ac[lag + 1]) { best = lag; break; } }
+    if (best < 0) return 0; let bpm = 60 / (best * hopT); while (bpm < 60) bpm *= 2; while (bpm > 200) bpm /= 2; return Math.round(bpm);
+  }
+  reportBtn.addEventListener('click', () => {
+    if (!audioBuffer) { toast('先に録音してください', 'err'); return; }
+    stopPreview();
+    const { data, sr } = selectedMono();
+    const win = 2048, hop = Math.floor(sr * 0.04);
+    let cnt = 0, sumAbs = 0, inTune = 0; const cents = [];
+    for (let i = 0; i + win <= data.length; i += hop) {
+      const f = autoCorrelate(data.subarray(i, i + win), sr);
+      if (f > 0) { const midi = 69 + 12 * Math.log2(f / refA); const c = (midi - Math.round(midi)) * 100; cents.push(c); sumAbs += Math.abs(c); if (Math.abs(c) <= 15) inTune++; cnt++; }
+      else cents.push(null);
+    }
+    let peak = 0, mean = 0, m = 0;
+    for (let i = 0; i < data.length; i += 64) { const a = Math.abs(data[i]); peak = Math.max(peak, a); mean += a; m++; }
+    mean /= (m || 1);
+    drawReport({
+      avgCent: cnt ? sumAbs / cnt : 0,
+      inTuneRatio: cnt ? inTune / cnt : 0,
+      dur: selEnd - selStart,
+      tempo: estimateTempo(data, sr),
+      dynamics: peak / (mean || 1e-6),
+      cents
+    });
+    reportActions.classList.remove('hidden');
+    if (canShareFiles) reportShare.classList.remove('hidden');
+  });
+  function drawReport(s) {
+    const dpr = window.devicePixelRatio || 1;
+    const dispW = reportCanvas.clientWidth || 320, dispH = Math.round(dispW * 0.66);
+    reportCanvas.style.height = dispH + 'px';
+    reportCanvas.width = dispW * dpr; reportCanvas.height = dispH * dpr;
+    const W = reportCanvas.width, H = reportCanvas.height, g = reportCanvas.getContext('2d');
+    const P = 16 * dpr;
+    g.fillStyle = '#151824'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#e6e8ee'; g.textBaseline = 'top';
+    g.font = `700 ${17 * dpr}px sans-serif`; g.fillText('🎼 合奏の通知表', P, P);
+    const d = new Date();
+    g.fillStyle = '#8b91a3'; g.font = `${11 * dpr}px sans-serif`;
+    g.fillText(`${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}  ${(sanitize(nameInput.value) || '').slice(0, 20)}`, P, P + 24 * dpr);
+    const pitchScore = Math.max(0, Math.min(100, Math.round(100 - s.avgCent * 2.2)));
+    const tiles = [
+      { t: '音程スコア', v: pitchScore + '点', c: pitchScore >= 80 ? '#3ecf8e' : pitchScore >= 60 ? '#ffb454' : '#ff6b6b' },
+      { t: '合ってる割合', v: Math.round(s.inTuneRatio * 100) + '%', c: '#7fa2ff' },
+      { t: 'テンポ', v: s.tempo ? '♩=' + s.tempo : '—', c: '#8f6cff' },
+      { t: '長さ', v: s.dur.toFixed(1) + '秒', c: '#e6e8ee' }
+    ];
+    const tw = (W - P * 2 - 3 * 10 * dpr) / 4, ty = P + 50 * dpr, th = 62 * dpr;
+    tiles.forEach((tile, i) => {
+      const x = P + i * (tw + 10 * dpr);
+      g.fillStyle = '#1f2330'; roundRect(g, x, ty, tw, th, 8 * dpr); g.fill();
+      g.fillStyle = '#8b91a3'; g.font = `${9.5 * dpr}px sans-serif`; g.textAlign = 'center';
+      g.fillText(tile.t, x + tw / 2, ty + 8 * dpr);
+      g.fillStyle = tile.c; g.font = `700 ${16 * dpr}px sans-serif`;
+      g.fillText(tile.v, x + tw / 2, ty + 30 * dpr);
+      g.textAlign = 'left';
+    });
+    // 音程の推移ミニグラフ
+    const gy = ty + th + 16 * dpr, gh = H - gy - 44 * dpr, gw = W - P * 2;
+    g.fillStyle = '#0f1117'; roundRect(g, P, gy, gw, gh, 8 * dpr); g.fill();
+    g.strokeStyle = 'rgba(62,207,142,.25)'; g.lineWidth = dpr;
+    g.beginPath(); g.moveTo(P, gy + gh / 2); g.lineTo(P + gw, gy + gh / 2); g.stroke();
+    g.strokeStyle = '#6c8cff'; g.lineWidth = 2 * dpr; g.beginPath();
+    let started = false;
+    for (let i = 0; i < s.cents.length; i++) {
+      const c = s.cents[i]; if (c == null) { g.stroke(); g.beginPath(); started = false; continue; }
+      const x = P + (i / (s.cents.length - 1)) * gw;
+      const yy = gy + gh / 2 - Math.max(-40, Math.min(40, c)) / 40 * (gh / 2 - 4 * dpr);
+      if (!started) { g.moveTo(x, yy); started = true; } else g.lineTo(x, yy);
+    }
+    g.stroke();
+    // ひとことコメント
+    let msg = pitchScore >= 80 ? 'すばらしい音程！この調子で。' : pitchScore >= 60 ? '音程まずまず。のばす音を意識しよう。' : 'まずはチューナーで基準を合わせよう。';
+    g.fillStyle = '#8b91a3'; g.font = `${11 * dpr}px sans-serif`; g.textBaseline = 'bottom';
+    g.fillText(msg, P, H - 14 * dpr);
+    reportCanvas.classList.remove('hidden');
+  }
+  function roundRect(g, x, y, w, h, r) {
+    g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+  }
+  function reportName() { return (sanitize(nameInput.value) || defaultName()) + '_通知表.png'; }
+  reportSave.addEventListener('click', () => { reportCanvas.toBlob(b => b && downloadBlob(b, reportName()), 'image/png'); });
+  reportShare.addEventListener('click', () => {
+    reportCanvas.toBlob(async b => {
+      if (!b) return;
+      try { await navigator.share({ files: [new File([b], reportName(), { type: 'image/png' })], title: '合奏の通知表' }); }
+      catch (e) { if (e && e.name !== 'AbortError') downloadBlob(b, reportName()); }
+    }, 'image/png');
+  });
 
   // ---------- 初期化 ----------
   nameInput.value = defaultName();
