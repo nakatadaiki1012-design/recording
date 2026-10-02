@@ -697,6 +697,22 @@
     <p class="hint">選択範囲を分析します。音程は「単音をのばした音」、テンポは「一定のリズムがあるとき」に正確です。推移グラフは、のばした音が上ずる/下がるのを線で見られます。自動採譜は単音のメロディ向けです。</p>
   </section>
 
+  <!-- 🎚 エフェクト -->
+  <section class="card hidden" id="fxCard" data-tab="edit">
+    <h2>🎚 エフェクト</h2>
+    <p class="hint" style="margin-top:0">録音全体に効果をかけます。重ねがけもOK。元に戻すで取り消せます。</p>
+    <div class="btn-grid">
+      <button class="fx" data-fx="revhall">🎚 リバーブ（ホール）</button>
+      <button class="fx" data-fx="revbig">🏛 リバーブ（強）</button>
+      <button class="fx" data-fx="echo">🔊 エコー（やまびこ）</button>
+      <button class="fx" data-fx="comp">🎛 音量をそろえる</button>
+      <button class="fx" data-fx="bass">🔈 低音＋</button>
+      <button class="fx" data-fx="treble">✨ 高音＋</button>
+    </div>
+    <button id="fxUndo" class="btn" style="width:100%;margin-top:10px">↶ エフェクトを元に戻す</button>
+    <div id="fxNote" class="lt-note"></div>
+  </section>
+
   <!-- 3. ファイル名 & 保存 -->
   <section id="saveCard" class="card disabled hidden" data-tab="edit">
     <h2>ファイル名と保存</h2>
@@ -1447,7 +1463,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     saveCard.classList.remove('disabled');
     analyzeCard.classList.remove('disabled');
     waveEmpty.style.display = 'none';
-    peaks = null; colorGrid = null;
+    peaks = null; colorGrid = null; fxHist = [];
     markers = markers.map(t => Math.min(t, audioBuffer.duration)).filter(t => t >= 0).sort((a, b) => a - b);
     pitchOut.textContent = tempoOut.textContent = '—';
     pitchOut.className = tempoOut.className = 'an-out';
@@ -2988,15 +3004,94 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   }
   tabBtns.forEach(b => b.addEventListener('click', () => showTab(b.dataset.go)));
   // 録音の有無で編集タブの中身を出し分け（灰色の空画面を出さない）
-  const editEmpty = $('editEmpty');
+  const editEmpty = $('editEmpty'), fxCard = $('fxCard'), fxUndo = $('fxUndo'), fxNote = $('fxNote');
   function refreshEditTab() {
     const has = !!audioBuffer;
     editEmpty.classList.toggle('hidden', has);
     editCard.classList.toggle('hidden', !has);
+    fxCard.classList.toggle('hidden', !has);
     saveCard.classList.toggle('hidden', !has);
   }
   $('toRecBtn').addEventListener('click', () => { showTab('rec'); recBtn.click(); });
   $('hifi').addEventListener('change', (e) => { hifi = e.target.checked; });
+
+  // ---------- 🎚 エフェクト（Web Audio・オフライン処理） ----------
+  let fxHist = [];
+  // ノイズから残響（インパルス応答）を生成
+  function makeIR(ctx, seconds, decay) {
+    const rate = ctx.sampleRate, len = Math.max(1, Math.floor(rate * seconds));
+    const ir = ctx.createBuffer(1, len, rate), d = ir.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    return ir;
+  }
+  const FX = {
+    revhall: { tail: 1.8, name: 'リバーブ（ホール）', build: (off, src) => {
+      const dry = off.createGain(); dry.gain.value = 0.75; const wet = off.createGain(); wet.gain.value = 0.35;
+      const c = off.createConvolver(); c.buffer = makeIR(off, 1.8, 2.5);
+      src.connect(dry); dry.connect(off.destination); src.connect(c); c.connect(wet); wet.connect(off.destination);
+    }},
+    revbig: { tail: 3.2, name: 'リバーブ（強）', build: (off, src) => {
+      const dry = off.createGain(); dry.gain.value = 0.6; const wet = off.createGain(); wet.gain.value = 0.5;
+      const c = off.createConvolver(); c.buffer = makeIR(off, 3.0, 2.0);
+      src.connect(dry); dry.connect(off.destination); src.connect(c); c.connect(wet); wet.connect(off.destination);
+    }},
+    echo: { tail: 1.6, name: 'エコー', build: (off, src) => {
+      const dly = off.createDelay(1.0); dly.delayTime.value = 0.26; const fb = off.createGain(); fb.gain.value = 0.42;
+      const wet = off.createGain(); wet.gain.value = 0.5;
+      src.connect(off.destination); src.connect(dly); dly.connect(fb); fb.connect(dly); dly.connect(wet); wet.connect(off.destination);
+    }},
+    comp: { tail: 0, name: '音量そろえ', build: (off, src) => {
+      const c = off.createDynamicsCompressor();
+      c.threshold.value = -24; c.ratio.value = 4; c.attack.value = 0.003; c.release.value = 0.25;
+      const g = off.createGain(); g.gain.value = 1.5; src.connect(c); c.connect(g); g.connect(off.destination);
+    }},
+    bass: { tail: 0, name: '低音＋', build: (off, src) => {
+      const f = off.createBiquadFilter(); f.type = 'lowshelf'; f.frequency.value = 220; f.gain.value = 6;
+      src.connect(f); f.connect(off.destination);
+    }},
+    treble: { tail: 0, name: '高音＋', build: (off, src) => {
+      const f = off.createBiquadFilter(); f.type = 'highshelf'; f.frequency.value = 3800; f.gain.value = 5;
+      src.connect(f); f.connect(off.destination);
+    }}
+  };
+  async function renderFx(buffer, fx) {
+    const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    const len = buffer.length + Math.floor(buffer.sampleRate * (fx.tail || 0));
+    const off = new OAC(1, Math.max(1, len), buffer.sampleRate);
+    const src = off.createBufferSource(); src.buffer = buffer;
+    fx.build(off, src); src.start(0);
+    const out = await off.startRendering();
+    // 音割れ防止（ピークが1を超えたら全体を下げる）
+    const d = out.getChannelData(0); let peak = 0;
+    for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > peak) peak = a; }
+    if (peak > 0.99) { const s = 0.99 / peak; for (let i = 0; i < d.length; i++) d[i] *= s; }
+    return out;
+  }
+  document.querySelectorAll('.fx').forEach(b => b.addEventListener('click', async () => {
+    if (!audioBuffer) { toast('先に録音してください', 'err'); return; }
+    const fx = FX[b.dataset.fx]; if (!fx) return;
+    stopPreview();
+    fxNote.textContent = fx.name + ' をかけています…';
+    try {
+      const rendered = await renderFx(audioBuffer, fx);
+      fxHist.push(audioBuffer); if (fxHist.length > 12) fxHist.shift();
+      audioBuffer = rendered;
+      peaks = null; colorGrid = null; activeSeg = null;
+      timerEl.textContent = fmtTimer(audioBuffer.duration);
+      renderMarkers(); setSelection(0, audioBuffer.duration); saveState();
+      fxNote.textContent = `${fx.name} をかけました（元に戻すで取り消し）`;
+      toast(`${fx.name} をかけました`, 'ok'); vibrate(15);
+    } catch (e) { fxNote.textContent = 'エフェクトをかけられませんでした'; toast('失敗しました', 'err'); }
+  }));
+  fxUndo.addEventListener('click', () => {
+    if (!fxHist.length) { toast('戻せる履歴がありません', 'err'); return; }
+    stopPreview();
+    audioBuffer = fxHist.pop();
+    peaks = null; colorGrid = null; activeSeg = null;
+    timerEl.textContent = fmtTimer(audioBuffer.duration);
+    renderMarkers(); setSelection(0, audioBuffer.duration); saveState();
+    fxNote.textContent = '元に戻しました'; vibrate(10);
+  });
 
   // ---------- マイク選択（Bluetooth通話化を避けて内蔵マイク優先） ----------
   const micSelect = $('micSelect');
