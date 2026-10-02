@@ -363,6 +363,8 @@
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
   }
   .michint { width: 100%; margin: 6px 0 0; font-size: .74rem; color: var(--muted); line-height: 1.5; }
+  .fx-h { margin: 14px 0 0; font-size: .78rem; font-weight: 700; color: var(--muted); letter-spacing: .08em; }
+  .fx-h + .btn-grid { margin-top: 8px; }
   .fmt-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: .82rem; color: var(--muted); flex-wrap: wrap; }
   button.fmt {
     font: inherit; font-size: .9rem; font-weight: 600; color: var(--text);
@@ -701,13 +703,36 @@
   <section class="card hidden" id="fxCard" data-tab="edit">
     <h2>🎚 エフェクト</h2>
     <p class="hint" style="margin-top:0">録音全体に効果をかけます。重ねがけもOK。元に戻すで取り消せます。</p>
+    <p class="fx-h">整える</p>
     <div class="btn-grid">
-      <button class="fx" data-fx="revhall">🎚 リバーブ（ホール）</button>
-      <button class="fx" data-fx="revbig">🏛 リバーブ（強）</button>
-      <button class="fx" data-fx="echo">🔊 エコー（やまびこ）</button>
+      <button class="fx" data-fx="denoise">🧹 ノイズを減らす</button>
+      <button class="fx" data-fx="lowcut">🌬 低い雑音カット</button>
+      <button class="fx" data-fx="normalize">📢 音量を最大に</button>
+      <button class="fx" data-fx="fade">🌅 フェードイン/アウト</button>
       <button class="fx" data-fx="comp">🎛 音量をそろえる</button>
       <button class="fx" data-fx="bass">🔈 低音＋</button>
       <button class="fx" data-fx="treble">✨ 高音＋</button>
+    </div>
+    <p class="fx-h">響き</p>
+    <div class="btn-grid">
+      <button class="fx" data-fx="room">🚪 ルーム（小部屋）</button>
+      <button class="fx" data-fx="revhall">🎚 ホール</button>
+      <button class="fx" data-fx="revbig">🏛 リバーブ（強）</button>
+      <button class="fx" data-fx="church">⛪ 教会・大聖堂</button>
+      <button class="fx" data-fx="echo">🔊 エコー（やまびこ）</button>
+    </div>
+    <p class="fx-h">おもしろ</p>
+    <div class="btn-grid">
+      <button class="fx" data-fx="chorus">🌊 コーラス</button>
+      <button class="fx" data-fx="radio">📻 ラジオ・電話風</button>
+      <button class="fx" data-fx="dist">🎸 ディストーション</button>
+    </div>
+    <p class="fx-h">加工</p>
+    <div class="btn-grid">
+      <button class="fx" data-fx="pitchup">⬆ キーを上げる</button>
+      <button class="fx" data-fx="pitchdown">⬇ キーを下げる</button>
+      <button class="fx" data-fx="reverse">🔄 逆再生</button>
+      <button class="fx" data-fx="trimsil">✂ 無音を詰める</button>
     </div>
     <button id="fxUndo" class="btn" style="width:100%;margin-top:10px">↶ エフェクトを元に戻す</button>
     <div id="fxNote" class="lt-note"></div>
@@ -3052,15 +3077,150 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     treble: { tail: 0, name: '高音＋', build: (off, src) => {
       const f = off.createBiquadFilter(); f.type = 'highshelf'; f.frequency.value = 3800; f.gain.value = 5;
       src.connect(f); f.connect(off.destination);
-    }}
+    }},
+    // --- 整える ---
+    lowcut: { tail: 0, name: '低い雑音カット', build: (off, src) => {
+      const f = off.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 100; f.Q.value = 0.7;
+      src.connect(f); f.connect(off.destination);
+    }},
+    denoise: { name: 'ノイズを減らす', proc: denoiseProc },
+    normalize: { name: '音量を最大に', proc: (b) => {
+      const d = b.getChannelData(0), out = newBuf(b.length, b.sampleRate), o = out.getChannelData(0);
+      let peak = 0; for (let i = 0; i < d.length; i++) peak = Math.max(peak, Math.abs(d[i]));
+      const s = peak > 0 ? 0.98 / peak : 1; for (let i = 0; i < d.length; i++) o[i] = d[i] * s;
+      return out;
+    }},
+    fade: { name: 'フェードイン/アウト', proc: (b) => {
+      const d = b.getChannelData(0), out = newBuf(b.length, b.sampleRate), o = out.getChannelData(0);
+      const f = Math.min(Math.floor(b.sampleRate * 0.6), Math.floor(b.length / 4));
+      for (let i = 0; i < d.length; i++) {
+        let g = 1;
+        if (i < f) g = 0.5 - 0.5 * Math.cos(Math.PI * i / f);
+        else if (i >= d.length - f) g = 0.5 - 0.5 * Math.cos(Math.PI * (d.length - 1 - i) / f);
+        o[i] = d[i] * g;
+      }
+      return out;
+    }},
+    // --- 響き ---
+    room: { tail: 0.6, name: 'ルーム', build: (off, src) => {
+      const dry = off.createGain(); dry.gain.value = 0.85; const wet = off.createGain(); wet.gain.value = 0.3;
+      const c = off.createConvolver(); c.buffer = makeIR(off, 0.5, 3.5);
+      src.connect(dry); dry.connect(off.destination); src.connect(c); c.connect(wet); wet.connect(off.destination);
+    }},
+    church: { tail: 5, name: '教会・大聖堂', build: (off, src) => {
+      const dry = off.createGain(); dry.gain.value = 0.55; const wet = off.createGain(); wet.gain.value = 0.55;
+      const pre = off.createDelay(0.2); pre.delayTime.value = 0.06; // 少し遅れて響きが来る
+      const c = off.createConvolver(); c.buffer = makeIR(off, 4.5, 1.6);
+      const lp = off.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 5000;
+      src.connect(dry); dry.connect(off.destination);
+      src.connect(pre); pre.connect(c); c.connect(lp); lp.connect(wet); wet.connect(off.destination);
+    }},
+    // --- おもしろ ---
+    chorus: { tail: 0.1, name: 'コーラス', build: (off, src) => {
+      const dry = off.createGain(); dry.gain.value = 0.7; src.connect(dry); dry.connect(off.destination);
+      [[0.022, 0.8], [0.031, 1.1]].forEach(([base, rate]) => {
+        const dl = off.createDelay(0.1); dl.delayTime.value = base;
+        const lfo = off.createOscillator(); lfo.frequency.value = rate;
+        const depth = off.createGain(); depth.gain.value = 0.004;
+        lfo.connect(depth); depth.connect(dl.delayTime); lfo.start(0);
+        const wet = off.createGain(); wet.gain.value = 0.4;
+        src.connect(dl); dl.connect(wet); wet.connect(off.destination);
+      });
+    }},
+    radio: { tail: 0, name: 'ラジオ・電話風', build: (off, src) => {
+      const hp = off.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 500;
+      const lp = off.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3000;
+      const ws = off.createWaveShaper(); ws.curve = makeCurve(8);
+      const g = off.createGain(); g.gain.value = 1.4;
+      src.connect(hp); hp.connect(lp); lp.connect(ws); ws.connect(g); g.connect(off.destination);
+    }},
+    dist: { tail: 0, name: 'ディストーション', build: (off, src) => {
+      const pre = off.createGain(); pre.gain.value = 3;
+      const ws = off.createWaveShaper(); ws.curve = makeCurve(60); ws.oversample = '4x';
+      const lp = off.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6000;
+      const g = off.createGain(); g.gain.value = 0.5;
+      src.connect(pre); pre.connect(ws); ws.connect(lp); lp.connect(g); g.connect(off.destination);
+    }},
+    // --- 加工 ---
+    pitchup: { tail: 0, rate: Math.pow(2, 2 / 12), timeChange: true, name: 'キーを上げる', build: (off, src) => src.connect(off.destination) },
+    pitchdown: { tail: 0, rate: Math.pow(2, -2 / 12), timeChange: true, name: 'キーを下げる', build: (off, src) => src.connect(off.destination) },
+    reverse: { name: '逆再生', timeChange: true, proc: (b) => {
+      const d = b.getChannelData(0), out = newBuf(b.length, b.sampleRate), o = out.getChannelData(0);
+      for (let i = 0, n = d.length; i < n; i++) o[i] = d[n - 1 - i];
+      return out;
+    }},
+    trimsil: { name: '無音を詰める', timeChange: true, proc: trimSilenceProc }
   };
+  function newBuf(len, sr) { return getCtx().createBuffer(1, Math.max(1, len), sr); }
+  // ひずみ用のカーブ
+  function makeCurve(k) {
+    const n = 2048, c = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const x = i * 2 / n - 1; c[i] = (1 + k) * x / (1 + k * Math.abs(x)); }
+    return c;
+  }
+  // 20msごとの音量（RMS）
+  function rmsWindows(d, win) {
+    const n = Math.ceil(d.length / win), r = new Float32Array(n);
+    for (let k = 0; k < n; k++) {
+      const a = k * win, e = Math.min(d.length, a + win); let s = 0;
+      for (let i = a; i < e; i++) s += d[i] * d[i];
+      r[k] = Math.sqrt(s / Math.max(1, e - a));
+    }
+    return r;
+  }
+  // ノイズ削減：静かな所（＝ノイズだけの所）の音量を下げる（ノイズゲート）
+  function denoiseProc(b) {
+    const d = b.getChannelData(0), sr = b.sampleRate, win = Math.max(1, Math.floor(sr * 0.02));
+    const r = rmsWindows(d, win), sorted = Array.from(r).sort((x, y) => x - y);
+    const floor = sorted[Math.floor(sorted.length * 0.1)] || 0;
+    const th = Math.max(floor * 2.5, 0.002);
+    // 窓ごとの目標ゲインを、素早く開いてゆっくり閉じる
+    const gains = new Float32Array(r.length); let g = 1;
+    for (let k = 0; k < r.length; k++) {
+      const target = r[k] >= th ? 1 : Math.max(0.06, Math.pow(r[k] / th, 2));
+      g = target > g ? target : g * 0.85 + target * 0.15;
+      gains[k] = g;
+    }
+    const out = newBuf(b.length, sr), o = out.getChannelData(0);
+    for (let i = 0; i < d.length; i++) {
+      const k = i / win, k0 = Math.min(gains.length - 1, Math.floor(k)), k1 = Math.min(gains.length - 1, k0 + 1), t = k - k0;
+      o[i] = d[i] * (gains[k0] * (1 - t) + gains[k1] * t);
+    }
+    return out;
+  }
+  // 無音を詰める：0.5秒より長い無音を0.25秒に縮める
+  function trimSilenceProc(b) {
+    const d = b.getChannelData(0), sr = b.sampleRate, win = Math.max(1, Math.floor(sr * 0.02));
+    const r = rmsWindows(d, win); let mx = 0; for (const v of r) mx = Math.max(mx, v);
+    const th = Math.max(mx * 0.06, 0.004), maxGap = Math.round(0.5 / 0.02), keep = Math.round(0.25 / 0.02);
+    const pieces = []; let k = 0;
+    while (k < r.length) {
+      if (r[k] < th) {
+        let e = k; while (e < r.length && r[e] < th) e++;
+        const len = e - k;
+        if (len > maxGap) { pieces.push([k * win, (k + Math.floor(keep / 2)) * win]); pieces.push([(e - Math.ceil(keep / 2)) * win, e * win]); }
+        else pieces.push([k * win, e * win]);
+        k = e;
+      } else { let e = k; while (e < r.length && r[e] >= th) e++; pieces.push([k * win, e * win]); k = e; }
+    }
+    let total = 0; for (const [a, e] of pieces) total += Math.min(e, d.length) - a;
+    const out = newBuf(total, sr), o = out.getChannelData(0); let p = 0;
+    for (const [a, e] of pieces) { const ee = Math.min(e, d.length); o.set(d.subarray(a, ee), p); p += ee - a; }
+    return out;
+  }
   async function renderFx(buffer, fx) {
-    const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
-    const len = buffer.length + Math.floor(buffer.sampleRate * (fx.tail || 0));
-    const off = new OAC(1, Math.max(1, len), buffer.sampleRate);
-    const src = off.createBufferSource(); src.buffer = buffer;
-    fx.build(off, src); src.start(0);
-    const out = await off.startRendering();
+    let out;
+    if (fx.proc) {
+      out = fx.proc(buffer);
+    } else {
+      const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      const rate = fx.rate || 1;
+      const len = Math.ceil(buffer.length / rate) + Math.floor(buffer.sampleRate * (fx.tail || 0));
+      const off = new OAC(1, Math.max(1, len), buffer.sampleRate);
+      const src = off.createBufferSource(); src.buffer = buffer; src.playbackRate.value = rate;
+      fx.build(off, src); src.start(0);
+      out = await off.startRendering();
+    }
     // 音割れ防止（ピークが1を超えたら全体を下げる）
     const d = out.getChannelData(0); let peak = 0;
     for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > peak) peak = a; }
@@ -3074,8 +3234,9 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     fxNote.textContent = fx.name + ' をかけています…';
     try {
       const rendered = await renderFx(audioBuffer, fx);
-      fxHist.push(audioBuffer); if (fxHist.length > 12) fxHist.shift();
+      fxHist.push({ b: audioBuffer, m: markers.slice() }); if (fxHist.length > 12) fxHist.shift();
       audioBuffer = rendered;
+      if (fx.timeChange) markers = []; // 時間がずれる加工では印を消す
       peaks = null; colorGrid = null; activeSeg = null;
       timerEl.textContent = fmtTimer(audioBuffer.duration);
       renderMarkers(); setSelection(0, audioBuffer.duration); saveState();
@@ -3086,7 +3247,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   fxUndo.addEventListener('click', () => {
     if (!fxHist.length) { toast('戻せる履歴がありません', 'err'); return; }
     stopPreview();
-    audioBuffer = fxHist.pop();
+    const h = fxHist.pop(); audioBuffer = h.b; markers = h.m;
     peaks = null; colorGrid = null; activeSeg = null;
     timerEl.textContent = fmtTimer(audioBuffer.duration);
     renderMarkers(); setSelection(0, audioBuffer.duration); saveState();
