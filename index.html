@@ -72,6 +72,42 @@
   .disabled { opacity: .45; pointer-events: none; }
   .hidden { display: none !important; }
 
+  /* ---------- 折りたたみ ---------- */
+  details.fold > summary, details.sub > summary { list-style: none; cursor: pointer; -webkit-user-select: none; user-select: none; }
+  details.fold > summary::-webkit-details-marker, details.sub > summary::-webkit-details-marker { display: none; }
+  details.fold > summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 28px; }
+  details.fold > summary h2 { margin: 0; }
+  details.fold > summary::after, details.sub > summary::after {
+    content: ""; width: 9px; height: 9px; flex-shrink: 0; margin-right: 4px;
+    border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+    transform: rotate(45deg) translateY(-3px); transition: transform .2s;
+  }
+  details.fold[open] > summary::after, details.sub[open] > summary::after { transform: rotate(-135deg) translateY(-2px); }
+  details.fold[open] > summary { margin-bottom: 12px; }
+  details.fold { padding-top: 16px; padding-bottom: 16px; }
+  details.sub { width: 100%; margin-top: 12px; border: 1px solid var(--border); border-radius: 12px; background: #fafbfe; }
+  details.sub > summary {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 13px 14px; font-size: .9rem; font-weight: 600; color: var(--text);
+  }
+  details.sub[open] { padding-bottom: 12px; }
+  details.sub[open] > summary { border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+  details.sub > :not(summary) { margin-left: 12px; margin-right: 12px; }
+  details.sub > .btn-grid, details.sub > .btn { width: auto; }
+  .rec-area details.sub > :not(summary) { width: auto; }
+  /* 保存の設定 */
+  .opt-label { margin-top: 12px; font-size: .78rem; font-weight: 700; color: var(--muted); letter-spacing: .06em; }
+  .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  button.dfmt {
+    font: inherit; font-size: .9rem; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums;
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; height: 44px; cursor: pointer;
+  }
+  button.dfmt.on { background: rgba(74,99,231,.14); border-color: var(--accent); color: var(--accent); }
+  .time-check { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: .86rem; color: var(--text); }
+  .time-check input { width: 20px; height: 20px; }
+  .time-check span { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .opt-note { font-size: .74rem; color: var(--muted); line-height: 1.5; margin-top: 10px; margin-bottom: 0; }
+
   /* ---------- タブ ---------- */
   [data-tab] { display: none; }
   [data-tab].on { display: block; }
@@ -377,7 +413,8 @@
   button.fx:active { transform: scale(.97); background: #e0e6f2; }
   .fx-h { margin: 14px 0 0; font-size: .78rem; font-weight: 700; color: var(--muted); letter-spacing: .08em; }
   .fx-h + .btn-grid { margin-top: 8px; }
-  .fmt-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: .82rem; color: var(--muted); flex-wrap: wrap; }
+  .fmt-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: .82rem; color: var(--muted); }
+  .fmt-row button.fmt { flex: 1; }
   button.fmt {
     font: inherit; font-size: .9rem; font-weight: 600; color: var(--text);
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; cursor: pointer;
@@ -491,6 +528,8 @@
 
       <canvas id="live" class="live-canvas"></canvas>
       <button id="markBtn" class="btn mark hidden">🚩 ここに印をつける</button>
+      <details class="sub">
+        <summary>⚙️ 録音の設定・便利機能</summary>
       <label class="quality"><input type="checkbox" id="hifi" checked>
         <span><b>高音質で録音</b>（音楽向け・通話用の音質処理を切る）</span></label>
       <div class="microw">
@@ -500,12 +539,13 @@
       <p class="michint">車やイヤホンのBluetoothだと「通話」扱いになり音が悪くなります。内蔵マイクを選ぶと防げます。</p>
       <button id="tunerBtn" class="btn tuner-toggle">🎯 チューナーだけ使う</button>
       <button id="mediaKeyBtn" class="btn mediakey">🎧 イヤホン/ボタンで録音操作</button>
+      </details>
     </div>
   </section>
 
   <!-- メトロノーム -->
-  <section class="card" id="metroCard" data-tab="rec">
-    <h2>メトロノーム</h2>
+  <details class="card fold" id="metroCard" data-tab="rec">
+    <summary><h2>メトロノーム</h2></summary>
     <div class="metro-row">
       <button class="metro-adj" data-bpm="-5">−5</button>
       <div class="metro-bpm"><b id="metroBpm">120</b><small>BPM</small></div>
@@ -513,12 +553,12 @@
       <button id="metroToggle" class="btn">▶ 鳴らす</button>
     </div>
     <label class="metro-check"><input type="checkbox" id="countin"> 録音前に1小節（4拍）カウントインする</label>
-  </section>
+  </details>
 
   <!-- 📝 文字起こし（実験） -->
-  <section class="card" id="sttCard" data-tab="rec">
-    <h2>📝 文字起こし（実験）</h2>
-    <p class="hint" style="margin-top:0">話した言葉を文字にします。<b>ネット接続が必要</b>で、Chrome/Android向けです（iPhoneのSafariは使えないことがあります）。</p>
+  <details class="card fold" id="sttCard" data-tab="rec">
+    <summary><h2>📝 文字起こし（実験）</h2></summary>
+    <p class="hint" style="margin-top:0">話した言葉を文字に。<b>ネット接続が必要</b>・Chrome/Android向け。</p>
     <div class="game-setup">
       <button id="sttToggle" class="btn primary">🎙 文字起こし開始</button>
       <button id="sttClear" class="btn">クリア</button>
@@ -529,7 +569,7 @@
       <button id="sttSave" class="btn">💾 テキスト保存(.txt)</button>
     </div>
     <div id="sttNote" class="lt-note"></div>
-  </section>
+  </details>
 
   <!-- 録音がまだ無いときの案内（編集タブ） -->
   <section class="card empty-card" id="editEmpty" data-tab="edit">
@@ -606,8 +646,9 @@
       <span class="speed-note">音程はそのまま</span>
     </div>
 
-    <h2 style="margin-top:20px">③ 印・編集</h2>
     <div id="markers" class="markers hidden"></div>
+    <details class="sub">
+      <summary>✂️ もっと編集（印・分割・色分け・重ね録り・コメント）</summary>
     <div class="btn-grid">
       <button id="addMarkBtn" class="btn">🚩 開始位置に印を追加</button>
       <button id="splitBtn" class="btn">📁 無音で自動分割</button>
@@ -616,22 +657,23 @@
     </div>
     <button id="saveAllBtn" class="btn" style="width:100%;margin-top:10px">⬇️ 全区間をまとめて保存</button>
     <button id="commentBtn" class="btn comment">🎤 口頭コメントを末尾に追加</button>
+    </details>
   </section>
 
   <!-- ロングトーン採点 -->
-  <section class="card" id="longtoneCard" data-tab="practice">
-    <h2>ロングトーン採点（基礎練）</h2>
+  <details class="card fold" id="longtoneCard" data-tab="practice">
+    <summary><h2>ロングトーン採点（基礎練）</h2></summary>
     <p class="hint" style="margin-top:0">同じ音を4秒のばすと、音程と音量の「安定度」を採点します。</p>
     <div class="lt-row">
       <button id="ltStartBtn" class="btn primary">🎯 採点スタート</button>
       <div id="ltScore" class="lt-score">—</div>
     </div>
     <div id="ltNote" class="lt-note">マイクに向かって音をのばしてください</div>
-  </section>
+  </details>
 
   <!-- 🔁 ループ重ね録り（ルーパー） -->
-  <section class="card" id="looperCard" data-tab="practice">
-    <h2>🔁 ループ重ね録り</h2>
+  <details class="card fold" id="looperCard" data-tab="practice">
+    <summary><h2>🔁 ループ重ね録り</h2></summary>
     <p class="hint" style="margin-top:0">土台のループを作り、その上に演奏を何回も重ねられます（イヤホン推奨）。</p>
     <div class="game-setup">
       <button id="loopBase" class="btn">① 選択範囲を土台に</button>
@@ -652,11 +694,11 @@
       <button id="loopSave" class="btn">💾 ループを保存</button>
     </div>
     <div id="loopNote" class="lt-note">「①選択範囲を土台に」から始めてください</div>
-  </section>
+  </details>
 
   <!-- 🎭 ひとりアンサンブル（自動ハモリ） -->
-  <section class="card" id="harmonyCard" data-tab="practice">
-    <h2>🎭 ひとりアンサンブル（自動ハモリ）</h2>
+  <details class="card fold" id="harmonyCard" data-tab="practice">
+    <summary><h2>🎭 ひとりアンサンブル（自動ハモリ）</h2></summary>
     <p class="hint" style="margin-top:0">選んだメロディに、ハモリを自動で重ねます（単音のメロディ向け）。</p>
     <div class="harm-row">
       <span class="speed-label">ハモリ</span>
@@ -670,11 +712,11 @@
       <button id="harmSave" class="btn">💾 ハモリ入りを保存</button>
     </div>
     <div id="harmNote" class="lt-note">合唱・二重奏の練習に。イヤホン推奨。</div>
-  </section>
+  </details>
 
   <!-- 🗺 合奏まるごと通知表 -->
-  <section class="card" id="reportCard" data-tab="practice">
-    <h2>🗺 合奏まるごと通知表</h2>
+  <details class="card fold" id="reportCard" data-tab="practice">
+    <summary><h2>🗺 合奏まるごと通知表</h2></summary>
     <p class="hint" style="margin-top:0">選んだ範囲を、音程・テンポ・音量の「成績表」画像にまとめます。</p>
     <button id="reportBtn" class="btn primary" style="width:100%">📊 通知表を作る</button>
     <canvas id="reportCanvas" class="hidden"></canvas>
@@ -682,11 +724,11 @@
       <button id="reportSave" class="btn">⬇️ 画像を保存</button>
       <button id="reportShare" class="btn hidden">📤 画像を共有</button>
     </div>
-  </section>
+  </details>
 
   <!-- 音程・テンポ -->
-  <section id="analyzeCard" class="card disabled" data-tab="practice">
-    <h2>音程・テンポの確認（吹奏楽向け）</h2>
+  <details id="analyzeCard" class="card disabled fold" data-tab="practice">
+    <summary><h2>音程・テンポの確認（吹奏楽向け）</h2></summary>
     <div class="an-row">
       <button id="pitchBtn" class="btn">🎵 音程を測定</button>
       <div id="pitchOut" class="an-out">—</div>
@@ -708,12 +750,12 @@
     <button id="transcribeBtn" class="btn" style="width:100%;margin-top:10px">🎼 吹いた音を音名に（自動採譜）</button>
     <div id="transcribeOut" class="an-out hidden" style="margin-top:8px"></div>
     <canvas id="rollCanvas" class="hidden"></canvas>
-    <p class="hint">選択範囲を分析します。音程は「単音をのばした音」、テンポは「一定のリズムがあるとき」に正確です。推移グラフは、のばした音が上ずる/下がるのを線で見られます。自動採譜は単音のメロディ向けです。</p>
-  </section>
+    <p class="hint">選んだ範囲を分析します（単音・一定のリズムだと正確）。</p>
+  </details>
 
   <!-- 🎚 エフェクト -->
-  <section class="card hidden" id="fxCard" data-tab="edit">
-    <h2>🎚 エフェクト</h2>
+  <details class="card hidden fold" id="fxCard" data-tab="edit">
+    <summary><h2>🎚 エフェクト</h2></summary>
     <p class="hint" style="margin-top:0">録音全体に効果をかけます。重ねがけもOK。元に戻すで取り消せます。</p>
     <div class="fx-strength">
       <div class="fx-strength-top"><span>強さ</span><b id="fxSVal">50%（標準）</b></div>
@@ -753,36 +795,43 @@
     </div>
     <button id="fxUndo" class="btn" style="width:100%;margin-top:10px">↶ エフェクトを元に戻す</button>
     <div id="fxNote" class="lt-note"></div>
-  </section>
+  </details>
 
   <!-- 3. ファイル名 & 保存 -->
   <section id="saveCard" class="card disabled hidden" data-tab="edit">
-    <h2>ファイル名と保存</h2>
-    <div class="tags">
-      <button class="tag" data-tag="[合奏]">[合奏]</button>
-      <button class="tag" data-tag="[パート]">[パート]</button>
-      <button class="tag" data-tag="[個人]">[個人]</button>
-      <button class="tag" data-tag="[本番]">[本番]</button>
-    </div>
-    <div class="fmt-row">
-      <span>保存形式</span>
-      <button class="fmt on" data-fmt="mp3">MP3<small>小さい・どこでも再生</small></button>
-      <button class="fmt" data-fmt="wav">WAV<small>無圧縮・最高音質</small></button>
-    </div>
+    <h2>💾 保存</h2>
     <label class="name-box">
       <input id="nameInput" type="text" spellcheck="false" autocomplete="off" autocapitalize="off"
-             autocorrect="off" enterkeyhint="done">
+             autocorrect="off" enterkeyhint="done" aria-label="ファイル名">
       <span class="ext" id="extLabel">.mp3</span>
     </label>
+    <div class="tags">
+      <button class="tag" data-tag="[合奏]">合奏</button>
+      <button class="tag" data-tag="[パート]">パート</button>
+      <button class="tag" data-tag="[個人]">個人</button>
+      <button class="tag" data-tag="[本番]">本番</button>
+    </div>
     <div id="saveGrid" class="save-grid">
-      <button id="saveBtn" class="btn primary">💾 トリミングして保存</button>
-      <button id="shareBtn" class="btn hidden">📤 共有（LINE・メール等）</button>
+      <button id="saveBtn" class="btn primary big">💾 保存する</button>
+      <button id="shareBtn" class="btn big hidden">📤 共有</button>
     </div>
-    <div class="hint">
-      ・ファイル名欄でキーボードの「完了 / Enter」を押すとすぐ保存します<br>
-      ・タグはもう一度押すと外れます<br>
-      ・録音中は画面を閉じたり他のアプリに切り替えないでください
-    </div>
+    <details class="sub" id="saveOpts">
+      <summary>⚙️ 保存の設定（形式・日付の書き方）</summary>
+      <div class="opt-label">ファイル形式</div>
+      <div class="fmt-row">
+        <button class="fmt on" data-fmt="mp3">MP3<small>小さい・どこでも再生</small></button>
+        <button class="fmt" data-fmt="wav">WAV<small>無圧縮・最高音質</small></button>
+      </div>
+      <div class="opt-label">日付の書き方</div>
+      <div class="date-row" id="dateRow">
+        <button class="dfmt on" data-dfmt="compact">20261001</button>
+        <button class="dfmt" data-dfmt="dash">2026-10-01</button>
+        <button class="dfmt" data-dfmt="dot">2026.10.1</button>
+        <button class="dfmt" data-dfmt="jp">2026年10月1日</button>
+      </div>
+      <label class="time-check"><input type="checkbox" id="withTime" checked> 時刻も入れる（例：<span id="timeEx">_1430</span>）</label>
+      <p class="opt-note">設定は次回も覚えています。ファイル名欄で「完了 / Enter」でもすぐ保存できます。</p>
+    </details>
   </section>
 
   <!-- 保存一覧 -->
@@ -1214,8 +1263,28 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     const m = Math.floor(sec / 60), s = sec - m * 60;
     return `${m}:${s.toFixed(2).padStart(5, '0')}`;
   }
-  function defaultName(d = new Date()) {
-    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+  // 保存名の日付の書き方（設定は端末に記憶）
+  function loadPref(k, def) { try { const v = localStorage.getItem('hibiki.' + k); return v === null ? def : v; } catch (_) { return def; } }
+  function savePref(k, v) { try { localStorage.setItem('hibiki.' + k, v); } catch (_) {} }
+  let dateStyle = loadPref('dateStyle', 'compact');      // compact / dash / dot / jp
+  let withTime = loadPref('withTime', '1') === '1';
+  let nameDate = new Date(), nameEdited = false;         // いつの日付で名前を作るか・手で書き換えたか
+  function datePart(d, st) {
+    const Y = d.getFullYear(), M = d.getMonth() + 1, D = d.getDate();
+    if (st === 'dash') return `${Y}-${pad(M)}-${pad(D)}`;
+    if (st === 'dot') return `${Y}.${M}.${D}`;
+    if (st === 'jp') return `${Y}年${M}月${D}日`;
+    return `${Y}${pad(M)}${pad(D)}`;
+  }
+  function timePart(d, st) {
+    const h = pad(d.getHours()), m = pad(d.getMinutes());
+    if (st === 'dash') return `${h}-${m}`;
+    if (st === 'dot') return `${h}.${m}`;
+    if (st === 'jp') return `${d.getHours()}時${m}分`;
+    return `${h}${m}`;
+  }
+  function defaultName(d = nameDate) {
+    return datePart(d, dateStyle) + (withTime ? '_' + timePart(d, dateStyle) : '');
   }
   let toastTimer = 0;
   function toast(msg, type = '') {
@@ -1300,6 +1369,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     }));
 
     markers = [];
+    nameDate = new Date(); nameEdited = false;
     nameInput.value = defaultName();
     tagBtns.forEach(b => b.classList.remove('on'));
     recBtn.classList.add('recording');
@@ -1913,14 +1983,37 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     return new Blob(out, { type: 'audio/mpeg' });
   }
   // 保存形式（MP3 / WAV）
-  let saveFmt = 'mp3';
+  let saveFmt = loadPref('fmt', 'mp3') === 'wav' ? 'wav' : 'mp3';
   function curExt() { return saveFmt === 'mp3' ? '.mp3' : '.wav'; }
   function encodeAudio(buf, a, e) { return saveFmt === 'mp3' ? encodeMp3(buf, a, e) : encodeWav(buf, a, e); }
-  document.querySelectorAll('.fmt').forEach(b => b.addEventListener('click', () => {
-    saveFmt = b.dataset.fmt;
-    document.querySelectorAll('.fmt').forEach(x => x.classList.toggle('on', x === b));
+  function applyFmtUI() {
+    document.querySelectorAll('.fmt').forEach(x => x.classList.toggle('on', x.dataset.fmt === saveFmt));
     const el = $('extLabel'); if (el) el.textContent = curExt();
+  }
+  document.querySelectorAll('.fmt').forEach(b => b.addEventListener('click', () => {
+    saveFmt = b.dataset.fmt; savePref('fmt', saveFmt); applyFmtUI();
   }));
+  // 日付の書き方・時刻の有無
+  function regenName() {
+    if (nameEdited) return; // 手で書き換えた名前はそのまま
+    const tags = (nameInput.value.match(/^(\[[^\]]+\])*/) || [''])[0];
+    nameInput.value = tags + defaultName();
+  }
+  function applyDateUI() {
+    document.querySelectorAll('.dfmt').forEach(x => x.classList.toggle('on', x.dataset.dfmt === dateStyle));
+    $('withTime').checked = withTime;
+    $('timeEx').textContent = '_' + timePart(nameDate, dateStyle);
+  }
+  document.querySelectorAll('.dfmt').forEach(b => b.addEventListener('click', () => {
+    dateStyle = b.dataset.dfmt; savePref('dateStyle', dateStyle);
+    applyDateUI(); regenName();
+    toast('ファイル名：' + nameInput.value + curExt(), 'ok');
+  }));
+  $('withTime').addEventListener('change', (e) => {
+    withTime = e.target.checked; savePref('withTime', withTime ? '1' : '0');
+    applyDateUI(); regenName();
+  });
+  applyFmtUI(); applyDateUI();
 
   function sanitize(name) {
     return name.replace(/[\\/:*?"<>|\x00-\x1f]/g, '_').replace(/\.(wav|mp3)$/i, '').trim();
@@ -1990,7 +2083,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   function syncTags() {
     tagBtns.forEach(b => b.classList.toggle('on', nameInput.value.includes(b.dataset.tag)));
   }
-  nameInput.addEventListener('input', syncTags);
+  nameInput.addEventListener('input', () => { nameEdited = true; syncTags(); });
   nameInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); save(); }
   });
@@ -2414,7 +2507,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       });
     } catch (e) { toast('復元に失敗しました', 'err'); return; }
     markers = (st.markers || []).slice();
-    nameInput.value = st.name || defaultName(); syncTags();
+    nameInput.value = st.name || defaultName(); nameEdited = !!st.name; syncTags();
     timerEl.textContent = fmtTimer(audioBuffer.duration);
     statusEl.textContent = `復元しました（${fmtTime(audioBuffer.duration)}）`;
     editCard.classList.remove('disabled');
