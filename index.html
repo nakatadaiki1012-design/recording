@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hibiki">
 <meta name="format-detection" content="telephone=no">
+<script>try{var t=localStorage.getItem('hibiki.theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('hibiki.big')==='1')document.documentElement.setAttribute('data-big','1');}catch(e){}</script>
 <title>Hibiki — 録音・チューナー・採点</title>
 <style>
   :root {
@@ -25,9 +26,28 @@
     --wave: #aab4c6;
     --wave-sel: #4a63e7;
     --ink: #12253a;      /* ゲーム/暗い面 */
+    --btn: #eef2f9; --btn-b: #d6dde9; --btn-press: #e0e6f2; --sub: #fafbfe; --tabbar: #ffffff;
+    --dim: rgba(241,244,250,0.6); --marker-txt: #b8741f;
     --radius: 18px;
     --handle: 44px; /* 指で掴みやすいつまみの当たり判定 */
   }
+  :root[data-theme="dark"] {
+    --bg: #0f131b; --panel: #171c26; --panel-2: #1e2532; --border: #2b3343;
+    --text: #e7eaf0; --muted: #8d96a8; --accent: #7b93ff; --accent-2: #9d82ff;
+    --wave: #4f5a6e; --wave-sel: #7b93ff; --ok: #34c88a; --rec: #ff5d6e;
+    --btn: #222a38; --btn-b: #323b4d; --btn-press: #2a3344; --sub: #1a202b; --tabbar: #151a23;
+    --dim: rgba(15,19,27,0.62); --marker-txt: #ffcf8f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+    --bg: #0f131b; --panel: #171c26; --panel-2: #1e2532; --border: #2b3343;
+    --text: #e7eaf0; --muted: #8d96a8; --accent: #7b93ff; --accent-2: #9d82ff;
+    --wave: #4f5a6e; --wave-sel: #7b93ff; --ok: #34c88a; --rec: #ff5d6e;
+    --btn: #222a38; --btn-b: #323b4d; --btn-press: #2a3344; --sub: #1a202b; --tabbar: #151a23;
+    --dim: rgba(15,19,27,0.62); --marker-txt: #ffcf8f;
+    }
+  }
+  :root[data-big="1"] { font-size: 112.5%; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; }
   html { -webkit-text-size-adjust: 100%; }
@@ -72,6 +92,39 @@
   .disabled { opacity: .45; pointer-events: none; }
   .hidden { display: none !important; }
 
+  /* ---------- 設定・ガイド ---------- */
+  .brand .name { flex: 1; }
+  .icon-btn {
+    width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; cursor: pointer;
+    background: var(--panel); border: 1px solid var(--border); color: var(--muted);
+    display: grid; place-items: center; font-size: 1rem;
+  }
+  .icon-btn svg { width: 22px; height: 22px; }
+  .sheet { position: fixed; inset: 0; z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
+  .sheet-bg { position: absolute; inset: 0; background: rgba(10,14,22,.45); }
+  .sheet-body {
+    position: relative; width: 100%; max-width: 560px; max-height: 88vh; overflow-y: auto;
+    background: var(--panel); color: var(--text); border-radius: 20px 20px 0 0;
+    padding: 18px 18px calc(20px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 30px rgba(0,0,0,.2);
+  }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; font-size: 1.1rem; }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+  .seg button {
+    font: inherit; font-size: .9rem; font-weight: 600; height: 44px; cursor: pointer; border-radius: 10px;
+    background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+  }
+  .seg button.on { background: rgba(74,99,231,.16); border-color: var(--accent); color: var(--accent); }
+  .sheet-btn { width: 100%; margin-top: 8px; text-align: left; white-space: normal; }
+  .guide-body { text-align: center; padding-top: 28px; }
+  .guide-ico { font-size: 2.6rem; margin-bottom: 8px; }
+  .guide-step b { font-size: 1.25rem; }
+  .guide-step p { color: var(--muted); line-height: 1.7; margin: 10px 4px 0; min-height: 5em; }
+  .guide-step strong { color: var(--text); }
+  .guide-dots { display: flex; justify-content: center; gap: 8px; margin: 14px 0; }
+  .guide-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+  .guide-dots span.on { background: var(--accent); width: 22px; border-radius: 4px; }
+  .guide-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+
   /* ---------- 折りたたみ ---------- */
   details.fold > summary, details.sub > summary { list-style: none; cursor: pointer; -webkit-user-select: none; user-select: none; }
   details.fold > summary::-webkit-details-marker, details.sub > summary::-webkit-details-marker { display: none; }
@@ -85,7 +138,7 @@
   details.fold[open] > summary::after, details.sub[open] > summary::after { transform: rotate(-135deg) translateY(-2px); }
   details.fold[open] > summary { margin-bottom: 12px; }
   details.fold { padding-top: 16px; padding-bottom: 16px; }
-  details.sub { width: 100%; margin-top: 12px; border: 1px solid var(--border); border-radius: 12px; background: #fafbfe; }
+  details.sub { width: 100%; margin-top: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--sub); }
   details.sub > summary {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     padding: 13px 14px; font-size: .9rem; font-weight: 600; color: var(--text);
@@ -114,7 +167,7 @@
   .tabbar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 100; isolation: isolate;
     display: grid; grid-template-columns: repeat(4, 1fr);
-    background: #ffffff;
+    background: var(--tabbar);
     border-top: 1px solid var(--border);
     box-shadow: 0 -6px 20px rgba(20,30,50,.06);
     padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
@@ -233,17 +286,17 @@
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px;
     min-width: 50px; height: 36px; padding: 0 6px; cursor: pointer; white-space: nowrap;
   }
-  .nudge button:active { background: #e4e9f3; }
+  .nudge button:active { background: var(--btn-press); }
 
   .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
   .btn-grid .wide { grid-column: 1 / -1; }
   button.btn {
     font: inherit; font-size: .95rem; font-weight: 600; color: var(--text);
-    background: #eef2f9; border: 1px solid #d6dde9;
+    background: var(--btn); border: 1px solid var(--btn-b);
     min-height: 52px; padding: 10px 12px; border-radius: 13px; cursor: pointer;
     transition: background .12s, border-color .12s, transform .08s;
   }
-  button.btn:active { transform: scale(.97); background: #e0e6f2; }
+  button.btn:active { transform: scale(.97); background: var(--btn-press); }
   button.btn.primary {
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     border-color: transparent; color: #fff; font-weight: 700;
@@ -264,7 +317,7 @@
 
   /* 印（マーカー） */
   button.btn.mark {
-    width: 100%; margin-top: 4px; border-color: #d9963f; color: #ffcf8f;
+    width: 100%; margin-top: 4px; border-color: #d9963f; color: var(--marker-txt);
     background: rgba(217,150,63,.12);
   }
   button.btn.mark:active { background: rgba(217,150,63,.24); }
@@ -275,7 +328,7 @@
     border-radius: 10px; height: 40px; padding: 0 12px;
     display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
   }
-  .markers .chip .no { color: #ffcf8f; font-weight: 600; }
+  .markers .chip .no { color: var(--marker-txt); font-weight: 600; }
   .markers .chip.on { border-color: #d9963f; background: rgba(217,150,63,.16); }
   .markers .chip .del { color: var(--muted); font-size: 1.1rem; line-height: 1; padding: 0 2px; }
 
@@ -380,7 +433,7 @@
     font: inherit; font-size: 1rem; color: var(--text); background: var(--panel-2);
     border: 1px solid var(--border); border-radius: 10px; width: 56px; height: 48px; cursor: pointer;
   }
-  .metro-adj:active { background: #e4e9f3; }
+  .metro-adj:active { background: var(--btn-press); }
   .metro-bpm { flex: 1; text-align: center; }
   .metro-bpm b { font-size: 1.8rem; font-variant-numeric: tabular-nums; }
   .metro-bpm small { color: var(--muted); margin-left: 4px; }
@@ -406,11 +459,11 @@
   .fx-strength-ends { display: flex; justify-content: space-between; font-size: .72rem; color: var(--muted); }
   button.fx {
     font: inherit; font-size: .88rem; font-weight: 600; color: var(--text);
-    background: #eef2f9; border: 1px solid #d6dde9; border-radius: 13px;
+    background: var(--btn); border: 1px solid var(--btn-b); border-radius: 13px;
     min-height: 50px; padding: 8px 10px; cursor: pointer; line-height: 1.3;
     transition: background .12s, transform .08s;
   }
-  button.fx:active { transform: scale(.97); background: #e0e6f2; }
+  button.fx:active { transform: scale(.97); background: var(--btn-press); }
   .fx-h { margin: 14px 0 0; font-size: .78rem; font-weight: 700; color: var(--muted); letter-spacing: .08em; }
   .fx-h + .btn-grid { margin-top: 8px; }
   .fmt-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: .82rem; color: var(--muted); }
@@ -480,7 +533,7 @@
     background: none; border: 1px solid var(--border); border-radius: 8px;
     width: 40px; height: 40px; cursor: pointer; flex-shrink: 0;
   }
-  .lib-item button:active { background: #e4e9f3; }
+  .lib-item button:active { background: var(--btn-press); }
   .lib-item button.playing { border-color: var(--ok); color: var(--ok); }
 
   @media (min-width: 700px) {
@@ -498,6 +551,9 @@
       </svg>
     </div>
     <div class="name">Hibiki<small>録る・整える・磨く</small></div>
+    <button id="settingsBtn" class="icon-btn" aria-label="設定">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
   </div>
 
   <div id="restoreBar" class="restore hidden" data-tab="rec">
@@ -861,6 +917,50 @@
     保存
   </button>
 </nav>
+
+<!-- 設定 -->
+<div id="sheet" class="sheet hidden" role="dialog" aria-modal="true" aria-label="設定">
+  <div class="sheet-bg" data-close></div>
+  <div class="sheet-body">
+    <div class="sheet-head"><b>設定</b><button class="icon-btn" data-close aria-label="閉じる">✕</button></div>
+    <div class="opt-label">画面の明るさ</div>
+    <div class="seg" id="themeSeg">
+      <button data-themev="auto">自動</button><button data-themev="light">明るい</button><button data-themev="dark">暗い</button>
+    </div>
+    <label class="time-check"><input type="checkbox" id="bigText"> 文字を大きくする</label>
+    <div class="opt-label">データ</div>
+    <button id="backupBtn" class="btn sheet-btn">📦 保存したものをまとめて書き出す（バックアップ）</button>
+    <button id="importBtn" class="btn sheet-btn">📥 バックアップ・音声ファイルを読み込む</button>
+    <input type="file" id="importFile" accept=".zip,audio/*,.mp3,.wav,.m4a" multiple hidden>
+    <div class="opt-label">そのほか</div>
+    <button id="guideBtn" class="btn sheet-btn">❓ 使い方をもう一度見る</button>
+    <p class="opt-note">録音データはこの端末の中だけに保存され、外部には送られません。</p>
+  </div>
+</div>
+
+<!-- 初回ガイド -->
+<div id="guide" class="sheet hidden" role="dialog" aria-modal="true" aria-label="使い方">
+  <div class="sheet-bg"></div>
+  <div class="sheet-body guide-body">
+    <div class="guide-step" data-step="0">
+      <div class="guide-ico">🎙</div><b>① 録る</b>
+      <p>録音タブの<strong>赤い丸ボタン</strong>で録音。もう一度押すと止まります。</p>
+    </div>
+    <div class="guide-step hidden" data-step="1">
+      <div class="guide-ico">✂️</div><b>② 整える</b>
+      <p><strong>編集タブ</strong>で「始」「終」を動かして使う部分を選び、大きな▶で聞けます。エフェクトもかけられます。</p>
+    </div>
+    <div class="guide-step hidden" data-step="2">
+      <div class="guide-ico">💾</div><b>③ 渡す・磨く</b>
+      <p><strong>保存する</strong>でMP3に。<strong>練習タブ</strong>には採点・ループ重ね録り・お手本との聴き比べなどがあります。</p>
+    </div>
+    <div class="guide-dots"><span class="on"></span><span></span><span></span></div>
+    <div class="guide-actions">
+      <button id="guideSkip" class="btn">スキップ</button>
+      <button id="guideNext" class="btn primary">次へ</button>
+    </div>
+  </div>
+</div>
 
 <div id="toast" class="toast"></div>
 
@@ -1638,6 +1738,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
 
   function drawWave() {
     if (!audioBuffer) return;
+    if (waveCanvas.getBoundingClientRect().width < 10) return; // 非表示中は描かない
     const { w, h, dpr } = fitCanvas(waveCanvas);
     if (!peaks || peaks.length !== w * 2) peaks = computePeaks(w);
     const g = waveCanvas.getContext('2d');
@@ -1672,7 +1773,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
         g.fillStyle = (x >= sx && x <= ex) ? cIn : cOut;
         g.fillRect(x, y1, 1, Math.max(1, y2 - y1));
       }
-      g.fillStyle = 'rgba(241,244,250,0.6)';
+      g.fillStyle = cssVar('--dim');
       g.fillRect(0, 0, sx, h);
       g.fillRect(ex, 0, w - ex, h);
     }
@@ -3136,6 +3237,8 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     tabPanels.forEach(el => el.classList.toggle('on', el.getAttribute('data-tab') === name));
     tabBtns.forEach(b => b.classList.toggle('on', b.dataset.go === name));
     window.scrollTo(0, 0);
+    // 表示されてから描き直す（隠れている間はキャンバスの大きさが0になるため）
+    requestAnimationFrame(() => { if (audioBuffer) { peaks = null; drawWave(); } });
   }
   tabBtns.forEach(b => b.addEventListener('click', () => showTab(b.dataset.go)));
   // 録音の有無で編集タブの中身を出し分け（灰色の空画面を出さない）
@@ -3395,12 +3498,53 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   }
   refreshMics(); // 起動時（許可後にラベルが埋まる）
 
+  // ---------- 設定（明るさ・文字サイズ）と初回ガイド ----------
+  const sheet = $('sheet'), guide = $('guide');
+  let theme = loadPref('theme', 'auto');
+  function applyTheme() {
+    const root = document.documentElement;
+    if (theme === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', theme);
+    document.querySelectorAll('#themeSeg button').forEach(b => b.classList.toggle('on', b.dataset.themev === theme));
+    const dark = theme === 'dark' || (theme === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#0f131b' : '#eef1f7');
+    requestAnimationFrame(() => { peaks = null; drawWave(); if (!isRecording()) clearLive(); });
+  }
+  document.querySelectorAll('#themeSeg button').forEach(b => b.addEventListener('click', () => {
+    theme = b.dataset.themev; savePref('theme', theme); applyTheme();
+  }));
+  if (window.matchMedia) { try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (theme === 'auto') applyTheme(); }); } catch (_) {} }
+  const bigText = $('bigText');
+  bigText.checked = loadPref('big', '0') === '1';
+  bigText.addEventListener('change', () => {
+    savePref('big', bigText.checked ? '1' : '0');
+    if (bigText.checked) document.documentElement.setAttribute('data-big', '1'); else document.documentElement.removeAttribute('data-big');
+    requestAnimationFrame(() => { peaks = null; drawWave(); });
+  });
+  function openSheet(el) { el.classList.remove('hidden'); }
+  function closeSheet(el) { el.classList.add('hidden'); }
+  $('settingsBtn').addEventListener('click', () => openSheet(sheet));
+  sheet.querySelectorAll('[data-close]').forEach(x => x.addEventListener('click', () => closeSheet(sheet)));
+  // ガイド
+  let gStep = 0;
+  function showGuideStep() {
+    guide.querySelectorAll('.guide-step').forEach(x => x.classList.toggle('hidden', +x.dataset.step !== gStep));
+    guide.querySelectorAll('.guide-dots span').forEach((x, i) => x.classList.toggle('on', i === gStep));
+    $('guideNext').textContent = gStep === 2 ? 'はじめる' : '次へ';
+  }
+  function openGuide() { gStep = 0; showGuideStep(); openSheet(guide); }
+  function endGuide() { closeSheet(guide); savePref('guided', '1'); }
+  $('guideNext').addEventListener('click', () => { if (gStep < 2) { gStep++; showGuideStep(); } else endGuide(); });
+  $('guideSkip').addEventListener('click', endGuide);
+  $('guideBtn').addEventListener('click', () => { closeSheet(sheet); openGuide(); });
+
   // ---------- 初期化 ----------
   nameInput.value = defaultName();
   clearLive();
   renderLibrary();
   refreshEditTab();
   showTab('rec');
+  applyTheme();
+  if (loadPref('guided', '0') !== '1') openGuide();
   loadState().then(st => {
     if (st) {
       const d = new Date(st.at);
