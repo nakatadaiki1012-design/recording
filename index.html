@@ -474,6 +474,19 @@
   }
   button.fx:active { transform: scale(.97); background: var(--btn-press); }
   .seg.seg2 { grid-template-columns: repeat(2, 1fr); }
+  .drone-notes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .drone-notes button {
+    font: inherit; font-size: .85rem; padding: 8px 0; border-radius: 10px; cursor: pointer; line-height: 1.15;
+    background: var(--btn); border: 1px solid var(--btn-b); color: var(--text);
+  }
+  .drone-notes button small { display: block; font-size: .68rem; color: var(--muted); }
+  .drone-notes button.on { background: rgba(74,99,231,.16); border-color: var(--accent); color: var(--accent); }
+  .drone-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+  .drone-row .seg { flex: 1; margin-top: 0; }
+  .drone-row input[type=range] { flex: 1; accent-color: var(--accent); height: 28px; }
+  .ab-sw b { font-size: 1.1rem; }
+  .ab-sw.a { border-color: #d9963f; color: #d9963f; }
+  #growCanvas { width: 100%; height: 180px; display: block; margin-top: 4px; }
   .fx-try { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: .88rem; color: var(--muted); }
   .fx-try input { width: 20px; height: 20px; accent-color: var(--accent); }
   .fx-trybar { margin-top: 10px; padding: 12px; border-radius: 12px; border: 1.5px solid var(--accent); background: var(--panel); box-shadow: 0 6px 20px rgba(30,40,90,.18); position: sticky; top: 8px; z-index: 5; }
@@ -747,6 +760,49 @@
     <button id="commentBtn" class="btn comment">🎤 口頭コメントを末尾に追加</button>
     </details>
   </section>
+
+  <!-- 🎵 基準音（ドローン） -->
+  <details class="card fold" id="droneCard" data-tab="practice">
+    <summary><h2>🎵 基準音（ドローン）</h2></summary>
+    <p class="hint" style="margin-top:0">のばした基準音に合わせて、音程やハーモニーを練習できます。</p>
+    <div class="drone-notes" id="droneNotes"></div>
+    <div class="drone-row">
+      <span class="speed-label">高さ</span>
+      <div class="seg" id="droneOct">
+        <button data-oct="3">低い</button>
+        <button data-oct="4" class="on">ふつう</button>
+        <button data-oct="5">高い</button>
+      </div>
+    </div>
+    <div class="drone-row">
+      <span class="speed-label">音量</span>
+      <input type="range" id="droneVol" min="5" max="100" value="40" aria-label="基準音の音量">
+    </div>
+    <button id="droneBtn" class="btn primary" style="width:100%;margin-top:10px">▶ 基準音を鳴らす</button>
+    <div id="droneNote" class="lt-note"></div>
+  </details>
+
+  <!-- 🆚 お手本とくらべる -->
+  <details class="card fold" id="abCard" data-tab="practice">
+    <summary><h2>🆚 お手本とくらべる（A/B）</h2></summary>
+    <p class="hint" style="margin-top:0">お手本（A）と今の録音（B）を同時に流し、ボタンで瞬時に切り替えて聴き比べます。</p>
+    <button id="abSetRef" class="btn" style="width:100%">⭐ 今選んでいる部分をお手本にする</button>
+    <div id="abRefInfo" class="lt-note">お手本はまだありません</div>
+    <div class="game-setup">
+      <button id="abPlay" class="btn primary">▶ くらべて再生</button>
+      <button id="abSwitch" class="btn ab-sw" disabled>今：<b>B</b> 自分</button>
+    </div>
+    <p class="hint">B は「編集」で選んでいる部分です。同じ所から始まるように録ると比べやすいです。</p>
+  </details>
+
+  <!-- 📈 成長の記録 -->
+  <details class="card fold" id="growCard" data-tab="practice">
+    <summary><h2>📈 成長の記録</h2></summary>
+    <p class="hint" style="margin-top:0">ロングトーン採点と通知表の「音程OK率」を自動で記録して、グラフにします。</p>
+    <canvas id="growCanvas"></canvas>
+    <div id="growSum" class="lt-note">まだ記録がありません</div>
+    <button id="growClear" class="btn" style="width:100%;margin-top:8px">🗑 記録を消す</button>
+  </details>
 
   <!-- ロングトーン採点 -->
   <details class="card fold" id="longtoneCard" data-tab="practice">
@@ -2471,6 +2527,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
 
   document.querySelectorAll('.ref').forEach(b => b.addEventListener('click', () => {
     refA = parseFloat(b.dataset.ref);
+    if (drone) droneRetune();
     document.querySelectorAll('.ref').forEach(x => x.classList.toggle('on', x === b));
   }));
 
@@ -3250,8 +3307,178 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     ltScore.className = 'lt-score ' + (score >= 80 ? 'g' : score >= 60 ? 'y' : 'r');
     const stars = '★'.repeat(Math.round(score / 20)) + '☆'.repeat(5 - Math.round(score / 20));
     ltNote.innerHTML = `${stars}<br>音程のブレ ±${pitchStd.toFixed(0)}セント ／ 音量のムラ ${(volCv * 100).toFixed(0)}%`;
+    addGrowth('lt', score);
     vibrate(score >= 80 ? [20, 60, 20] : 20);
   }
+
+
+  // ========== 🎵 基準音（ドローン） ==========
+  const DRONE_NAMES = [['C', 'ド'], ['C♯', 'ド♯'], ['D', 'レ'], ['E♭', 'ミ♭'], ['E', 'ミ'], ['F', 'ファ'], ['F♯', 'ファ♯'], ['G', 'ソ'], ['A♭', 'ラ♭'], ['A', 'ラ'], ['B♭', 'シ♭'], ['B', 'シ']];
+  let droneNoteIdx = 10, droneOct = 4, drone = null; // 初期値：B♭（吹奏楽のチューニング音）
+  const droneNotesEl = $('droneNotes'), droneBtn = $('droneBtn'), droneVolEl = $('droneVol'), droneNoteEl = $('droneNote');
+  DRONE_NAMES.forEach(([en, ja], i) => {
+    const b = document.createElement('button');
+    b.innerHTML = `${en}<small>${ja}</small>`; b.classList.toggle('on', i === droneNoteIdx);
+    b.addEventListener('click', () => {
+      droneNoteIdx = i;
+      droneNotesEl.querySelectorAll('button').forEach((x, k) => x.classList.toggle('on', k === i));
+      if (drone) droneRetune(); else droneStart();
+    });
+    droneNotesEl.appendChild(b);
+  });
+  document.querySelectorAll('#droneOct button').forEach(b => b.addEventListener('click', () => {
+    droneOct = +b.dataset.oct;
+    document.querySelectorAll('#droneOct button').forEach(x => x.classList.toggle('on', x === b));
+    if (drone) droneRetune();
+  }));
+  const droneFreq = () => refA * Math.pow(2, (12 * (droneOct + 1) + droneNoteIdx - 69) / 12);
+  const droneLabel = () => `${DRONE_NAMES[droneNoteIdx][0]}${droneOct}（${droneFreq().toFixed(1)}Hz・A=${refA}）`;
+  function droneStart() {
+    const ctx = getCtx(); if (ctx.state === 'suspended') ctx.resume();
+    setAudioSession('playback');
+    const out = ctx.createGain(); out.gain.value = 0;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2200;
+    const f = droneFreq();
+    // やわらかいオルガン風：基音＋オクターブ上＋少しだけ5度上
+    const parts = [[1, 'sine', 0.6], [2, 'triangle', 0.18], [3, 'sine', 0.08]].map(([m, type, v]) => {
+      const o = ctx.createOscillator(); o.type = type; o.frequency.value = f * m;
+      const g = ctx.createGain(); g.gain.value = v; o.connect(g); g.connect(lp); o.start(); return { o, m };
+    });
+    lp.connect(out); out.connect(ctx.destination);
+    out.gain.setTargetAtTime(droneVolEl.value / 100 * 0.5, ctx.currentTime, 0.08);
+    drone = { out, parts };
+    droneBtn.textContent = '■ 止める'; droneNoteEl.textContent = '鳴らしています：' + droneLabel();
+  }
+  function droneRetune() {
+    const ctx = getCtx(), f = droneFreq();
+    drone.parts.forEach(({ o, m }) => o.frequency.setTargetAtTime(f * m, ctx.currentTime, 0.02));
+    droneNoteEl.textContent = '鳴らしています：' + droneLabel();
+  }
+  function droneStop() {
+    if (!drone) return;
+    const ctx = getCtx(), d = drone; drone = null;
+    d.out.gain.setTargetAtTime(0, ctx.currentTime, 0.06);
+    setTimeout(() => { d.parts.forEach(({ o }) => { try { o.stop(); } catch (_) {} }); d.out.disconnect(); }, 400);
+    droneBtn.textContent = '▶ 基準音を鳴らす'; droneNoteEl.textContent = '';
+  }
+  droneBtn.addEventListener('click', () => { if (drone) droneStop(); else droneStart(); });
+  droneVolEl.addEventListener('input', () => { if (drone) drone.out.gain.setTargetAtTime(droneVolEl.value / 100 * 0.5, getCtx().currentTime, 0.03); });
+
+  // ========== 🆚 お手本とくらべる（A/B） ==========
+  let abRef = null, abRefName = '', abPlay = null, abOnA = false;
+  const abSetRef = $('abSetRef'), abRefInfo = $('abRefInfo'), abPlayBtn = $('abPlay'), abSwitch = $('abSwitch');
+  function abInfo() { abRefInfo.textContent = abRef ? `お手本：${abRefName}（${fmtTime(abRef.duration)}）` : 'お手本はまだありません'; }
+  async function loadAbRef() {
+    try {
+      const db = await openDB();
+      const st = await new Promise((res) => { const rq = db.transaction(STORE, 'readonly').objectStore(STORE).get('ref'); rq.onsuccess = () => res(rq.result || null); rq.onerror = () => res(null); });
+      if (!st) return;
+      const arr = await st.wav.arrayBuffer();
+      abRef = await new Promise((res, rej) => { const p = getCtx().decodeAudioData(arr, res, rej); if (p && p.then) p.then(res, rej); });
+      abRefName = st.name || 'お手本'; abInfo();
+    } catch (_) {}
+  }
+  abSetRef.addEventListener('click', async () => {
+    if (!audioBuffer) { toast('先に録音してください', 'err'); return; }
+    const { data, sr } = selectedMono();
+    const b = newBuf(data.length, sr); b.getChannelData(0).set(data);
+    abRef = b; abRefName = (nameInput.value || 'お手本') + (selEnd - selStart < audioBuffer.duration - 0.01 ? ` ${fmtTime(selStart)}〜` : '');
+    abInfo(); toast('お手本にしました（次に開いたときも残ります）', 'ok'); vibrate(15);
+    try {
+      const db = await openDB();
+      db.transaction(STORE, 'readwrite').objectStore(STORE).put({ wav: encodeWav(b, 0, b.duration), name: abRefName, at: Date.now() }, 'ref');
+    } catch (_) {}
+  });
+  function abStop() {
+    if (!abPlay) return;
+    abPlay.srcs.forEach(x => { try { x.stop(); } catch (_) {} });
+    abPlay = null; abPlayBtn.textContent = '▶ くらべて再生'; abSwitch.disabled = true;
+  }
+  function abSwitchUI() {
+    abSwitch.innerHTML = abOnA ? '今：<b>A</b> お手本' : '今：<b>B</b> 自分';
+    abSwitch.classList.toggle('a', abOnA);
+  }
+  abPlayBtn.addEventListener('click', () => {
+    if (abPlay) { abStop(); return; }
+    if (!abRef) { toast('先に「お手本にする」を押してください', 'err'); return; }
+    if (!audioBuffer) { toast('くらべる録音（B）がありません', 'err'); return; }
+    stopPreview(); droneStop();
+    const ctx = getCtx(); if (ctx.state === 'suspended') ctx.resume();
+    setAudioSession('playback');
+    const { data, sr } = selectedMono();
+    const bb = newBuf(data.length, sr); bb.getChannelData(0).set(data);
+    // 2つを同時に流し、音量だけ切り替える（位置がずれない）
+    const mk = (buf, on) => { const s = ctx.createBufferSource(); s.buffer = buf; const g = ctx.createGain(); g.gain.value = on ? 1 : 0; s.connect(g); g.connect(ctx.destination); return { s, g }; };
+    const A = mk(abRef, abOnA), B = mk(bb, !abOnA), t0 = ctx.currentTime + 0.05;
+    A.s.start(t0); B.s.start(t0);
+    const longer = abRef.duration >= bb.duration ? A.s : B.s;
+    abPlay = { A, B, srcs: [A.s, B.s] };
+    longer.onended = () => { if (abPlay && abPlay.A === A) abStop(); };
+    abPlayBtn.textContent = '■ 止める'; abSwitch.disabled = false; abSwitchUI();
+  });
+  abSwitch.addEventListener('click', () => {
+    abOnA = !abOnA; abSwitchUI(); vibrate(8);
+    if (!abPlay) return;
+    const t = getCtx().currentTime;
+    abPlay.A.g.gain.setTargetAtTime(abOnA ? 1 : 0, t, 0.01);
+    abPlay.B.g.gain.setTargetAtTime(abOnA ? 0 : 1, t, 0.01);
+  });
+  loadAbRef();
+
+  // ========== 📈 成長の記録 ==========
+  const growCanvas = $('growCanvas'), growSum = $('growSum');
+  function growLoad() { try { return JSON.parse(localStorage.getItem('hibiki.growth') || '[]'); } catch (_) { return []; } }
+  function addGrowth(kind, v) {
+    const h = growLoad(); h.push({ t: Date.now(), k: kind, v });
+    while (h.length > 500) h.shift();
+    try { localStorage.setItem('hibiki.growth', JSON.stringify(h)); } catch (_) {}
+    drawGrowth();
+  }
+  function drawGrowth() {
+    const h = growLoad();
+    const { w, h: H, dpr } = fitCanvas(growCanvas);
+    if (w < 10) return;
+    const g = growCanvas.getContext('2d'); g.clearRect(0, 0, w, H);
+    const L = 30 * dpr, R = 8 * dpr, T = 10 * dpr, B = 20 * dpr, pw = w - L - R, ph = H - T - B;
+    g.font = `${10 * dpr}px sans-serif`; g.fillStyle = cssVar('--muted'); g.textBaseline = 'middle';
+    for (const y of [0, 50, 100]) {
+      const py = T + ph * (1 - y / 100);
+      g.fillStyle = cssVar('--border'); g.fillRect(L, py, pw, Math.max(1, dpr));
+      g.fillStyle = cssVar('--muted'); g.fillText(String(y), 4 * dpr, py);
+    }
+    if (!h.length) { growSum.textContent = 'まだ記録がありません（ロングトーン採点や通知表を使うと記録されます）'; return; }
+    const t0 = h[0].t, t1 = Math.max(t0 + 1, h[h.length - 1].t);
+    const series = [['lt', cssVar('--accent'), 'ロングトーン'], ['rep', '#3ecf8e', '音程OK率']];
+    // 横軸は回数順（日付は両端に表示）
+    for (const [k, col] of series) {
+      const pts = h.map((e, i) => ({ e, i })).filter(x => x.e.k === k);
+      if (!pts.length) continue;
+      g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 2 * dpr; g.beginPath();
+      pts.forEach(({ e, i }, j) => {
+        const x = L + (h.length === 1 ? pw / 2 : pw * i / (h.length - 1)), y = T + ph * (1 - e.v / 100);
+        if (j) g.lineTo(x, y); else g.moveTo(x, y);
+      });
+      g.stroke();
+      pts.forEach(({ e, i }) => { const x = L + (h.length === 1 ? pw / 2 : pw * i / (h.length - 1)), y = T + ph * (1 - e.v / 100); g.beginPath(); g.arc(x, y, 3 * dpr, 0, Math.PI * 2); g.fill(); });
+    }
+    const dl = (t) => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()}`; };
+    g.fillStyle = cssVar('--muted'); g.textBaseline = 'top';
+    g.fillText(dl(t0), L, H - 14 * dpr); const e = dl(t1); g.fillText(e, w - R - g.measureText(e).width, H - 14 * dpr);
+    const parts = series.map(([k, col, name]) => {
+      const v = h.filter(x => x.k === k).map(x => x.v);
+      if (!v.length) return '';
+      const first = v.slice(0, 3), last = v.slice(-3), avg = (a) => a.reduce((s, x) => s + x, 0) / a.length;
+      const diff = Math.round(avg(last) - avg(first));
+      return `<span style="color:${col}">●</span> ${name}：最新 ${v[v.length - 1]}・最高 ${Math.max(...v)}（${v.length}回${v.length >= 4 ? `、はじめより ${diff >= 0 ? '+' : ''}${diff}` : ''}）`;
+    }).filter(Boolean);
+    growSum.innerHTML = parts.join('<br>');
+  }
+  $('growClear').addEventListener('click', () => {
+    if (!confirm('成長の記録をすべて消しますか？')) return;
+    try { localStorage.removeItem('hibiki.growth'); } catch (_) {}
+    drawGrowth();
+  });
+  $('growCard').addEventListener('toggle', () => { if ($('growCard').open) requestAnimationFrame(drawGrowth); });
 
   // ========== 🔁 ループ重ね録り（ルーパー） ==========
   let loopBuf = null, loopHist = [], loopSrc = null, loopPlaying = false, loopOff = 0, loopBusy = false;
@@ -3428,6 +3655,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       dynamics: peak / (mean || 1e-6),
       cents
     });
+    if (cnt >= 10) addGrowth('rep', Math.round(inTune / cnt * 100));
     reportActions.classList.remove('hidden');
     if (canShareFiles) reportShare.classList.remove('hidden');
   });
