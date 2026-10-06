@@ -520,13 +520,16 @@
   button.btn.mediakey.on { border-color: var(--ok); color: var(--ok); background: rgba(62,207,142,.12); }
 
   /* 保存一覧 */
+  .lib-tools { display: flex; gap: 8px; margin-top: 12px; }
+  .lib-tools .btn { flex: 1; }
   .lib-list { display: flex; flex-direction: column; gap: 8px; }
   .lib-item {
-    display: flex; align-items: center; gap: 8px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px;
   }
-  .lib-item .meta { flex: 1; min-width: 0; }
-  .lib-item .nm { font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lib-item .meta { flex: 1 1 100%; min-width: 0; }
+  .lib-item .nm { font-size: .9rem; overflow-wrap: anywhere; }
+  .lib-item button:first-of-type { margin-left: auto; }
   .lib-item .sub { font-size: .72rem; color: var(--muted); }
   .lib-item button {
     font: inherit; font-size: 1.1rem; line-height: 1; color: var(--text);
@@ -896,6 +899,11 @@
     <div id="libList" class="lib-list">
       <p class="hint" id="libEmpty">まだありません。保存するとここに一覧が出ます（聴き返し・再共有・削除ができます）。</p>
     </div>
+    <div class="lib-tools">
+      <button id="libBackupBtn" class="btn">📦 まとめて書き出す</button>
+      <button id="libImportBtn" class="btn">📥 読み込む</button>
+    </div>
+    <p class="hint">機種変更やデータ消えに備えて、ときどき「まとめて書き出す」でバックアップしておくと安心です。</p>
   </section>
 </div>
 
@@ -1416,10 +1424,17 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
 
   // ---------- 1. 録音 ----------
   let capturePending = false, countinTimer = 0;
+  let unsaved = false; // まだ保存していない録音があるか
   recBtn.addEventListener('click', () => {
-    if (isRecording()) stopRecording();
-    else if (capturePending) cancelCountIn();
-    else startRecording();
+    if (isRecording()) {
+      const el = (performance.now() - recStartTime) / 1000;
+      if (el > 10 && !confirm('録音を止めますか？')) return; // うっかり停止を防ぐ
+      stopRecording();
+    } else if (capturePending) cancelCountIn();
+    else {
+      if (unsaved && audioBuffer && !confirm('まだ保存していない録音があります。\n新しく録音すると、今の録音は置き換わります。\n録音しますか？')) return;
+      startRecording();
+    }
   });
 
   async function startRecording() {
@@ -1622,18 +1637,37 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   }
 
   // リニアPCM録音（無圧縮・音量自動調整なし）
+  const PART_SEC = window.__hibikiPartSec || 600; // 10分ごとに区切って保存一覧へ自動保存
+  let pcmParts = 0, pcmPartBase = '';
   function startPcmCapture() {
     const ctx = getCtx();
-    pcmMode = true; pcmChunks = []; pcmFrames = 0; pcmRate = ctx.sampleRate;
-    pcmProc = ctx.createScriptProcessor(4096, 1, 1);
+    pcmMode = true; pcmChunks = []; pcmFrames = 0; pcmRate = ctx.sampleRate; pcmParts = 0;
+    pcmPartBase = sanitize(nameInput.value) || defaultName();
+    pcmProc = ctx.createScriptProcessor(8192, 1, 1);
     pcmZero = ctx.createGain(); pcmZero.gain.value = 0; // 自分の声が返らないよう無音で経由
     pcmProc.onaudioprocess = (e) => {
       if (!pcmMode) return;
-      const d = e.inputBuffer.getChannelData(0);
-      pcmChunks.push(new Float32Array(d)); pcmFrames += d.length;
+      const d = e.inputBuffer.getChannelData(0), q = new Int16Array(d.length);
+      for (let i = 0; i < d.length; i++) { let v = d[i]; v = v < -1 ? -1 : v > 1 ? 1 : v; q[i] = v < 0 ? v * 0x8000 : v * 0x7fff; }
+      pcmChunks.push(q); pcmFrames += q.length;
+      if (pcmFrames >= PART_SEC * pcmRate) flushPcmPart();
     };
     micSource.connect(pcmProc); pcmProc.connect(pcmZero); pcmZero.connect(ctx.destination);
-    statusEl.textContent = '● 録音中（高音質PCM）… もう一度押すと停止';
+  }
+  // 16bit PCM の塊から WAV を作る（コピーなしで速い）
+  function wavFromInt16(chunks, frames, sr) {
+    const h = new DataView(new ArrayBuffer(44)), w = (o, t) => { for (let i = 0; i < t.length; i++) h.setUint8(o + i, t.charCodeAt(i)); };
+    w(0, 'RIFF'); h.setUint32(4, 36 + frames * 2, true); w(8, 'WAVE'); w(12, 'fmt '); h.setUint32(16, 16, true);
+    h.setUint16(20, 1, true); h.setUint16(22, 1, true); h.setUint32(24, sr, true); h.setUint32(28, sr * 2, true);
+    h.setUint16(32, 2, true); h.setUint16(34, 16, true); w(36, 'data'); h.setUint32(40, frames * 2, true);
+    return new Blob([h.buffer, ...chunks], { type: 'audio/wav' });
+  }
+  function flushPcmPart() {
+    const chunks = pcmChunks, frames = pcmFrames;
+    pcmChunks = []; pcmFrames = 0; pcmParts++;
+    const name = `${pcmPartBase}_part${pcmParts}.wav`, blob = wavFromInt16(chunks, frames, pcmRate);
+    setTimeout(async () => { await libAdd(name, blob); renderLibrary(); }, 0);
+    toast(`長い録音なので ${pcmParts} つ目（10分）を保存一覧に自動保存しました`, 'ok');
   }
   function stopPcmCapture() {
     pcmMode = false;
@@ -1642,8 +1676,15 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     try { pcmZero.disconnect(); } catch (_) {}
     const buf = getCtx().createBuffer(1, Math.max(1, pcmFrames), pcmRate);
     const out = buf.getChannelData(0); let o = 0;
-    for (const c of pcmChunks) { out.set(c.subarray(0, Math.min(c.length, out.length - o)), o); o += c.length; }
+    for (const c of pcmChunks) { for (let i = 0; i < c.length && o < out.length; i++) out[o++] = c[i] / 0x8000; }
     pcmChunks = [];
+    if (pcmParts > 0) {
+      // 最後の区間だけを編集用に。印もこの区間の時刻に合わせる
+      const off = pcmParts * PART_SEC;
+      markers = markers.filter(t => t >= off).map(t => t - off);
+      nameInput.value = `${pcmPartBase}_part${pcmParts + 1}`; nameEdited = true;
+      toast(`前の ${pcmParts} 区間は保存一覧にあります。ここには最後の区間が出ています`, 'ok');
+    }
     finalizeRecording(buf);
   }
 
@@ -1685,6 +1726,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     saveState();
     refreshEditTab();
     showTab('edit');
+    unsaved = true;
   }
 
   // 印のチップを描く。タップで「その印から次の印まで」を選択
@@ -2141,6 +2183,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     downloadBlob(blob, name);
     await libAdd(name, blob);   // アプリ内の一覧にも残す
     renderLibrary();
+    unsaved = false;
     vibrate(30);
     toast(`「${name}」を保存しました`, 'ok');
   }
@@ -2161,7 +2204,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     const name = await uniqueName(baseName());
     try {
       await navigator.share({ files: [new File([blob], name, { type: blob.type || 'audio/mpeg' })], title: name });
-      await libAdd(name, blob); renderLibrary();
+      await libAdd(name, blob); renderLibrary(); unsaved = false;
     } catch (e) {
       if (e && e.name !== 'AbortError') toast('共有できませんでした。「保存」を使ってください', 'err');
     }
@@ -2473,7 +2516,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       await libAdd(name, blob);
       await new Promise(r => setTimeout(r, 500)); // 連続ダウンロードの間隔
     }
-    renderLibrary();
+    renderLibrary(); unsaved = false;
     vibrate(30);
     toast(`${markers.length}個の区間を保存しました`, 'ok');
   });
@@ -2568,13 +2611,15 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       row.className = 'lib-item';
       const d = new Date(it.at);
       const size = (it.blob.size / 1024 / 1024).toFixed(1);
-      row.innerHTML = `<div class="meta"><div class="nm">${it.name}</div>` +
+      row.innerHTML = `<div class="meta"><div class="nm">${escHtml(it.name)}</div>` +
         `<div class="sub">${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())} ・ ${size}MB</div></div>`;
       const play = document.createElement('button'); play.textContent = '▶'; play.title = '再生';
       const shareOrDl = document.createElement('button');
       shareOrDl.textContent = canShareFiles ? '📤' : '⬇️';
       shareOrDl.title = canShareFiles ? '共有' : '保存';
       const del = document.createElement('button'); del.textContent = '🗑'; del.title = '削除';
+      const open = document.createElement('button'); open.textContent = '✏️'; open.title = '編集画面で開く';
+      open.addEventListener('click', () => openInEditor(it));
       play.addEventListener('click', () => {
         if (libPlayEl && !libPlayEl.paused) { libPlayEl.pause(); libPlayEl = null; row.querySelectorAll('button')[0].classList.remove('playing'); return; }
         stopPreview();
@@ -2590,12 +2635,129 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
         } else downloadBlob(it.blob, it.name);
       });
       del.addEventListener('click', async () => {
+        if (!confirm(`「${it.name}」を削除しますか？\n元に戻せません。`)) return;
         await libDelete(it.id); renderLibrary();
       });
-      row.append(play, shareOrDl, del);
+      row.append(play, open, shareOrDl, del);
       libList.appendChild(row);
     }
   }
+
+  function escHtml(t) { return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+  // 保存一覧の録音を編集画面で開く
+  async function openInEditor(it) {
+    if (isRecording()) return;
+    if (unsaved && audioBuffer && !confirm('まだ保存していない録音があります。\n開くと、今の録音は置き換わります。\n開きますか？')) return;
+    stopPreview();
+    let dec;
+    try {
+      const arr = await it.blob.arrayBuffer();
+      dec = await new Promise((res, rej) => { const p = getCtx().decodeAudioData(arr, res, rej); if (p && p.then) p.then(res, rej); });
+    } catch (e) { toast('この音声は開けませんでした', 'err'); return; }
+    markers = [];
+    nameInput.value = it.name.replace(/\.[a-z0-9]+$/i, ''); nameEdited = true; syncTags();
+    await finalizeRecording(dec);
+    unsaved = false; // もう保存一覧にあるもの
+    toast('編集画面で開きました', 'ok');
+  }
+
+  // ---------- バックアップ（ZIP 書き出し・読み込み） ----------
+  // 圧縮なしの ZIP。音声はすでに圧縮済み or WAV なのでこれで十分
+  const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  async function makeZip(files) { // files: [{name, blob, at}]
+    const enc = new TextEncoder(), parts = [], central = [];
+    let off = 0;
+    for (const f of files) {
+      const data = new Uint8Array(await f.blob.arrayBuffer()), nm = enc.encode(f.name), crc = crc32(data);
+      const d = new Date(f.at || Date.now());
+      const dt = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+      const tm = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+      const lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+      lh.setUint16(10, tm, true); lh.setUint16(12, dt, true); lh.setUint32(14, crc, true);
+      lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, nm.length, true); lh.setUint16(28, 0, true);
+      const ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true);
+      ch.setUint16(12, tm, true); ch.setUint16(14, dt, true); ch.setUint32(16, crc, true);
+      ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, nm.length, true);
+      ch.setUint32(42, off, true);
+      parts.push(lh.buffer, nm, data); central.push(ch.buffer, nm);
+      off += 30 + nm.length + data.length;
+    }
+    const cdSize = central.reduce((a, b) => a + b.byteLength, 0);
+    const end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+    end.setUint32(12, cdSize, true); end.setUint32(16, off, true);
+    return new Blob([...parts, ...central, end.buffer], { type: 'application/zip' });
+  }
+  // 圧縮なし ZIP を読む（このアプリが書き出したもの用。圧縮されたものは飛ばす）
+  async function readZip(blob) {
+    const buf = await blob.arrayBuffer(), v = new DataView(buf), dec = new TextDecoder(), out = [];
+    let e = buf.byteLength - 22;
+    while (e >= 0 && v.getUint32(e, true) !== 0x06054b50) e--;
+    if (e < 0) throw new Error('zip');
+    const n = v.getUint16(e + 10, true); let p = v.getUint32(e + 16, true);
+    for (let i = 0; i < n; i++) {
+      if (v.getUint32(p, true) !== 0x02014b50) break;
+      const method = v.getUint16(p + 10, true), size = v.getUint32(p + 20, true);
+      const nl = v.getUint16(p + 28, true), xl = v.getUint16(p + 30, true), cl = v.getUint16(p + 32, true), lo = v.getUint32(p + 42, true);
+      const name = dec.decode(new Uint8Array(buf, p + 46, nl));
+      const dataAt = lo + 30 + v.getUint16(lo + 26, true) + v.getUint16(lo + 28, true);
+      if (method === 0 && !name.endsWith('/')) out.push({ name: name.split('/').pop(), blob: new Blob([buf.slice(dataAt, dataAt + size)], { type: mimeOf(name) }) });
+      p += 46 + nl + xl + cl;
+    }
+    return out;
+  }
+  function mimeOf(name) {
+    const x = (name.split('.').pop() || '').toLowerCase();
+    return { mp3: 'audio/mpeg', wav: 'audio/wav', m4a: 'audio/mp4', mp4: 'audio/mp4', webm: 'audio/webm', ogg: 'audio/ogg', aac: 'audio/aac' }[x] || 'application/octet-stream';
+  }
+  async function exportBackup() {
+    const items = (await libAll()).sort((a, b) => a.at - b.at);
+    if (!items.length) { toast('保存したものがまだありません', 'err'); return; }
+    toast('バックアップを作っています…');
+    const zip = await makeZip(items);
+    const d = new Date(), fname = `響_バックアップ_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}.zip`;
+    if (canShareFiles) {
+      const file = new File([zip], fname, { type: 'application/zip' });
+      if (!navigator.canShare || navigator.canShare({ files: [file] })) {
+        try { await navigator.share({ files: [file], title: fname }); return; }
+        catch (e) { if (e && e.name === 'AbortError') return; }
+      }
+    }
+    downloadBlob(zip, fname);
+    toast(`${items.length} 件をまとめて書き出しました`, 'ok');
+  }
+  async function importFiles(fileList) {
+    const used = new Set((await libAll()).map(x => x.name));
+    const free = (nm) => { if (!used.has(nm)) return nm; const m = nm.match(/^(.*?)(\.[^.]+)?$/); for (let i = 2; ; i++) { const c = `${m[1]}_${i}${m[2] || ''}`; if (!used.has(c)) return c; } };
+    let count = 0, skipped = 0;
+    for (const f of fileList) {
+      let entries = [];
+      if (/\.zip$/i.test(f.name) || f.type === 'application/zip') {
+        try { entries = await readZip(f); } catch (_) { skipped++; continue; }
+      } else entries = [{ name: f.name, blob: f }];
+      for (const en of entries) {
+        if (!/^audio\//.test(en.blob.type) && !/\.(mp3|wav|m4a|mp4|webm|ogg|aac)$/i.test(en.name)) { skipped++; continue; }
+        const nm = free(en.name); used.add(nm);
+        await libAdd(nm, en.blob); count++;
+      }
+    }
+    renderLibrary();
+    toast(count ? `${count} 件を保存一覧に読み込みました${skipped ? `（${skipped} 件は読めませんでした）` : ''}` : '読み込める音声がありませんでした', count ? 'ok' : 'err');
+    showTab('lib');
+  }
+  const importFile = $('importFile');
+  $('backupBtn').addEventListener('click', exportBackup);
+  $('libBackupBtn').addEventListener('click', exportBackup);
+  $('importBtn').addEventListener('click', () => importFile.click());
+  $('libImportBtn').addEventListener('click', () => importFile.click());
+  importFile.addEventListener('change', async () => {
+    const files = Array.from(importFile.files || []); importFile.value = '';
+    if (files.length) await importFiles(files);
+  });
 
   restoreBtn.addEventListener('click', async () => {
     const st = await loadState();
