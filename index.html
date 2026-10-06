@@ -211,6 +211,15 @@
 
   /* ---------- 波形 ---------- */
   .wave-wrap { position: relative; }
+  .zoom-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 6px 0 2px; }
+  .zoom-row .zb {
+    font: inherit; font-size: 1rem; min-width: 44px; height: 36px; border-radius: 10px; cursor: pointer;
+    background: var(--btn); border: 1px solid var(--btn-b); color: var(--text);
+  }
+  .zoom-row .zb:active { background: var(--btn-press); }
+  .zoom-row .zb:disabled { opacity: .35; }
+  .zoom-lbl { min-width: 84px; text-align: center; font-size: .8rem; color: var(--muted); }
+  .handle.off { opacity: .3; }
   #wave {
     width: 100%; height: 150px; display: block;
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px;
@@ -464,6 +473,19 @@
     transition: background .12s, transform .08s;
   }
   button.fx:active { transform: scale(.97); background: var(--btn-press); }
+  .seg.seg2 { grid-template-columns: repeat(2, 1fr); }
+  .fx-try { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: .88rem; color: var(--muted); }
+  .fx-try input { width: 20px; height: 20px; accent-color: var(--accent); }
+  .fx-trybar { margin-top: 10px; padding: 12px; border-radius: 12px; border: 1.5px solid var(--accent); background: var(--panel); box-shadow: 0 6px 20px rgba(30,40,90,.18); position: sticky; top: 8px; z-index: 5; }
+  .fx-trybar-t { font-size: .92rem; margin-bottom: 8px; }
+  .fx-trybar-b { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 6px; }
+  .fx-trybar-b .btn { padding: 10px 4px; font-size: .85rem; }
+  .vol-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px; }
+  .vol-row .vol {
+    font: inherit; font-size: .82rem; padding: 10px 2px; border-radius: 10px; cursor: pointer;
+    background: var(--btn); border: 1px solid var(--btn-b); color: var(--text);
+  }
+  .vol-row .vol:active { background: var(--btn-press); }
   .fx-h { margin: 14px 0 0; font-size: .78rem; font-weight: 700; color: var(--muted); letter-spacing: .08em; }
   .fx-h + .btn-grid { margin-top: 8px; }
   .fmt-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: .82rem; color: var(--muted); }
@@ -649,6 +671,13 @@
       <canvas id="wave"></canvas>
       <div id="waveEmpty" class="wave-empty">録音するとここに波形が表示されます</div>
     </div>
+    <div class="zoom-row">
+      <button id="zoomOut" class="zb" aria-label="縮小">－</button>
+      <button id="panL" class="zb" aria-label="左へ">◀</button>
+      <span id="zoomLbl" class="zoom-lbl">全体</span>
+      <button id="panR" class="zb" aria-label="右へ">▶</button>
+      <button id="zoomIn" class="zb" aria-label="拡大">＋</button>
+    </div>
 
     <p class="trim-guide">下の <span class="chip-s">始</span> と <span class="chip-e">終</span> を左右に動かして、使う部分だけを囲みます</p>
     <div id="range" class="range">
@@ -815,7 +844,21 @@
   <!-- 🎚 エフェクト -->
   <details class="card hidden fold" id="fxCard" data-tab="edit">
     <summary><h2>🎚 エフェクト</h2></summary>
-    <p class="hint" style="margin-top:0">録音全体に効果をかけます。重ねがけもOK。元に戻すで取り消せます。</p>
+    <p class="hint" style="margin-top:0">効果をかけます。重ねがけもOK。元に戻すで取り消せます。</p>
+    <div class="seg seg2" id="fxScope">
+      <button data-scope="all" class="on">録音全体に</button>
+      <button data-scope="sel">選んだ部分だけ</button>
+    </div>
+    <label class="fx-try"><input type="checkbox" id="fxTry" checked> かける前に試聴する（最初の10秒）</label>
+    <div id="fxTryBar" class="fx-trybar hidden">
+      <div class="fx-trybar-t">🎧 <b id="fxTryName"></b> を試聴中</div>
+      <div class="fx-trybar-b">
+        <button id="fxTryOk" class="btn primary">✅ かける</button>
+        <button id="fxTryOrig" class="btn">原音</button>
+        <button id="fxTryAgain" class="btn">もう一度</button>
+        <button id="fxTryNo" class="btn">やめる</button>
+      </div>
+    </div>
     <div class="fx-strength">
       <div class="fx-strength-top"><span>強さ</span><b id="fxSVal">50%（標準）</b></div>
       <input type="range" id="fxS" min="0" max="100" step="5" value="50" aria-label="エフェクトの強さ">
@@ -851,6 +894,14 @@
       <button class="fx" data-fx="pitchdown">⬇ キーを下げる</button>
       <button class="fx" data-fx="reverse">🔄 逆再生</button>
       <button class="fx" data-fx="trimsil">✂ 無音を詰める</button>
+    </div>
+    <p class="fx-h">選んだ部分の音量</p>
+    <div class="vol-row">
+      <button class="vol" data-db="-6">−6dB</button>
+      <button class="vol" data-db="-3">−3dB</button>
+      <button class="vol" data-db="3">＋3dB</button>
+      <button class="vol" data-db="6">＋6dB</button>
+      <button class="vol" data-db="mute">🔇消す</button>
     </div>
     <button id="fxUndo" class="btn" style="width:100%;margin-top:10px">↶ エフェクトを元に戻す</button>
     <div id="fxNote" class="lt-note"></div>
@@ -1332,6 +1383,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   let peaks = null;         // 波形描画用（列ごとの最小・最大）
   let colorMode = false, colorGrid = null; // 🌈 音程で色分け表示
   let selStart = 0, selEnd = 0; // 秒
+  let viewA = 0, viewB = 0, viewBuf = null; // 波形の表示範囲（拡大用・秒）
   let markers = [];         // 録音中に付けた印（秒）
   let playRAF = 0, playhead = null;
   let speed = 1, loopOn = false, previewURL = null;
@@ -1716,7 +1768,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     saveCard.classList.remove('disabled');
     analyzeCard.classList.remove('disabled');
     waveEmpty.style.display = 'none';
-    peaks = null; colorGrid = null; fxHist = [];
+    peaks = null; colorGrid = null; fxHist = []; viewBuf = null; viewA = viewB = 0;
     markers = markers.map(t => Math.min(t, audioBuffer.duration)).filter(t => t >= 0).sort((a, b) => a - b);
     pitchOut.textContent = tempoOut.textContent = '—';
     pitchOut.className = tempoOut.className = 'an-out';
@@ -1757,9 +1809,10 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     const chans = [];
     for (let c = 0; c < ch; c++) chans.push(audioBuffer.getChannelData(c));
     const out = new Float32Array(width * 2);
-    const step = len / width;
+    const sr = audioBuffer.sampleRate, base = Math.floor(viewA * sr);
+    const step = Math.max(1e-9, (Math.min(len, Math.ceil(viewB * sr)) - base) / width);
     for (let x = 0; x < width; x++) {
-      const a = Math.floor(x * step), b = Math.min(len, Math.max(a + 1, Math.floor((x + 1) * step)));
+      const a = base + Math.floor(x * step), b = Math.min(len, Math.max(a + 1, base + Math.floor((x + 1) * step)));
       let mn = 1, mx = -1;
       for (let i = a; i < b; i++) {
         let v = 0;
@@ -1771,21 +1824,68 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       if (mn > mx) { mn = 0; mx = 0; }
       out[x * 2] = mn; out[x * 2 + 1] = mx;
     }
-    // 小さい声でも見やすいように正規化
-    let peak = 0;
-    for (let i = 0; i < out.length; i++) peak = Math.max(peak, Math.abs(out[i]));
+    // 小さい声でも見やすいように正規化（拡大しても高さが変わらないよう全体の最大で）
+    const peak = globalPeak();
     if (peak > 0) for (let i = 0; i < out.length; i++) out[i] /= peak;
     return out;
   }
+  let gPeak = 0, gPeakBuf = null;
+  function globalPeak() {
+    if (gPeakBuf === audioBuffer) return gPeak;
+    let pk = 0;
+    for (let c = 0; c < audioBuffer.numberOfChannels; c++) { const d = audioBuffer.getChannelData(c); for (let i = 0; i < d.length; i++) { const a = d[i] < 0 ? -d[i] : d[i]; if (a > pk) pk = a; } }
+    gPeak = pk; gPeakBuf = audioBuffer; return pk;
+  }
+  // 表示範囲（拡大）。録音の長さが変わったら全体表示に戻す
+  function ensureView() {
+    const d = audioBuffer.duration;
+    if (viewBuf !== audioBuffer) {
+      if (!viewBuf || Math.abs(viewBuf.duration - d) > 1e-3 || viewB > d + 1e-6) { viewA = 0; viewB = d; peaks = null; }
+      viewBuf = audioBuffer; zoomUI();
+    }
+    if (!(viewB > viewA)) { viewA = 0; viewB = d; zoomUI(); }
+  }
+  const vx = (t) => (t - viewA) / (viewB - viewA); // 秒 → 表示内の位置(0〜1)
+  function setView(a, b) {
+    const d = audioBuffer.duration, len = Math.min(d, Math.max(Math.min(0.5, d), b - a));
+    a = Math.max(0, Math.min(a, d - len));
+    viewA = a; viewB = a + len; viewBuf = audioBuffer;
+    peaks = null;
+    zoomUI();
+    setSelection(selStart, selEnd, 'keep');
+  }
+  function zoomUI() {
+    const d = audioBuffer.duration, z = d / Math.max(1e-6, viewB - viewA);
+    $('zoomLbl').textContent = z < 1.05 ? '全体' : `${z < 10 ? z.toFixed(1) : Math.round(z)}倍 ${fmtTime(viewA)}〜`;
+    $('zoomOut').disabled = z < 1.05;
+    $('panL').disabled = viewA <= 0.001; $('panR').disabled = viewB >= d - 0.001;
+  }
+  function zoomBy(f) {
+    if (!audioBuffer) return;
+    ensureView();
+    const d = audioBuffer.duration, len = (viewB - viewA) * f;
+    const full = selStart <= 0.01 && selEnd >= d - 0.01;
+    const sMid = (selStart + selEnd) / 2;
+    // 選んでいる範囲（またはつまみ）を中心に拡大
+    let c = (viewA + viewB) / 2;
+    if (f < 1 && !full) c = (selEnd - selStart) > len ? (selStart >= viewA && selStart <= viewB ? selStart : selEnd) : sMid;
+    setView(c - len / 2, c + len / 2);
+  }
+  $('zoomIn').addEventListener('click', () => zoomBy(0.5));
+  $('zoomOut').addEventListener('click', () => zoomBy(2));
+  $('panL').addEventListener('click', () => { if (audioBuffer) { const l = viewB - viewA; setView(viewA - l * 0.5, viewB - l * 0.5); } });
+  $('panR').addEventListener('click', () => { if (audioBuffer) { const l = viewB - viewA; setView(viewA + l * 0.5, viewB + l * 0.5); } });
+  function resetView() { if (audioBuffer) { viewBuf = null; ensureView(); setView(0, audioBuffer.duration); } }
 
   function drawWave() {
     if (!audioBuffer) return;
     if (waveCanvas.getBoundingClientRect().width < 10) return; // 非表示中は描かない
     const { w, h, dpr } = fitCanvas(waveCanvas);
+    ensureView();
     if (!peaks || peaks.length !== w * 2) peaks = computePeaks(w);
     const g = waveCanvas.getContext('2d');
-    const dur = audioBuffer.duration;
-    const sx = (selStart / dur) * w, ex = (selEnd / dur) * w;
+    const vDur = viewB - viewA;
+    const sx = Math.max(-2, Math.min(w + 2, vx(selStart) * w)), ex = Math.max(-2, Math.min(w + 2, vx(selEnd) * w));
     const mid = h / 2, amp = h * 0.45;
 
     g.clearRect(0, 0, w, h);
@@ -1802,7 +1902,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       for (let x = 0; x < w; x++) {
         const mn = peaks[x * 2], mx = peaks[x * 2 + 1];
         const y1 = mid - mx * amp, y2 = mid - mn * amp;
-        const t = (x / w) * dur;
+        const t = viewA + (x / w) * vDur;
         let k = Math.round((t * sr - win / 2) / hop);
         k = Math.max(0, Math.min(arr.length - 1, k));
         g.fillStyle = centColor(arr[k]);
@@ -1822,7 +1922,8 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     // 印（マーカー）の縦線と番号
     if (markers && markers.length) {
       for (let i = 0; i < markers.length; i++) {
-        const mxp = (markers[i] / dur) * w;
+        const mxp = vx(markers[i]) * w;
+        if (mxp < -1 || mxp > w + 1) continue;
         g.fillStyle = '#d9963f';
         g.fillRect(mxp - dpr / 2, 0, dpr, h);
         g.fillStyle = '#d9963f';
@@ -1836,7 +1937,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     g.fillStyle = cssVar('--accent-2');
     g.fillRect(ex - dpr, 0, 2 * dpr, h);
     if (playhead !== null) {
-      const px = (playhead / dur) * w;
+      const px = vx(playhead) * w;
       g.fillStyle = '#ffffff';
       g.fillRect(px - dpr, 0, 2 * dpr, h);
     }
@@ -1876,7 +1977,13 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       else s = Math.max(0, e - gap), e = Math.max(e, s + gap);
     }
     selStart = s; selEnd = e;
-    const sp = s / dur * 100, ep = e / dur * 100;
+    ensureView();
+    // 選び直しで範囲が表示の外に出たら全体表示に戻す
+    if (which === undefined && (s < viewA - 1e-6 || e > viewB + 1e-6) && viewB - viewA < dur - 1e-6) { viewA = 0; viewB = dur; peaks = null; setView(0, dur); return; }
+    const cl = (v) => Math.max(0, Math.min(100, v));
+    const sp = cl(vx(s) * 100), ep = cl(vx(e) * 100);
+    hStart.classList.toggle('off', s < viewA - 1e-6 || s > viewB + 1e-6);
+    hEnd.classList.toggle('off', e < viewA - 1e-6 || e > viewB + 1e-6);
     hStart.style.left = sp + '%';
     hEnd.style.left = ep + '%';
     fill.style.left = sp + '%';
@@ -1903,7 +2010,8 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   function timeAt(el, ev) {
     const r = el.getBoundingClientRect();
     const x = Math.min(Math.max(ev.clientX - r.left, 0), r.width);
-    return (x / r.width) * audioBuffer.duration;
+    ensureView();
+    return viewA + (x / r.width) * (viewB - viewA);
   }
   function attachDrag(el, pick) {
     let which = null;
@@ -2015,6 +2123,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     const tick = () => {
       if (audioEl.paused) return;
       playhead = Math.min(playTo, playFrom + audioEl.currentTime);
+      if (viewB - viewA < audioBuffer.duration - 1e-3 && (playhead > viewB || playhead < viewA)) { const l = viewB - viewA; setView(playhead - l * 0.1, playhead + l * 0.9); }
       drawWave();
       playRAF = requestAnimationFrame(tick);
     };
@@ -3610,22 +3719,125 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     const v = +fxSEl.value;
     fxSVal.textContent = v + '%' + (v === 50 ? '（標準）' : v < 50 ? '（控えめ）' : '（強め）');
   });
-  document.querySelectorAll('.fx').forEach(b => b.addEventListener('click', async () => {
-    if (!audioBuffer) { toast('先に録音してください', 'err'); return; }
-    const fx = FX[b.dataset.fx]; if (!fx) return;
+  // かける範囲：全体 or 選んだ部分だけ
+  let fxScope = 'all';
+  document.querySelectorAll('#fxScope button').forEach(b => b.addEventListener('click', () => {
+    fxScope = b.dataset.scope;
+    document.querySelectorAll('#fxScope button').forEach(x => x.classList.toggle('on', x === b));
+  }));
+  function sliceBuf(buf, a, b) { // a,b はサンプル位置
+    const out = newBuf(b - a, buf.sampleRate); out.getChannelData(0).set(buf.getChannelData(0).subarray(a, b)); return out;
+  }
+  function pushHist() { fxHist.push({ b: audioBuffer, m: markers.slice() }); if (fxHist.length > 12) fxHist.shift(); }
+  // 加工結果を選んだ部分に戻す。時間が変わらない効果は重ね（残響の余韻は後ろに足す）、変わる効果は差し替え
+  function spliceBack(a, b, seg, timeChange) {
+    const src = audioBuffer.getChannelData(0), sr = audioBuffer.sampleRate, sd = seg.getChannelData(0);
+    if (timeChange) {
+      const out = newBuf(a + sd.length + (src.length - b), sr), o = out.getChannelData(0);
+      o.set(src.subarray(0, a)); o.set(sd, a); o.set(src.subarray(b), a + sd.length);
+      return out;
+    }
+    const out = newBuf(Math.max(src.length, a + sd.length), sr), o = out.getChannelData(0);
+    o.set(src);
+    const n = b - a, xf = Math.min(Math.floor(sr * 0.01), Math.floor(n / 4)); // つなぎ目10msをなめらかに
+    for (let i = 0; i < n; i++) {
+      let w = 1;
+      if (i < xf) w = i / xf; else if (i >= n - xf) w = (n - i) / xf;
+      o[a + i] = src[a + i] * (1 - w) + sd[i] * w;
+    }
+    for (let i = n; i < sd.length; i++) o[a + i] += sd[i]; // 余韻
+    let pk = 0; for (let i = 0; i < o.length; i++) { const v = o[i] < 0 ? -o[i] : o[i]; if (v > pk) pk = v; }
+    if (pk > 0.99) { const k = 0.99 / pk; for (let i = 0; i < o.length; i++) o[i] *= k; }
+    return out;
+  }
+  function scopeRange() {
+    const sr = audioBuffer.sampleRate;
+    if (fxScope === 'sel') return [Math.floor(selStart * sr), Math.min(audioBuffer.length, Math.ceil(selEnd * sr))];
+    return [0, audioBuffer.length];
+  }
+  async function applyFx(fx) {
+    stopFxTry();
     stopPreview();
     fxNote.textContent = fx.name + ' をかけています…';
     try {
-      const rendered = await renderFx(audioBuffer, fx);
-      fxHist.push({ b: audioBuffer, m: markers.slice() }); if (fxHist.length > 12) fxHist.shift();
-      audioBuffer = rendered;
+      const [a, b] = scopeRange(), whole = a === 0 && b === audioBuffer.length;
+      const keepSel = [selStart, selEnd];
+      let next;
+      if (whole) next = await renderFx(audioBuffer, fx);
+      else next = spliceBack(a, b, await renderFx(sliceBuf(audioBuffer, a, b), fx), fx.timeChange);
+      pushHist();
+      const oldLen = b - a, newLen = whole ? next.length : (fx.timeChange ? next.length - (audioBuffer.length - oldLen) : oldLen);
+      audioBuffer = next;
       if (fx.timeChange) markers = []; // 時間がずれる加工では印を消す
       peaks = null; colorGrid = null; activeSeg = null;
       timerEl.textContent = fmtTimer(audioBuffer.duration);
-      renderMarkers(); setSelection(0, audioBuffer.duration); saveState();
-      fxNote.textContent = `${fx.name}（強さ${Math.round(fxS * 100)}%）をかけました。元に戻すで取り消せます`;
+      renderMarkers();
+      if (whole) setSelection(0, audioBuffer.duration);
+      else setSelection(keepSel[0], keepSel[0] + newLen / audioBuffer.sampleRate);
+      saveState();
+      fxNote.textContent = `${fx.name}（強さ${Math.round(fxS * 100)}%）を${whole ? '' : '選んだ部分に'}かけました。元に戻すで取り消せます`;
       toast(`${fx.name} をかけました`, 'ok'); vibrate(15);
     } catch (e) { fxNote.textContent = 'エフェクトをかけられませんでした'; toast('失敗しました', 'err'); }
+  }
+  // 試聴：かける範囲の最初の10秒だけ加工して聴く
+  let fxTryFx = null, fxTrySrc = null, fxTryBuf = null, fxTryOrigBuf = null;
+  const fxTryBar = $('fxTryBar');
+  function stopFxTry() { if (fxTrySrc) { try { fxTrySrc.stop(); } catch (_) {} fxTrySrc = null; } }
+  function closeFxTry() { stopFxTry(); fxTryFx = null; fxTryBar.classList.add('hidden'); }
+  function playTry(buf) {
+    stopFxTry(); stopPreview();
+    setAudioSession('playback');
+    const ctx = getCtx(); if (ctx.state === 'suspended') ctx.resume();
+    const src = ctx.createBufferSource(); src.buffer = buf; src.connect(ctx.destination); src.start();
+    src.onended = () => { if (fxTrySrc === src) fxTrySrc = null; };
+    fxTrySrc = src;
+  }
+  async function tryFx(fx) {
+    getCtx(); // タップ直後に作る（iPhone）
+    const [a, b] = scopeRange(), sr = audioBuffer.sampleRate;
+    const e = Math.min(b, a + sr * 10);
+    fxNote.textContent = fx.name + ' の試聴を準備中…';
+    try {
+      fxTryOrigBuf = sliceBuf(audioBuffer, a, e);
+      fxTryBuf = await renderFx(fxTryOrigBuf, fx);
+    } catch (_) { fxNote.textContent = '試聴できませんでした'; return; }
+    fxTryFx = fx;
+    $('fxTryName').textContent = fx.name + (fx.noStrength ? '' : `（強さ${Math.round(fxS * 100)}%）`);
+    fxTryBar.classList.remove('hidden');
+    fxNote.textContent = '';
+    playTry(fxTryBuf);
+  }
+  $('fxTryOk').addEventListener('click', () => { if (fxTryFx) { const f = fxTryFx; closeFxTry(); applyFx(f); } });
+  $('fxTryOrig').addEventListener('click', () => { if (fxTryOrigBuf) playTry(fxTryOrigBuf); });
+  $('fxTryAgain').addEventListener('click', () => { if (fxTryBuf) playTry(fxTryBuf); });
+  $('fxTryNo').addEventListener('click', () => { closeFxTry(); fxNote.textContent = 'やめました（音は変わっていません）'; });
+  document.querySelectorAll('.fx').forEach(b => b.addEventListener('click', () => {
+    if (!audioBuffer) { toast('先に録音してください', 'err'); return; }
+    const fx = FX[b.dataset.fx]; if (!fx) return;
+    if ($('fxTry').checked) tryFx(fx); else applyFx(fx);
+  }));
+  // 選んだ部分の音量を上げ下げ（つなぎ目は15msでなめらかに）
+  document.querySelectorAll('.vol').forEach(b => b.addEventListener('click', () => {
+    if (!audioBuffer) return;
+    stopPreview(); closeFxTry();
+    const sr = audioBuffer.sampleRate, a = Math.floor(selStart * sr), e = Math.min(audioBuffer.length, Math.ceil(selEnd * sr));
+    const g = b.dataset.db === 'mute' ? 0 : Math.pow(10, parseFloat(b.dataset.db) / 20);
+    const src = audioBuffer.getChannelData(0), out = newBuf(src.length, sr), o = out.getChannelData(0);
+    o.set(src);
+    const n = e - a, xf = Math.min(Math.floor(sr * 0.015), Math.floor(n / 4));
+    let clip = false;
+    for (let i = 0; i < n; i++) {
+      let w = 1; if (i < xf) w = i / xf; else if (i >= n - xf) w = (n - i) / xf;
+      let v = src[a + i] * (1 + (g - 1) * w);
+      if (v > 1) { v = 1; clip = true; } else if (v < -1) { v = -1; clip = true; }
+      o[a + i] = v;
+    }
+    pushHist();
+    audioBuffer = out; peaks = null; colorGrid = null;
+    setSelection(selStart, selEnd, 'keep'); saveState();
+    const label = b.dataset.db === 'mute' ? '消音' : `${b.dataset.db > 0 ? '＋' : '−'}${Math.abs(b.dataset.db)}dB`;
+    fxNote.textContent = `選んだ部分（${fmtTime(selEnd - selStart)}）を${label}しました${clip ? '（大きすぎる所は割れないよう抑えました）' : ''}`;
+    vibrate(10);
   }));
   fxUndo.addEventListener('click', () => {
     if (!fxHist.length) { toast('戻せる履歴がありません', 'err'); return; }
