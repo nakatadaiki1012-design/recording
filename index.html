@@ -692,6 +692,48 @@
   .tabbar button.on svg { fill: rgba(91,91,240,.2); }
   .lib-item { border-radius: 16px; }
   .toast { border-radius: 16px; }
+
+  /* =====================================================================
+     洗練：動き・音量に反応する録音ボタン・流れる波形・やさしい通知
+     ===================================================================== */
+  /* 画面を切り替えるときの、ふわっと出る動き */
+  [data-tab].on { animation: tabIn .32s cubic-bezier(.2,.8,.2,1) backwards; }
+  [data-tab].on:nth-of-type(2) { animation-delay: .04s; }
+  [data-tab].on:nth-of-type(3) { animation-delay: .08s; }
+  [data-tab].on:nth-of-type(n+4) { animation-delay: .12s; }
+  @keyframes tabIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  /* 録音ボタン：声の大きさに合わせて光の輪が広がる */
+  .rec-btn.recording {
+    animation: none;
+    box-shadow:
+      0 0 0 calc(7px + var(--lvl, 0) * 20px) rgba(240,72,106, calc(.16 + var(--lvl, 0) * .14)),
+      0 0 0 calc(2px + var(--lvl, 0) * 34px) rgba(240,72,106, calc(.06 + var(--lvl, 0) * .06)),
+      0 18px 38px rgba(240,72,106,.32);
+    transition: box-shadow .09s linear;
+  }
+  /* 録音中だけ出る、流れる波形（ふだんは場所をとらない） */
+  .live-canvas { height: 0; opacity: 0; border-width: 0; margin: -6px 0; transition: height .35s cubic-bezier(.2,.8,.2,1), opacity .25s, margin .35s; background: transparent; }
+  .rec-btn.recording ~ .live-canvas { height: 84px; opacity: 1; margin: 0; }
+  /* 通知：画面下のバーの上に、すっきりしたカプセルで */
+  .toast {
+    bottom: calc(env(safe-area-inset-bottom) + 100px); z-index: 150;
+    background: rgba(28,27,51,.94); border: 1px solid rgba(255,255,255,.1); color: #fff; font-weight: 600; font-size: .88rem;
+    padding: 12px 20px; border-radius: 999px; box-shadow: 0 16px 36px rgba(30,20,90,.35);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  }
+  .toast.ok { border-color: rgba(52,200,138,.55); }
+  .toast.ok::before { content: "✓"; color: #34c88a; font-weight: 800; margin-right: 8px; }
+  .toast.err { border-color: rgba(240,72,106,.6); }
+  .toast.err::before { content: "!"; color: #ff7a93; font-weight: 800; margin-right: 8px; }
+  /* 押したときの手ざわり */
+  button.btn, .tag, .zoom-row .zb, .seg button, button.dfmt, .lib-item button, .icon-btn { transition: transform .12s cubic-bezier(.2,.8,.2,1), background .15s, border-color .15s, box-shadow .15s; }
+  .icon-btn:active, .zoom-row .zb:active, .lib-item button:active { transform: scale(.92); }
+  .playbig:active { transform: scale(.92); }
+  .tabbar button:active { transform: scale(.94); }
+  @media (prefers-reduced-motion: reduce) {
+    [data-tab].on { animation: none; }
+    .live-canvas, .rec-btn.recording { transition: none; animation: none; }
+  }
 </style>
 </head>
 <body>
@@ -1810,21 +1852,36 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   });
 
   let liveData = null, liveFloat = null, tunerFrame = 0;
+  // 録音中の音量を、右から左へ流れる棒グラフで表示（音声メモ風）
+  let liveLevels = [], liveLast = 0, liveLvl = 0;
+  function rr(g, x, y, w, h, r) {
+    g.beginPath();
+    if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h);
+    g.fill();
+  }
   function drawLive() {
     const { w, h, dpr } = fitCanvas(liveCanvas);
     const g = liveCanvas.getContext('2d');
     if (!liveData || liveData.length !== analyser.fftSize) liveData = new Uint8Array(analyser.fftSize);
     analyser.getByteTimeDomainData(liveData);
+    let sum = 0;
+    for (let i = 0; i < liveData.length; i++) { const v = (liveData[i] - 128) / 128; sum += v * v; }
+    const lvl = Math.min(1, Math.sqrt(sum / liveData.length) * 3.4);
+    liveLvl += (lvl - liveLvl) * 0.35; // なめらかに
+    recBtn.style.setProperty('--lvl', liveLvl.toFixed(3));
+    const now = performance.now();
+    if (now - liveLast > 40) { liveLevels.push(liveLvl); liveLast = now; }
+    const bw = 3 * dpr, gap = 3 * dpr, stride = bw + gap, n = Math.ceil(w / stride) + 1;
+    if (liveLevels.length > n) liveLevels.splice(0, liveLevels.length - n);
     g.clearRect(0, 0, w, h);
-    g.lineWidth = 2 * dpr;
-    g.strokeStyle = cssVar('--rec');
-    g.beginPath();
-    for (let i = 0; i < liveData.length; i++) {
-      const x = (i / (liveData.length - 1)) * w;
-      const y = (liveData[i] / 255) * h;
-      i ? g.lineTo(x, y) : g.moveTo(x, y);
+    const grad = g.createLinearGradient(0, 0, w, 0);
+    grad.addColorStop(0, 'rgba(240,72,106,.25)'); grad.addColorStop(.6, cssVar('--rec')); grad.addColorStop(1, '#ff8a6b');
+    g.fillStyle = grad;
+    const mid = h / 2;
+    for (let k = 0; k < liveLevels.length; k++) {
+      const x = w - (liveLevels.length - k) * stride, bh = Math.max(bw, liveLevels[k] * h * 0.92);
+      rr(g, x, mid - bh / 2, bw, bh, bw / 2);
     }
-    g.stroke();
     // 録音しながらチューナーも動かす（数フレームに1回でよい）
     if ((tunerFrame++ % 4) === 0) {
       if (!liveFloat || liveFloat.length !== analyser.fftSize) liveFloat = new Float32Array(analyser.fftSize);
@@ -1835,11 +1892,8 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   }
   function clearLive() {
     const { w, h } = fitCanvas(liveCanvas);
-    const g = liveCanvas.getContext('2d');
-    g.clearRect(0, 0, w, h);
-    g.strokeStyle = cssVar('--border');
-    g.lineWidth = 1;
-    g.beginPath(); g.moveTo(0, h / 2); g.lineTo(w, h / 2); g.stroke();
+    liveCanvas.getContext('2d').clearRect(0, 0, w, h);
+    liveLevels = []; liveLvl = 0; recBtn.style.setProperty('--lvl', 0);
   }
 
   // 録音データをモノラル化。高音質モードは元の音質(最大48kHz)を保ち、
@@ -2084,11 +2138,16 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
         g.fillRect(x, y1, 1, Math.max(1, y2 - y1));
       }
     } else {
-      for (let x = 0; x < w; x++) {
-        const mn = peaks[x * 2], mx = peaks[x * 2 + 1];
-        const y1 = mid - mx * amp, y2 = mid - mn * amp;
-        g.fillStyle = (x >= sx && x <= ex) ? cIn : cOut;
-        g.fillRect(x, y1, 1, Math.max(1, y2 - y1));
+      // 丸い棒の波形（選んだ範囲はグラデーション、外側は淡く）
+      const bw = 3 * dpr, stride = 5 * dpr, ig = g.createLinearGradient(Math.max(0, sx), 0, Math.max(sx + 1, ex), 0);
+      ig.addColorStop(0, cssVar('--accent')); ig.addColorStop(1, cssVar('--accent-2'));
+      for (let x0 = 0; x0 < w; x0 += stride) {
+        let mn = 0, mx = 0;
+        for (let x = Math.floor(x0); x < Math.min(w, x0 + stride); x++) { if (peaks[x * 2] < mn) mn = peaks[x * 2]; if (peaks[x * 2 + 1] > mx) mx = peaks[x * 2 + 1]; }
+        const bh = Math.max(bw, 2 * Math.max(-mn, mx) * amp); // 上下対称にそろえる
+        const cx = x0 + bw / 2;
+        g.fillStyle = (cx >= sx && cx <= ex) ? ig : cOut;
+        rr(g, x0, mid - bh / 2, bw, bh, bw / 2);
       }
       g.fillStyle = cssVar('--dim');
       g.fillRect(0, 0, sx, h);
@@ -2113,8 +2172,10 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     g.fillRect(ex - dpr, 0, 2 * dpr, h);
     if (playhead !== null) {
       const px = vx(playhead) * w;
-      g.fillStyle = '#ffffff';
-      g.fillRect(px - dpr, 0, 2 * dpr, h);
+      g.shadowColor = 'rgba(91,91,240,.9)'; g.shadowBlur = 8 * dpr;
+      g.fillStyle = cssVar('--text');
+      g.fillRect(px - dpr / 2, 0, dpr, h);
+      g.shadowBlur = 0;
     }
   }
 
