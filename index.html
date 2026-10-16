@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<script>try{var t=localStorage.getItem('hibiki.theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('hibiki.big')==='1')document.documentElement.setAttribute('data-big','1');}catch(e){}</script>
+<script>try{var t=localStorage.getItem('hibiki.theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('hibiki.big')==='1')document.documentElement.setAttribute('data-big','1');var k=localStorage.getItem('hibiki.skin');if(k&&k!=='lavender')document.documentElement.setAttribute('data-skin',k);if(localStorage.getItem('hibiki.round')==='1')document.documentElement.setAttribute('data-round','1');if(localStorage.getItem('hibiki.deco')==='1')document.documentElement.setAttribute('data-deco','1');}catch(e){}</script>
 <title>Hibiki — 録音・チューナー・採点</title>
 <style>
   :root {
@@ -57,7 +57,7 @@
   body {
     background:
       radial-gradient(1000px 520px at 90% -8%, rgba(123,92,240,.10) 0%, transparent 55%),
-      radial-gradient(900px 520px at -10% 0%, rgba(74,99,231,.10) 0%, transparent 55%),
+      radial-gradient(900px 520px at -10% 0%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 55%),
       var(--bg);
     background-attachment: fixed;
     color: var(--text);
@@ -75,7 +75,7 @@
   .brand .logo {
     width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    display: grid; place-items: center; box-shadow: 0 6px 16px rgba(74,99,231,.28);
+    display: grid; place-items: center; box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent);
   }
   .brand .logo svg { width: 22px; height: 22px; }
   .brand .name { font-size: 1.5rem; font-weight: 800; letter-spacing: -.01em; line-height: 1; }
@@ -116,7 +116,7 @@
     font: inherit; font-size: .9rem; font-weight: 600; height: 44px; cursor: pointer; border-radius: 10px;
     background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
   }
-  .seg button.on { background: rgba(74,99,231,.16); border-color: var(--accent); color: var(--accent); }
+  .seg button.on { background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: var(--accent); color: var(--accent); }
   .sheet-btn { width: 100%; margin-top: 8px; text-align: left; white-space: normal; }
   .guide-body { text-align: center; padding-top: 28px; }
   .guide-ico { font-size: 2.6rem; margin-bottom: 8px; }
@@ -158,7 +158,7 @@
     font: inherit; font-size: .9rem; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums;
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; height: 44px; cursor: pointer;
   }
-  button.dfmt.on { background: rgba(74,99,231,.14); border-color: var(--accent); color: var(--accent); }
+  button.dfmt.on { background: color-mix(in srgb, var(--accent) 14%, transparent); border-color: var(--accent); color: var(--accent); }
   .time-check { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: .86rem; color: var(--text); }
   .time-check input { width: 20px; height: 20px; }
   .time-check span { color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -182,7 +182,7 @@
   }
   .tabbar button svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; }
   .tabbar button.on { color: var(--accent); }
-  .tabbar button.on svg { fill: rgba(74,99,231,.12); }
+  .tabbar button.on svg { fill: color-mix(in srgb, var(--accent) 12%, transparent); }
 
   /* ---------- 録音 ---------- */
   .rec-area { display: flex; flex-direction: column; align-items: center; gap: 12px; }
@@ -273,7 +273,7 @@
   .playbig {
     width: 68px; height: 68px; border-radius: 50%; flex-shrink: 0; cursor: pointer;
     border: none; background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    display: grid; place-items: center; box-shadow: 0 6px 18px rgba(108,140,255,.4);
+    display: grid; place-items: center; box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 40%, transparent);
     transition: transform .1s;
   }
   .playbig:active { transform: scale(.94); }
@@ -312,7 +312,7 @@
   button.btn.primary {
     background: linear-gradient(135deg, var(--accent), var(--accent-2));
     border-color: transparent; color: #fff; font-weight: 700;
-    box-shadow: 0 6px 16px rgba(74,99,231,.28);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent);
   }
   button.btn.big { min-height: 56px; font-size: 1.05rem; }
   button.btn { white-space: nowrap; }
@@ -346,7 +346,7 @@
 
   /* 再生・ループ・速度 */
   .play-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-  button.btn.looping { border-color: var(--accent); color: var(--accent); background: rgba(108,140,255,.14); }
+  button.btn.looping { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
   .speed-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   .speed-label { font-size: .82rem; color: var(--muted); }
   .speed-note { font-size: .72rem; color: var(--muted); margin-left: auto; }
@@ -355,7 +355,7 @@
     background: var(--panel-2); border: 1px solid var(--border);
     border-radius: 10px; height: 40px; min-width: 56px; cursor: pointer;
   }
-  button.sp.on { background: rgba(108,140,255,.2); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  button.sp.on { background: color-mix(in srgb, var(--accent) 20%, transparent); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 
   /* 音程・テンポ */
   .an-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
@@ -369,7 +369,7 @@
     background: var(--panel-2); border: 1px solid var(--border);
     border-radius: 8px; height: 34px; min-width: 46px; cursor: pointer;
   }
-  button.ref.on { background: rgba(108,140,255,.2); border-color: var(--accent); color: var(--accent); }
+  button.ref.on { background: color-mix(in srgb, var(--accent) 20%, transparent); border-color: var(--accent); color: var(--accent); }
 
   /* ---------- ファイル名 ---------- */
   .tags { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
@@ -379,7 +379,7 @@
     border: 1px solid var(--border); border-radius: 999px; height: 40px; padding: 0 4px;
     transition: all .12s; white-space: nowrap;
   }
-  .tag.on { background: rgba(108,140,255,.2); border-color: var(--accent); color: var(--accent); }
+  .tag.on { background: color-mix(in srgb, var(--accent) 20%, transparent); border-color: var(--accent); color: var(--accent); }
   .name-box {
     display: flex; align-items: center;
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px;
@@ -410,7 +410,7 @@
   /* 復元バー */
   .restore {
     display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-    background: rgba(108,140,255,.12); border: 1px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent); border: 1px solid var(--accent);
     border-radius: 12px; padding: 12px 14px;
   }
   .restore #restoreText { flex: 1; font-size: .9rem; min-width: 120px; }
@@ -436,7 +436,7 @@
   }
   .tuner-cents { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; min-height: 1.2em; }
   button.btn.tuner-toggle { width: 100%; margin-top: 2px; }
-  button.btn.tuner-toggle.on { border-color: var(--accent); color: var(--accent); background: rgba(108,140,255,.14); }
+  button.btn.tuner-toggle.on { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
 
   /* メトロノーム */
   #metroCard { padding-bottom: 16px; }
@@ -483,7 +483,7 @@
     background: var(--btn); border: 1px solid var(--btn-b); color: var(--text);
   }
   .drone-notes button small { display: block; font-size: .68rem; color: var(--muted); }
-  .drone-notes button.on { background: rgba(74,99,231,.16); border-color: var(--accent); color: var(--accent); }
+  .drone-notes button.on { background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: var(--accent); color: var(--accent); }
   .drone-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
   .drone-row .seg { flex: 1; margin-top: 0; }
   .drone-row input[type=range] { flex: 1; accent-color: var(--accent); height: 28px; }
@@ -512,7 +512,7 @@
     display: flex; flex-direction: column; align-items: center; line-height: 1.2; min-width: 96px;
   }
   button.fmt small { font-size: .66rem; font-weight: 400; color: var(--muted); margin-top: 2px; }
-  button.fmt.on { background: rgba(74,99,231,.14); border-color: var(--accent); color: var(--accent); }
+  button.fmt.on { background: color-mix(in srgb, var(--accent) 14%, transparent); border-color: var(--accent); color: var(--accent); }
   button.fmt.on small { color: var(--accent); }
   .stt-text { width: 100%; margin-top: 10px; font: inherit; font-size: 16px; color: var(--text);
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px;
@@ -543,7 +543,7 @@
     font: inherit; font-size: .8rem; color: var(--text);
     background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; height: 38px; padding: 0 10px; cursor: pointer;
   }
-  button.loopoff.on { background: rgba(74,99,231,.16); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  button.loopoff.on { background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: var(--accent); color: var(--accent); font-weight: 600; }
   #loopPlay.playing, #loopOver.rec { border-color: var(--rec); color: var(--rec); }
   .harm-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
   button.harm {
@@ -618,8 +618,8 @@
   }
   body {
     background:
-      radial-gradient(700px 420px at 105% -6%, rgba(154,92,245,.22) 0%, transparent 60%),
-      radial-gradient(640px 420px at -12% 4%, rgba(91,91,240,.18) 0%, transparent 60%),
+      radial-gradient(700px 420px at 105% -6%, color-mix(in srgb, var(--accent-2) 22%, transparent) 0%, transparent 60%),
+      radial-gradient(640px 420px at -12% 4%, color-mix(in srgb, var(--accent) 18%, transparent) 0%, transparent 60%),
       radial-gradient(520px 360px at 50% 108%, rgba(240,72,106,.08) 0%, transparent 60%),
       var(--bg);
     background-attachment: fixed;
@@ -628,7 +628,7 @@
   }
   /* ヘッダー */
   .brand { padding: 8px 2px 4px; }
-  .brand .logo { background: var(--grad); border-radius: 14px; box-shadow: 0 8px 20px rgba(110,90,240,.35), inset 0 1px 0 rgba(255,255,255,.35); }
+  .brand .logo { background: var(--grad); border-radius: 14px; box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 35%, transparent), inset 0 1px 0 rgba(255,255,255,.35); }
   .brand .name {
     font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em;
     background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
@@ -645,11 +645,11 @@
   /* ボタン */
   button.btn { border-radius: 16px; min-height: 54px; font-weight: 700; box-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 1px 2px rgba(60,50,140,.05); min-width: 0; white-space: normal; line-height: 1.3; }
   button.btn:active { transform: scale(.97); }
-  button.btn.primary { background: var(--grad); box-shadow: 0 10px 22px rgba(110,90,240,.32), inset 0 1px 0 rgba(255,255,255,.3); }
+  button.btn.primary { background: var(--grad); box-shadow: 0 10px 22px color-mix(in srgb, var(--accent) 32%, transparent), inset 0 1px 0 rgba(255,255,255,.3); }
   .btn-grid > * { min-width: 0; }
   .btn-grid button.btn { font-size: .88rem; padding: 10px 8px; }
   .tag { border-radius: 999px; background: var(--btn); border-color: var(--btn-b); font-weight: 600; }
-  .tag.on { background: rgba(91,91,240,.14); }
+  .tag.on { background: color-mix(in srgb, var(--accent) 14%, transparent); }
   /* 録音ボタン：大きく、光の輪つき */
   .rec-area { gap: 14px; }
   .rec-btn {
@@ -674,10 +674,10 @@
   .range .fill { background: var(--grad); }
   .handle::after { box-shadow: 0 3px 10px rgba(60,50,140,.35); }
   .nudge button { border-radius: 10px; }
-  .playbig { width: 72px; height: 72px; background: var(--grad); box-shadow: 0 12px 26px rgba(110,90,240,.4), inset 0 1px 0 rgba(255,255,255,.35); }
+  .playbig { width: 72px; height: 72px; background: var(--grad); box-shadow: 0 12px 26px color-mix(in srgb, var(--accent) 40%, transparent), inset 0 1px 0 rgba(255,255,255,.35); }
   .playbig.playing { background: linear-gradient(135deg, #ff7d96, var(--rec)); box-shadow: 0 12px 26px rgba(240,72,106,.4); }
   .name-box { border-radius: 14px; }
-  .seg button.on, button.dfmt.on { background: rgba(91,91,240,.14); }
+  .seg button.on, button.dfmt.on { background: color-mix(in srgb, var(--accent) 14%, transparent); }
   /* 下のタブ：浮かぶカプセル型 */
   .tabbar {
     left: 12px; right: 12px; bottom: calc(10px + env(safe-area-inset-bottom));
@@ -688,8 +688,8 @@
   }
   :root[data-theme="dark"] .tabbar { border-color: rgba(255,255,255,.07); }
   .tabbar button { border-radius: 18px; transition: background .18s, color .18s; }
-  .tabbar button.on { background: rgba(91,91,240,.12); color: var(--accent); }
-  .tabbar button.on svg { fill: rgba(91,91,240,.2); }
+  .tabbar button.on { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
+  .tabbar button.on svg { fill: color-mix(in srgb, var(--accent) 20%, transparent); }
   .lib-item { border-radius: 16px; }
   .toast { border-radius: 16px; }
 
@@ -734,6 +734,52 @@
     [data-tab].on { animation: none; }
     .live-canvas, .rec-btn.recording { transition: none; animation: none; }
   }
+
+  /* =====================================================================
+     着せ替え（スキン）・まるもじ・模様
+     ===================================================================== */
+  :root[data-round="1"] body, :root[data-round="1"] input, :root[data-round="1"] textarea, :root[data-round="1"] select {
+    font-family: "Hiragino Maru Gothic ProN", "Hiragino Maru Gothic Pro", "M PLUS Rounded 1c", "Zen Maru Gothic", "Kosugi Maru", "Arial Rounded MT Bold", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  }
+  body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity .3s; background-image: var(--pat); background-size: 56px 56px; }
+  :root[data-deco="1"] body::before { opacity: .55; }
+  :root[data-deco="1"][data-theme="dark"] body::before { opacity: .3; }
+  .skin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+  .skin-grid button {
+    font: inherit; font-size: .74rem; font-weight: 700; color: var(--text); cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 2px 8px;
+    background: var(--panel-2); border: 1.5px solid var(--border); border-radius: 14px;
+  }
+  .skin-grid button i { width: 34px; height: 34px; border-radius: 50%; box-shadow: inset 0 0 0 3px rgba(255,255,255,.6), 0 3px 8px rgba(0,0,0,.12); }
+  .skin-grid button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
+  .skin-grid button.on i { outline: 2px solid var(--accent); outline-offset: 2px; }
+  :root[data-skin][data-theme="dark"] { --bg: #0e0d1a; --panel: rgba(27,26,46,.92); --panel-2: #22213a; --border: #302f50; --text: #ecebfb; --muted: #9a98c0; --btn: #272642; --btn-b: #383659; --btn-press: #302f50; --sub: #1f1e36; --tabbar: rgba(24,23,41,.88); --dim: rgba(14,13,26,.66); }
+  @media (prefers-color-scheme: dark) { :root[data-skin]:not([data-theme="light"]) { --bg: #0e0d1a; --panel: rgba(27,26,46,.92); --panel-2: #22213a; --border: #302f50; --text: #ecebfb; --muted: #9a98c0; --btn: #272642; --btn-b: #383659; --btn-press: #302f50; --sub: #1f1e36; --tabbar: rgba(24,23,41,.88); --dim: rgba(14,13,26,.66); } }
+  :root { --pat: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2256%22%20height%3D%2256%22%3E%3Cpath%20d%3D%22M14%208v11.5a3%203%200%201%201-2-2.8V6l9-2v3z%22%20fill%3D%22%235b5bf033%22/%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2240%22%20r%3D%222%22%20fill%3D%22%235b5bf033%22/%3E%3C/svg%3E"); }
+  :root[data-skin="lavender"][data-theme="dark"] { --accent: #8c8cff; --accent-2: #b48cff; --grad: linear-gradient(135deg, #8c8cff 0%, #b48cff 100%); --wave: #4a4872; --wave-sel: #8c8cff; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="lavender"]:not([data-theme="light"]) { --accent: #8c8cff; --accent-2: #b48cff; --grad: linear-gradient(135deg, #8c8cff 0%, #b48cff 100%); --wave: #4a4872; --wave-sel: #8c8cff; } }
+  :root[data-skin="sakura"] { --accent: #f0508c; --accent-2: #ff9ac1; --grad: linear-gradient(135deg, #f0508c 0%, #ff9ac1 100%); --bg: #fff3f7; --panel-2: #fff5f9; --border: #f6dfe9; --btn: #fff4f8; --btn-b: #f4d6e3; --btn-press: #fde6ef; --sub: #fffafc; --wave: #f3c4d6; --wave-sel: #f0508c; --text: #3b1d2b; --muted: #9b7286; --dim: color-mix(in srgb, #fff3f7 66%, transparent); --pat: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2256%22%20height%3D%2256%22%3E%3Cpath%20d%3D%22M14%2020s-7-4.4-7-9a4%204%200%200%201%207-2.6A4%204%200%200%201%2021%2011c0%204.6-7%209-7%209z%22%20fill%3D%22%23f0508c33%22/%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2242%22%20r%3D%222%22%20fill%3D%22%23f0508c33%22/%3E%3C/svg%3E"); }
+  :root[data-skin="sakura"][data-theme="dark"] { --accent: #ff7aab; --accent-2: #ffb0cc; --grad: linear-gradient(135deg, #ff7aab 0%, #ffb0cc 100%); --wave: #6e4558; --wave-sel: #ff7aab; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="sakura"]:not([data-theme="light"]) { --accent: #ff7aab; --accent-2: #ffb0cc; --grad: linear-gradient(135deg, #ff7aab 0%, #ffb0cc 100%); --wave: #6e4558; --wave-sel: #ff7aab; } }
+  :root[data-skin="mint"] { --accent: #0fa883; --accent-2: #57d1b0; --grad: linear-gradient(135deg, #0fa883 0%, #57d1b0 100%); --bg: #effaf6; --panel-2: #f0faf6; --border: #d9efe7; --btn: #f0faf6; --btn-b: #cfe9df; --btn-press: #e2f5ee; --sub: #f8fdfb; --wave: #b5e3d4; --wave-sel: #0fa883; --text: #14302a; --muted: #6a8a82; --dim: color-mix(in srgb, #effaf6 66%, transparent); --pat: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2256%22%20height%3D%2256%22%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2214%22%20r%3D%223%22%20fill%3D%22%230fa88333%22/%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2242%22%20r%3D%222%22%20fill%3D%22%230fa88333%22/%3E%3C/svg%3E"); }
+  :root[data-skin="mint"][data-theme="dark"] { --accent: #4fd8b0; --accent-2: #8ce8cf; --grad: linear-gradient(135deg, #4fd8b0 0%, #8ce8cf 100%); --wave: #3c6359; --wave-sel: #4fd8b0; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="mint"]:not([data-theme="light"]) { --accent: #4fd8b0; --accent-2: #8ce8cf; --grad: linear-gradient(135deg, #4fd8b0 0%, #8ce8cf 100%); --wave: #3c6359; --wave-sel: #4fd8b0; } }
+  :root[data-skin="soda"] { --accent: #1f8ef1; --accent-2: #56cfff; --grad: linear-gradient(135deg, #1f8ef1 0%, #56cfff 100%); --bg: #eef6ff; --panel-2: #f0f7ff; --border: #d8e8f8; --btn: #f0f7ff; --btn-b: #d0e2f5; --btn-press: #e1eefc; --sub: #f8fbff; --wave: #b7d6f3; --wave-sel: #1f8ef1; --text: #132a40; --muted: #6a8299; --dim: color-mix(in srgb, #eef6ff 66%, transparent); --pat: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2256%22%20height%3D%2256%22%3E%3Cpath%20d%3D%22M14%206l2%206%206%202-6%202-2%206-2-6-6-2%206-2z%22%20fill%3D%22%231f8ef133%22/%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2242%22%20r%3D%222%22%20fill%3D%22%231f8ef133%22/%3E%3C/svg%3E"); }
+  :root[data-skin="soda"][data-theme="dark"] { --accent: #5fb1ff; --accent-2: #8fe0ff; --grad: linear-gradient(135deg, #5fb1ff 0%, #8fe0ff 100%); --wave: #3d5a78; --wave-sel: #5fb1ff; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="soda"]:not([data-theme="light"]) { --accent: #5fb1ff; --accent-2: #8fe0ff; --grad: linear-gradient(135deg, #5fb1ff 0%, #8fe0ff 100%); --wave: #3d5a78; --wave-sel: #5fb1ff; } }
+  :root[data-skin="peach"] { --accent: #f2643f; --accent-2: #ffad66; --grad: linear-gradient(135deg, #f2643f 0%, #ffad66 100%); --bg: #fff5ef; --panel-2: #fff6f1; --border: #f6e2d8; --btn: #fff5f0; --btn-b: #f3d8ca; --btn-press: #fde8dd; --sub: #fffbf8; --wave: #f5cbb6; --wave-sel: #f2643f; --text: #3a2219; --muted: #9a7a6c; --dim: color-mix(in srgb, #fff5ef 66%, transparent); --pat: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2256%22%20height%3D%2256%22%3E%3Cg%20fill%3D%22%23f2643f33%22%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%229%22%20r%3D%223%22/%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2214%22%20r%3D%223%22/%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2219%22%20r%3D%223%22/%3E%3Ccircle%20cx%3D%229%22%20cy%3D%2214%22%20r%3D%223%22/%3E%3C/g%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2242%22%20r%3D%222%22%20fill%3D%22%23f2643f33%22/%3E%3C/svg%3E"); }
+  :root[data-skin="peach"][data-theme="dark"] { --accent: #ff8a66; --accent-2: #ffc28f; --grad: linear-gradient(135deg, #ff8a66 0%, #ffc28f 100%); --wave: #6e4a3d; --wave-sel: #ff8a66; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="peach"]:not([data-theme="light"]) { --accent: #ff8a66; --accent-2: #ffc28f; --grad: linear-gradient(135deg, #ff8a66 0%, #ffc28f 100%); --wave: #6e4a3d; --wave-sel: #ff8a66; } }
+  :root[data-skin="choco"] { --accent: #8a5a44; --accent-2: #c79a73; --grad: linear-gradient(135deg, #8a5a44 0%, #c79a73 100%); --bg: #faf5f0; --panel-2: #f8f2ec; --border: #ece0d5; --btn: #f7f1eb; --btn-b: #e5d7ca; --btn-press: #efe5db; --sub: #fdfaf7; --wave: #dcc8b6; --wave-sel: #8a5a44; --text: #2e2018; --muted: #8a786c; --dim: color-mix(in srgb, #faf5f0 66%, transparent); --pat: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2256%22%20height%3D%2256%22%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2214%22%20r%3D%223%22%20fill%3D%22%238a5a4433%22/%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2242%22%20r%3D%222%22%20fill%3D%22%238a5a4433%22/%3E%3C/svg%3E"); }
+  :root[data-skin="choco"][data-theme="dark"] { --accent: #d4a27f; --accent-2: #e8c4a0; --grad: linear-gradient(135deg, #d4a27f 0%, #e8c4a0 100%); --wave: #5c4a3e; --wave-sel: #d4a27f; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="choco"]:not([data-theme="light"]) { --accent: #d4a27f; --accent-2: #e8c4a0; --grad: linear-gradient(135deg, #d4a27f 0%, #e8c4a0 100%); --wave: #5c4a3e; --wave-sel: #d4a27f; } }
+  :root[data-skin="mono"] { --accent: #2c2c36; --accent-2: #6b6b7b; --grad: linear-gradient(135deg, #2c2c36 0%, #6b6b7b 100%); --bg: #f2f2f5; --panel-2: #f4f4f7; --border: #e2e2e8; --btn: #f4f4f7; --btn-b: #dcdce3; --btn-press: #e8e8ee; --sub: #fafafc; --wave: #c8c8d2; --wave-sel: #2c2c36; --text: #18181f; --muted: #77778a; --dim: color-mix(in srgb, #f2f2f5 66%, transparent); --pat: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2256%22%20height%3D%2256%22%3E%3Cpath%20d%3D%22M14%206l2%206%206%202-6%202-2%206-2-6-6-2%206-2z%22%20fill%3D%22%232c2c3633%22/%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2242%22%20r%3D%222%22%20fill%3D%22%232c2c3633%22/%3E%3C/svg%3E"); }
+  :root[data-skin="mono"][data-theme="dark"] { --accent: #d8d8e4; --accent-2: #a0a0b4; --grad: linear-gradient(135deg, #d8d8e4 0%, #a0a0b4 100%); --wave: #4a4a58; --wave-sel: #d8d8e4; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="mono"]:not([data-theme="light"]) { --accent: #d8d8e4; --accent-2: #a0a0b4; --grad: linear-gradient(135deg, #d8d8e4 0%, #a0a0b4 100%); --wave: #4a4a58; --wave-sel: #d8d8e4; } }
+  :root[data-skin="mono"][data-theme="dark"] button.btn.primary, :root[data-skin="mono"][data-theme="dark"] .playbig .pic { color: #18181f; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="mono"]:not([data-theme="light"]) button.btn.primary, :root[data-skin="mono"]:not([data-theme="light"]) .playbig .pic { color: #18181f; } }
+  .sheet-body { background: linear-gradient(var(--panel), var(--panel)), var(--bg); }
+  input[type=checkbox], input[type=range] { accent-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -1198,6 +1244,10 @@
     <div class="seg" id="themeSeg">
       <button data-themev="auto">自動</button><button data-themev="light">明るい</button><button data-themev="dark">暗い</button>
     </div>
+    <div class="opt-label">着せ替え</div>
+    <div class="skin-grid" id="skinGrid"><button data-skin="lavender"><i style="background:linear-gradient(135deg,#5b5bf0,#9a5cf5)"></i>ラベンダー</button><button data-skin="sakura"><i style="background:linear-gradient(135deg,#f0508c,#ff9ac1)"></i>さくら</button><button data-skin="mint"><i style="background:linear-gradient(135deg,#0fa883,#57d1b0)"></i>ミント</button><button data-skin="soda"><i style="background:linear-gradient(135deg,#1f8ef1,#56cfff)"></i>ソーダ</button><button data-skin="peach"><i style="background:linear-gradient(135deg,#f2643f,#ffad66)"></i>ピーチ</button><button data-skin="choco"><i style="background:linear-gradient(135deg,#8a5a44,#c79a73)"></i>カフェ</button><button data-skin="mono"><i style="background:linear-gradient(135deg,#2c2c36,#6b6b7b)"></i>モノクロ</button></div>
+    <label class="time-check"><input type="checkbox" id="roundText"> まるい文字にする</label>
+    <label class="time-check"><input type="checkbox" id="decoBg"> 背景に模様をつける</label>
     <label class="time-check"><input type="checkbox" id="bigText"> 文字を大きくする</label>
     <div class="opt-label">データ</div>
     <button id="backupBtn" class="btn sheet-btn">📦 保存したものをまとめて書き出す（バックアップ）</button>
@@ -2118,7 +2168,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     const mid = h / 2, amp = h * 0.45;
 
     g.clearRect(0, 0, w, h);
-    g.fillStyle = 'rgba(108,140,255,0.10)';
+    g.fillStyle = cssVar('--accent') + '1a';
     g.fillRect(sx, 0, ex - sx, h);
     g.fillStyle = cssVar('--border');
     g.fillRect(0, Math.floor(mid), w, Math.max(1, dpr));
@@ -2172,7 +2222,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     g.fillRect(ex - dpr, 0, 2 * dpr, h);
     if (playhead !== null) {
       const px = vx(playhead) * w;
-      g.shadowColor = 'rgba(91,91,240,.9)'; g.shadowBlur = 8 * dpr;
+      g.shadowColor = cssVar('--accent') + 'e6'; g.shadowBlur = 8 * dpr;
       g.fillStyle = cssVar('--text');
       g.fillRect(px - dpr / 2, 0, dpr, h);
       g.shadowBlur = 0;
@@ -4288,13 +4338,36 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     if (theme === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', theme);
     document.querySelectorAll('#themeSeg button').forEach(b => b.classList.toggle('on', b.dataset.themev === theme));
     const dark = theme === 'dark' || (theme === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
-    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#0f131b' : '#eef1f7');
+    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#0e0d1a' : (SKIN_BG[skin] || '#f3f2fb'));
     requestAnimationFrame(() => { peaks = null; drawWave(); if (!isRecording()) clearLive(); });
   }
   document.querySelectorAll('#themeSeg button').forEach(b => b.addEventListener('click', () => {
     theme = b.dataset.themev; savePref('theme', theme); applyTheme();
   }));
   if (window.matchMedia) { try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (theme === 'auto') applyTheme(); }); } catch (_) {} }
+  // 着せ替え
+  const SKIN_BG = {"lavender": "#f3f2fb", "sakura": "#fff3f7", "mint": "#effaf6", "soda": "#eef6ff", "peach": "#fff5ef", "choco": "#faf5f0", "mono": "#f2f2f5"};
+  let skin = loadPref('skin', 'lavender');
+  function applySkin() {
+    const root = document.documentElement;
+    if (skin === 'lavender') root.removeAttribute('data-skin'); else root.setAttribute('data-skin', skin);
+    document.querySelectorAll('#skinGrid button').forEach(b => b.classList.toggle('on', b.dataset.skin === skin));
+    applyTheme();
+  }
+  document.querySelectorAll('#skinGrid button').forEach(b => b.addEventListener('click', () => {
+    skin = b.dataset.skin; savePref('skin', skin); applySkin(); vibrate(10);
+  }));
+  function bindFlag(id, key, attr) {
+    const el = $(id);
+    el.checked = loadPref(key, '0') === '1';
+    el.addEventListener('change', () => {
+      savePref(key, el.checked ? '1' : '0');
+      if (el.checked) document.documentElement.setAttribute(attr, '1'); else document.documentElement.removeAttribute(attr);
+      requestAnimationFrame(() => { peaks = null; drawWave(); });
+    });
+  }
+  bindFlag('roundText', 'round', 'data-round');
+  bindFlag('decoBg', 'deco', 'data-deco');
   const bigText = $('bigText');
   bigText.checked = loadPref('big', '0') === '1';
   bigText.addEventListener('change', () => {
@@ -4325,7 +4398,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   renderLibrary();
   refreshEditTab();
   showTab('rec');
-  applyTheme();
+  applySkin();
   if (loadPref('guided', '0') !== '1') openGuide();
   loadState().then(st => {
     if (st) {
