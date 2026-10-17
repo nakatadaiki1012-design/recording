@@ -492,7 +492,7 @@
   #growCanvas { width: 100%; height: 180px; display: block; margin-top: 4px; }
   .fx-try { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: .88rem; color: var(--muted); }
   .fx-try input { width: 20px; height: 20px; accent-color: var(--accent); }
-  .fx-trybar { margin-top: 10px; padding: 12px; border-radius: 12px; border: 1.5px solid var(--accent); background: var(--panel); box-shadow: 0 6px 20px rgba(30,40,90,.18); position: sticky; top: 8px; z-index: 5; }
+  .fx-trybar { padding: 12px; border-radius: 18px; border: 1.5px solid var(--accent); background: linear-gradient(var(--panel), var(--panel)), var(--bg); box-shadow: 0 14px 34px rgba(30,40,90,.28); position: fixed; left: 12px; right: 12px; bottom: calc(100px + env(safe-area-inset-bottom)); z-index: 140; max-width: 536px; margin: 0 auto; }
   .fx-trybar-t { font-size: .92rem; margin-bottom: 8px; }
   .fx-trybar-b { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 6px; }
   .fx-trybar-b .btn { padding: 10px 4px; font-size: .85rem; }
@@ -1011,6 +1011,23 @@
   .fr-row .fw small { font-size: .62rem; color: var(--muted); font-weight: 700; }
   .fr-row .fx { width: 30px; height: 30px; border-radius: 10px; border: 1px solid var(--border); background: none; color: var(--muted); cursor: pointer; flex-shrink: 0; }
 
+
+  /* ---- キー・ピッチ・テンポ ---- */
+  .kp-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .kp-row.col { flex-direction: column; align-items: stretch; gap: 4px; }
+  .kp-top { display: flex; justify-content: space-between; align-items: baseline; }
+  .kp-top b { color: var(--accent); }
+  .kp-l { font-size: .82rem; font-weight: 800; color: var(--muted); min-width: 40px; }
+  .kp-b { width: 52px; height: 52px; border-radius: 16px; font: inherit; font-size: 1.5rem; font-weight: 800; cursor: pointer; background: var(--btn); border: 1.5px solid var(--btn-b); color: var(--text); }
+  .kp-b:active { transform: scale(.94); }
+  .kp-v { flex: 1; text-align: center; }
+  .kp-v b { display: block; font-size: 1.7rem; font-weight: 900; color: var(--accent); line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .kp-v small { font-size: .72rem; color: var(--muted); }
+  .kp-quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px; }
+  .kp-quick button { font: inherit; font-size: .7rem; font-weight: 700; padding: 8px 2px; border-radius: 10px; cursor: pointer; background: var(--btn); border: 1px solid var(--btn-b); color: var(--text); line-height: 1.25; }
+  .kp-quick button#kpAuto { color: var(--accent); }
+  button.btn.primary.utaite { min-height: 54px; }
+  body:has(#fxTryBar:not(.hidden)) .toast { bottom: calc(env(safe-area-inset-bottom) + 236px); }
 </style>
 </head>
 <body>
@@ -1361,6 +1378,7 @@
       <input type="range" id="fxS" min="0" max="100" step="5" value="50" aria-label="エフェクトの強さ">
       <div class="fx-strength-ends"><span>弱い</span><span>強い</span></div>
     </div>
+    <button class="fx btn primary utaite" data-fx="utaite" style="width:100%;margin-top:12px">✨ 歌ってみた仕上げ（おまかせで整える）</button>
     <p class="fx-h">整える</p>
     <div class="btn-grid">
       <button class="fx" data-fx="denoise">🧹 ノイズを減らす</button>
@@ -1378,6 +1396,8 @@
       <button class="fx" data-fx="revbig">🏛 リバーブ（強）</button>
       <button class="fx" data-fx="church">⛪ 教会・大聖堂</button>
       <button class="fx" data-fx="echo">🔊 エコー（やまびこ）</button>
+      <button class="fx" data-fx="bath">🛁 お風呂</button>
+      <button class="fx" data-fx="karaoke">🎤 カラオケエコー</button>
     </div>
     <p class="fx-h">おもしろ</p>
     <div class="btn-grid">
@@ -1385,10 +1405,17 @@
       <button class="fx" data-fx="radio">📻 ラジオ・電話風</button>
       <button class="fx" data-fx="dist">🎸 ディストーション</button>
     </div>
+    <p class="fx-h">ボイスチェンジ</p>
+    <div class="btn-grid">
+      <button class="fx" data-fx="helium">🎈 ヘリウム声</button>
+      <button class="fx" data-fx="monster">👹 モンスター声</button>
+      <button class="fx" data-fx="robot">🤖 ロボット声</button>
+      <button class="fx" data-fx="chipmunk">⏩ テープ早回し</button>
+    </div>
     <p class="fx-h">加工</p>
     <div class="btn-grid">
-      <button class="fx" data-fx="pitchup">⬆ キーを上げる</button>
-      <button class="fx" data-fx="pitchdown">⬇ キーを下げる</button>
+      <button class="fx" data-fx="pitchup">⬆ キーを上げる（1〜4半音）</button>
+      <button class="fx" data-fx="pitchdown">⬇ キーを下げる（1〜4半音）</button>
       <button class="fx" data-fx="reverse">🔄 逆再生</button>
       <button class="fx" data-fx="trimsil">✂ 無音を詰める</button>
     </div>
@@ -1402,6 +1429,37 @@
     </div>
     <button id="fxUndo" class="btn" style="width:100%;margin-top:10px">↶ エフェクトを元に戻す</button>
     <div id="fxNote" class="lt-note"></div>
+  </details>
+
+
+  <!-- 🎹 キー・ピッチ・テンポ -->
+  <details class="card hidden fold" id="kpCard" data-tab="edit">
+    <summary><h2>🎹 キー・ピッチ・テンポ</h2></summary>
+    <p class="hint" style="margin-top:0">音程を変えても速さはそのまま、速さを変えても音程はそのまま。「録音全体に／選んだ部分だけ」はエフェクトと同じ設定です。</p>
+    <div class="kp-row">
+      <span class="kp-l">キー</span>
+      <button class="kp-b" data-key="-1" aria-label="半音さげる">−</button>
+      <div class="kp-v"><b id="kpKeyV">±0</b><small id="kpKeyN">そのまま</small></div>
+      <button class="kp-b" data-key="1" aria-label="半音あげる">＋</button>
+    </div>
+    <div class="kp-row col">
+      <div class="kp-top"><span class="kp-l">ピッチ微調整</span><b id="kpCentV">±0 セント</b></div>
+      <input type="range" id="kpCent" class="look-range" min="-100" max="100" step="1" value="0" aria-label="ピッチ微調整（セント）">
+      <div class="kp-quick">
+        <button data-cent="7.85">440→442</button><button data-cent="-7.85">442→440</button>
+        <button data-cent="3.92">442→443</button><button id="kpAuto">🎯 ずれを自動で直す</button>
+      </div>
+    </div>
+    <div class="kp-row col">
+      <div class="kp-top"><span class="kp-l">テンポ（速さ）</span><b id="kpTempoV">100%</b></div>
+      <input type="range" id="kpTempo" class="look-range" min="50" max="150" step="5" value="100" aria-label="テンポ">
+    </div>
+    <div class="look-row">
+      <button id="kpReset" class="btn">↺ 戻す</button>
+      <button id="kpTry" class="btn">🎧 試聴</button>
+      <button id="kpApply" class="btn primary">✅ かける</button>
+    </div>
+    <div id="kpNote" class="lt-note"></div>
   </details>
 
   <!-- 3. ファイル名 & 保存 -->
@@ -4387,6 +4445,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     editEmpty.classList.toggle('hidden', has);
     editCard.classList.toggle('hidden', !has);
     fxCard.classList.toggle('hidden', !has);
+    $('kpCard').classList.toggle('hidden', !has);
     saveCard.classList.toggle('hidden', !has);
   }
   $('toRecBtn').addEventListener('click', () => { showTab('rec'); recBtn.click(); });
@@ -4459,6 +4518,19 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     revhall: { tail: () => 1.2 + 1.2 * K(), name: 'ホール', build: (off, src) => verb(off, src, 1.8, 2.5, 0.75, 0.35) },
     revbig: { tail: () => 2 + 2 * K(), name: 'リバーブ（強）', build: (off, src) => verb(off, src, 3.0, 2.0, 0.6, 0.5) },
     church: { tail: () => 3 + 3 * K(), name: '教会・大聖堂', build: (off, src) => verb(off, src, 4.5, 1.6, 0.55, 0.55, 0.06, 5000) },
+    bath: { tail: () => 0.6 + 0.6 * K(), name: 'お風呂', build: (off, src) => {
+      const hp = off.createBiquadFilter(); hp.type = 'peaking'; hp.frequency.value = 2500; hp.gain.value = 3; hp.Q.value = 0.8;
+      src.connect(hp); verb(off, hp, 0.9, 1.3, 0.7, 0.6, 0.004, 0);
+    }},
+    karaoke: { tail: () => 1 + 1.2 * K(), name: 'カラオケエコー', build: (off, src) => {
+      const k = K();
+      const dly = off.createDelay(0.5); dly.delayTime.value = 0.12;
+      const fb = off.createGain(); fb.gain.value = Math.min(0.7, 0.4 * k);
+      const lp = off.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 4200;
+      const wet = off.createGain(); wet.gain.value = Math.min(0.8, 0.35 * k);
+      src.connect(dly); dly.connect(lp); lp.connect(fb); fb.connect(dly); lp.connect(wet); wet.connect(off.destination);
+      verb(off, src, 0.8, 2.6, 0.85, 0.22, 0, 6000);
+    }},
     echo: { tail: () => 0.6 + 2 * K(), name: 'エコー', build: (off, src) => {
       const k = K();
       const dly = off.createDelay(1.0); dly.delayTime.value = 0.26;
@@ -4494,8 +4566,15 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       src.connect(pre); pre.connect(ws); ws.connect(lp); lp.connect(g); g.connect(off.destination);
     }},
     // --- 加工 ---（キーは 1〜4 半音：50%で2半音）
-    pitchup: { tail: 0, rate: () => Math.pow(2, Math.max(1, Math.round(fxS * 4)) / 12), timeChange: true, name: 'キーを上げる', build: (off, src) => src.connect(off.destination) },
-    pitchdown: { tail: 0, rate: () => Math.pow(2, -Math.max(1, Math.round(fxS * 4)) / 12), timeChange: true, name: 'キーを下げる', build: (off, src) => src.connect(off.destination) },
+    pitchup: { heavy: true, name: 'キーを上げる', proc: (b) => keyTempoProc(b, Math.max(1, Math.round(fxS * 4)), 1) },
+    pitchdown: { heavy: true, name: 'キーを下げる', proc: (b) => keyTempoProc(b, -Math.max(1, Math.round(fxS * 4)), 1) },
+    // --- ボイスチェンジ ---
+    helium: { heavy: true, name: 'ヘリウム声', proc: (b) => keyTempoProc(b, 5 + Math.round(fxS * 6), 1) },
+    monster: { heavy: true, name: 'モンスター声', proc: (b) => keyTempoProc(b, -(4 + Math.round(fxS * 6)), 1) },
+    robot: { name: 'ロボット声', proc: (b) => robotProc(b) },
+    chipmunk: { tail: 0, rate: () => 1 + 0.5 * K(), timeChange: true, name: 'テープ早回し', build: (off, src) => src.connect(off.destination) },
+    // --- おまかせ ---
+    utaite: { name: '歌ってみた仕上げ', noStrength: true, chain: ['lowcut', 'denoise', 'comp', 'room', 'normalize'], chainS: 0.4 },
     reverse: { name: '逆再生', timeChange: true, noStrength: true, proc: (b) => {
       const d = b.getChannelData(0), out = newBuf(b.length, b.sampleRate), o = out.getChannelData(0);
       for (let i = 0, n = d.length; i < n; i++) o[i] = d[n - 1 - i];
@@ -4504,6 +4583,55 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     trimsil: { name: '無音を詰める', timeChange: true, proc: (b) => trimSilenceProc(b) }
   };
   function newBuf(len, sr) { return getCtx().createBuffer(1, Math.max(1, len), sr); }
+  // ---------- キー・テンポ（速さと音程を別々に変える：WSOLA方式） ----------
+  function wsola(x, factor, sr) {
+    const N = Math.max(256, Math.round(sr * 0.04)) & ~1, Hs = N >> 1, Ha = Hs / factor, tol = Math.round(sr * 0.012);
+    const outLen = Math.max(1, Math.round(x.length * factor));
+    if (x.length < N * 3) { // 短すぎるときは単純に伸ばす
+      const y = new Float32Array(outLen); for (let i = 0; i < outLen; i++) { const t = i / factor, j = Math.floor(t), f = t - j; y[i] = (x[j] || 0) * (1 - f) + (x[j + 1] || 0) * f; } return y;
+    }
+    const win = new Float32Array(N); for (let i = 0; i < N; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / N);
+    const y = new Float32Array(outLen + N), ws = new Float32Array(outLen + N);
+    let prev = 0;
+    for (let m = 0; ; m++) {
+      const outPos = m * Hs; if (outPos >= outLen) break;
+      const nominal = Math.round(m * Ha);
+      if (nominal + N >= x.length) break;
+      let best = nominal;
+      if (m > 0) {
+        const ref = prev + Hs, L = Hs;
+        if (ref + L < x.length) {
+          const lo = Math.max(0, nominal - tol), hi = Math.min(x.length - N - 1, nominal + tol);
+          let bc = -Infinity;
+          const corr = (p, st) => { let c = 0; for (let i = 0; i < L; i += st) c += x[ref + i] * x[p + i]; return c; };
+          for (let p = lo; p <= hi; p += 4) { const c = corr(p, 4); if (c > bc) { bc = c; best = p; } }
+          const b0 = best; bc = -Infinity;
+          for (let p = Math.max(lo, b0 - 3); p <= Math.min(hi, b0 + 3); p++) { const c = corr(p, 2); if (c > bc) { bc = c; best = p; } }
+        }
+      }
+      for (let i = 0; i < N; i++) { y[outPos + i] += x[best + i] * win[i]; ws[outPos + i] += win[i]; }
+      prev = best;
+    }
+    const out = new Float32Array(outLen);
+    for (let i = 0; i < outLen; i++) out[i] = ws[i] > 0.05 ? y[i] / ws[i] : y[i];
+    return out;
+  }
+  // semis：半音（小数でセントも）、speed：速さ（1=そのまま）
+  function keyTempoProc(b, semis, speed) {
+    const d = b.getChannelData(0), sr = b.sampleRate, r = Math.pow(2, semis / 12);
+    if (Math.abs(semis) < 0.005 && Math.abs(speed - 1) < 0.005) { const o = newBuf(d.length, sr); o.getChannelData(0).set(d); return o; }
+    const st = wsola(d, r / speed, sr), n = Math.max(1, Math.round(d.length / speed));
+    const out = newBuf(n, sr), o = out.getChannelData(0);
+    for (let i = 0; i < n; i++) { const t = i * r, j = Math.floor(t), f = t - j; o[i] = (st[j] || 0) * (1 - f) + (st[j + 1] || 0) * f; }
+    return out;
+  }
+  function robotProc(b) {
+    const d = b.getChannelData(0), sr = b.sampleRate, out = newBuf(d.length, sr), o = out.getChannelData(0);
+    const f = 40 + 80 * fxS, dl = Math.round(sr * 0.008), mix = 0.6 + 0.35 * fxS;
+    for (let i = 0; i < d.length; i++) { const ring = d[i] * Math.sin(2 * Math.PI * f * i / sr), comb = ring + 0.5 * (i >= dl ? d[i - dl] * Math.sin(2 * Math.PI * f * (i - dl) / sr) : 0); o[i] = d[i] * (1 - mix) + comb * mix * 1.3; }
+    return out;
+  }
+
   // ひずみ用のカーブ
   function makeCurve(k) {
     const n = 2048, c = new Float32Array(n);
@@ -4558,11 +4686,24 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     }
     let total = 0; for (const [a, e] of pieces) total += Math.min(e, d.length) - a;
     const out = newBuf(total, sr), o = out.getChannelData(0); let p = 0;
-    for (const [a, e] of pieces) { const ee = Math.min(e, d.length); o.set(d.subarray(a, ee), p); p += ee - a; }
+    let prevEnd = 0; const fd = Math.max(1, Math.floor(sr * 0.004));
+    for (const [a, e] of pieces) {
+      const ee = Math.min(e, d.length); o.set(d.subarray(a, ee), p);
+      if (a !== prevEnd && p > 0) { // 切ったつなぎ目はプツッとならないよう短くフェード
+        for (let i = 0; i < fd && p - 1 - i >= 0; i++) o[p - 1 - i] *= i / fd;
+        for (let i = 0; i < fd && p + i < o.length; i++) o[p + i] *= i / fd;
+      }
+      p += ee - a; prevEnd = ee;
+    }
     return out;
   }
   async function renderFx(buffer, fx) {
     let out;
+    if (fx.chain) { // いくつかのエフェクトを順番に（決まった強さで）
+      const keep = fxS; fxS = fx.chainS ?? fxS;
+      try { let b = buffer; for (const k of fx.chain) b = await renderFx(b, FX[k]); return b; } finally { fxS = keep; }
+    }
+    if (fx.heavy) await new Promise(r => setTimeout(r, 30)); // 「処理中」の表示を先に出す
     if (fx.proc) {
       out = fx.proc(buffer);
     } else {
@@ -4643,13 +4784,14 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       if (whole) setSelection(0, audioBuffer.duration);
       else setSelection(keepSel[0], keepSel[0] + newLen / audioBuffer.sampleRate);
       saveState();
-      fxNote.textContent = `${fx.name}（強さ${Math.round(fxS * 100)}%）を${whole ? '' : '選んだ部分に'}かけました。元に戻すで取り消せます`;
+      fxNote.textContent = `${fx.name}${fx.noStrength ? '' : `（強さ${Math.round(fxS * 100)}%）`}を${whole ? '' : '選んだ部分に'}かけました。元に戻すで取り消せます`;
       toast(`${fx.name} をかけました`, 'ok'); vibrate(15);
     } catch (e) { fxNote.textContent = 'エフェクトをかけられませんでした'; toast('失敗しました', 'err'); }
   }
   // 試聴：かける範囲の最初の10秒だけ加工して聴く
   let fxTryFx = null, fxTrySrc = null, fxTryBuf = null, fxTryOrigBuf = null;
   const fxTryBar = $('fxTryBar');
+  document.body.appendChild(fxTryBar); // どのカードから試聴しても見えるよう、画面の下に浮かせる
   function stopFxTry() { if (fxTrySrc) { try { fxTrySrc.stop(); } catch (_) {} fxTrySrc = null; } }
   function closeFxTry() { stopFxTry(); fxTryFx = null; fxTryBar.classList.add('hidden'); }
   function playTry(buf) {
@@ -4716,6 +4858,55 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     renderMarkers(); setSelection(0, audioBuffer.duration); saveState();
     fxNote.textContent = '元に戻しました'; vibrate(10);
   });
+
+
+  // ---------- 🎹 キー・ピッチ・テンポ ----------
+  let kpKey = 0, kpCentVal = 0, kpTempoVal = 100;
+  const KEY_NAMES = { 1: '半音上', 2: '全音上', 3: '短3度上', 4: '長3度上', 5: '4度上', 7: '5度上', 12: '1オクターブ上', '-1': '半音下', '-2': '全音下', '-3': '短3度下', '-4': '長3度下', '-5': '4度下', '-7': '5度下', '-12': '1オクターブ下' };
+  function kpUI() {
+    $('kpKeyV').textContent = kpKey === 0 ? '±0' : (kpKey > 0 ? '+' : '−') + Math.abs(kpKey);
+    $('kpKeyN').textContent = kpKey === 0 ? 'そのまま' : (KEY_NAMES[kpKey] || `${Math.abs(kpKey)}半音${kpKey > 0 ? '上' : '下'}`);
+    const c = Math.round(kpCentVal * 10) / 10;
+    $('kpCentV').textContent = c === 0 ? '±0 セント' : `${c > 0 ? '+' : '−'}${Math.abs(c)} セント`;
+    $('kpCent').value = Math.round(kpCentVal);
+    $('kpTempoV').textContent = kpTempoVal + '%'; $('kpTempo').value = kpTempoVal;
+  }
+  document.querySelectorAll('.kp-b').forEach(b => b.addEventListener('click', () => { kpKey = Math.max(-12, Math.min(12, kpKey + +b.dataset.key)); kpUI(); vibrate(8); }));
+  $('kpCent').addEventListener('input', (e) => { kpCentVal = +e.target.value; kpUI(); });
+  $('kpTempo').addEventListener('input', (e) => { kpTempoVal = +e.target.value; kpUI(); });
+  document.querySelectorAll('.kp-quick button[data-cent]').forEach(b => b.addEventListener('click', () => { kpCentVal = +b.dataset.cent; kpUI(); }));
+  $('kpReset').addEventListener('click', () => { kpKey = 0; kpCentVal = 0; kpTempoVal = 100; kpUI(); $('kpNote').textContent = ''; });
+  // 録音全体の「平均的な音程のずれ」を測って、逆向きに直す値を入れる
+  $('kpAuto').addEventListener('click', () => {
+    if (!audioBuffer) return;
+    const { data, sr } = selectedMono(), win = 2048, hop = Math.floor(sr * 0.04), cs = [];
+    for (let i = 0; i + win <= data.length; i += hop) {
+      const f = autoCorrelate(data.subarray(i, i + win), sr);
+      if (f > 0) { const midi = 69 + 12 * Math.log2(f / refA); cs.push((midi - Math.round(midi)) * 100); }
+    }
+    if (cs.length < 8) { $('kpNote').textContent = '音程がうまく測れませんでした（のばした音や単音のほうが測りやすいです）'; return; }
+    cs.sort((a, b) => a - b);
+    const med = cs[Math.floor(cs.length / 2)];
+    kpCentVal = Math.max(-50, Math.min(50, -med)); kpUI();
+    $('kpNote').textContent = `平均で ${med > 0 ? '+' : '−'}${Math.abs(med).toFixed(0)} セント${med > 0 ? '高め' : '低め'}でした（基準 A=${refA}Hz）。直す値を入れたので「かける」を押してね`;
+  });
+  function kpFx() {
+    const semis = kpKey + kpCentVal / 100, sp = kpTempoVal / 100;
+    const parts = [];
+    if (kpKey) parts.push(`キー${kpKey > 0 ? '+' : '−'}${Math.abs(kpKey)}`);
+    if (Math.abs(kpCentVal) >= 0.5) parts.push(`${kpCentVal > 0 ? '+' : '−'}${Math.abs(Math.round(kpCentVal * 10) / 10)}セント`);
+    if (kpTempoVal !== 100) parts.push(`テンポ${kpTempoVal}%`);
+    return { heavy: true, noStrength: true, timeChange: kpTempoVal !== 100, name: parts.join('・') || 'そのまま', proc: (b) => keyTempoProc(b, semis, sp) };
+  }
+  const kpEmpty = () => !kpKey && Math.abs(kpCentVal) < 0.5 && kpTempoVal === 100;
+  $('kpTry').addEventListener('click', () => { if (!audioBuffer) return; if (kpEmpty()) { $('kpNote').textContent = 'キー・ピッチ・テンポのどれかを変えてね'; return; } tryFx(kpFx()); });
+  $('kpApply').addEventListener('click', async () => {
+    if (!audioBuffer) return; if (kpEmpty()) { $('kpNote').textContent = 'キー・ピッチ・テンポのどれかを変えてね'; return; }
+    $('kpNote').textContent = '処理しています…（長い録音は少し時間がかかります）';
+    await applyFx(kpFx());
+    $('kpNote').textContent = fxNote.textContent; kpKey = 0; kpCentVal = 0; kpTempoVal = 100; kpUI();
+  });
+  kpUI();
 
   // ---------- マイク選択（Bluetooth通話化を避けて内蔵マイク優先） ----------
   const micSelect = $('micSelect');
