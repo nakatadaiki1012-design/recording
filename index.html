@@ -968,6 +968,49 @@
   /* ストーリー画像 */
   .story-img { display: block; width: 62%; max-width: 280px; margin: 12px auto 0; border-radius: 18px; box-shadow: 0 12px 30px rgba(30,20,80,.25); }
   .opt-grid button.locked { opacity: .5; }
+  :root[data-skin="halloween"] { --accent: #ff8a1f; --accent-2: #a45cff; --grad: linear-gradient(135deg, #ff8a1f 0%, #ff5ca8 50%, #a45cff 100%); --bg: #170f26; --panel-2: #261a3d; --border: #382a55; --btn: #241839; --btn-b: #3a2b5a; --btn-press: #2e2148; --sub: #1d1430; --wave: #4a3a6a; --wave-sel: #ff8a1f; --text: #fbefff; --muted: #b7a3d0; --on-accent: #fff; --dim: color-mix(in srgb, #170f26 66%, transparent); --panel: rgba(34,24,54,.92); --tabbar: rgba(30,20,48,.9); --dim: rgba(23,15,38,.66); }
+  :root[data-skin="halloween"][data-theme="dark"] { --accent: #ff8a1f; --accent-2: #a45cff; --grad: linear-gradient(135deg, #ff8a1f 0%, #ff5ca8 50%, #a45cff 100%); --bg: #170f26; --panel-2: #261a3d; --border: #382a55; --btn: #241839; --btn-b: #3a2b5a; --btn-press: #2e2148; --sub: #1d1430; --wave: #4a3a6a; --wave-sel: #ff8a1f; --text: #fbefff; --muted: #b7a3d0; --on-accent: #fff; --dim: color-mix(in srgb, #170f26 66%, transparent); --panel: rgba(34,24,54,.92); --tabbar: rgba(30,20,48,.9); --dim: rgba(23,15,38,.66); }
+  @media (prefers-color-scheme: dark) { :root[data-skin="halloween"]:not([data-theme="light"]) { --accent: #ff8a1f; --accent-2: #a45cff; --grad: linear-gradient(135deg, #ff8a1f 0%, #ff5ca8 50%, #a45cff 100%); --bg: #170f26; --panel-2: #261a3d; --border: #382a55; --btn: #241839; --btn-b: #3a2b5a; --btn-press: #2e2148; --sub: #1d1430; --wave: #4a3a6a; --wave-sel: #ff8a1f; --text: #fbefff; --muted: #b7a3d0; --on-accent: #fff; --dim: color-mix(in srgb, #170f26 66%, transparent); --panel: rgba(34,24,54,.92); --tabbar: rgba(30,20,48,.9); --dim: rgba(23,15,38,.66); } }
+  :root[data-skin="halloween"] .rec-btn { background: radial-gradient(circle at 30% 25%, #3e2c60 0%, #1f1533 75%); }
+  :root[data-skin="halloween"] .card, :root[data-skin="halloween"] .tabbar { border-color: rgba(255,255,255,.08); }
+  :root[data-skin="xmas"] { --accent: #d93445; --accent-2: #2e9e5b; --grad: linear-gradient(135deg, #d93445 0%, #ef6b5b 45%, #2e9e5b 100%); --bg: #fff6f2; --panel-2: #fff7f4; --border: #f3e0d8; --btn: #fff6f2; --btn-b: #f0d7cd; --btn-press: #fbe8e0; --sub: #fffbf9; --wave: #f2c4c0; --wave-sel: #d93445; --text: #3a1a1d; --muted: #96726f; --on-accent: #fff; --dim: color-mix(in srgb, #fff6f2 66%, transparent); }
+  :root[data-skin="xmas"][data-theme="dark"] { --accent: #ff6b78; --accent-2: #5fd18d; --grad: linear-gradient(135deg, #ff6b78 0%, #ef6b5b 45%, #5fd18d 100%); --wave: #5a3c3e; --wave-sel: #ff6b78; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="xmas"]:not([data-theme="light"]) { --accent: #ff6b78; --accent-2: #5fd18d; --grad: linear-gradient(135deg, #ff6b78 0%, #ef6b5b 45%, #5fd18d 100%); --wave: #5a3c3e; --wave-sel: #ff6b78; } }
+  :root[data-skin="spring"] { --accent: #e8618c; --accent-2: #f7b3c8; --grad: linear-gradient(135deg, #e8618c 0%, #f7b3c8 100%); --bg: #fff6f8; --panel-2: #fff7fa; --border: #f6e1e8; --btn: #fff6f9; --btn-b: #f2d6df; --btn-press: #fde8ee; --sub: #fffbfc; --wave: #f5c8d6; --wave-sel: #e8618c; --text: #3d2030; --muted: #9a7787; --on-accent: #fff; --dim: color-mix(in srgb, #fff6f8 66%, transparent); }
+  :root[data-skin="spring"][data-theme="dark"] { --accent: #ff8fb2; --accent-2: #ffc6d6; --grad: linear-gradient(135deg, #ff8fb2 0%, #ffc6d6 100%); --wave: #6a4655; --wave-sel: #ff8fb2; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="spring"]:not([data-theme="light"]) { --accent: #ff8fb2; --accent-2: #ffc6d6; --grad: linear-gradient(135deg, #ff8fb2 0%, #ffc6d6 100%); --wave: #6a4655; --wave-sel: #ff8fb2; } }
+  :root[data-skin="summer"] { --accent: #0098c7; --accent-2: #ffb800; --grad: linear-gradient(135deg, #00a6d6 0%, #3ccbd0 50%, #ffc23d 100%); --bg: #effbff; --panel-2: #f0fbff; --border: #d4eef6; --btn: #f0fbff; --btn-b: #cbe6ef; --btn-press: #def3fa; --sub: #f8fdff; --wave: #b6e2ef; --wave-sel: #0098c7; --text: #0f2e3a; --muted: #66899a; --on-accent: #fff; --dim: color-mix(in srgb, #effbff 66%, transparent); }
+  :root[data-skin="summer"][data-theme="dark"] { --accent: #4cc9f0; --accent-2: #ffd166; --grad: linear-gradient(135deg, #00a6d6 0%, #3ccbd0 50%, #ffc23d 100%); --wave: #3a5a66; --wave-sel: #4cc9f0; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="summer"]:not([data-theme="light"]) { --accent: #4cc9f0; --accent-2: #ffd166; --grad: linear-gradient(135deg, #00a6d6 0%, #3ccbd0 50%, #ffc23d 100%); --wave: #3a5a66; --wave-sel: #4cc9f0; } }
+
+  /* ---- 季節限定 ---- */
+  .season-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .season-grid button { position: relative; font: inherit; color: #fff; text-align: left; border: 0; border-radius: 18px; padding: 12px 12px 10px; min-height: 92px; cursor: pointer; box-shadow: 0 6px 14px rgba(0,0,0,.12); overflow: hidden; }
+  .season-grid button .si { font-size: 1.6rem; display: block; line-height: 1; }
+  .season-grid button b { display: block; font-size: .95rem; margin-top: 6px; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
+  .season-grid button small { display: block; font-size: .66rem; font-weight: 700; opacity: .95; margin-top: 2px; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
+  .season-grid button.now::after { content: "今だけ"; position: absolute; top: 8px; right: 8px; background: #fff; color: #e2435d; font-size: .62rem; font-weight: 900; padding: 3px 8px; border-radius: 999px; animation: nowPulse 1.6s infinite; }
+  .season-grid button.locked { filter: grayscale(.85); opacity: .6; }
+  @keyframes nowPulse { 50% { transform: scale(1.08); } }
+  .season-banner:not(.on) { display: none; }
+  .season-banner { display: flex; align-items: center; gap: 10px; width: 100%; font: inherit; text-align: left; cursor: pointer; border: 0; color: #fff; padding: 10px 14px; border-radius: 16px; font-weight: 800; font-size: .86rem; box-shadow: 0 6px 16px rgba(0,0,0,.14); }
+  .season-banner .si { font-size: 1.4rem; }
+  .season-banner small { display: block; font-size: .68rem; opacity: .92; font-weight: 700; }
+  /* ---- なかま ---- */
+  .fr-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .fr-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; background: var(--panel-2); border: 1px solid var(--border); }
+  .fr-row.me { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: color-mix(in srgb, var(--accent) 8%, var(--panel)); }
+  .fr-row .rk { width: 26px; text-align: center; font-weight: 900; font-size: 1rem; flex-shrink: 0; }
+  .fr-row .fc { width: 40px; height: 40px; flex-shrink: 0; }
+  .fr-row .fc svg { width: 100%; height: 100%; display: block; }
+  .fr-row .fc .m-open { opacity: 0; }
+  .fr-row .fm { flex: 1; min-width: 0; }
+  .fr-row .fm b { display: block; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fr-row .fm small { display: block; font-size: .7rem; color: var(--muted); }
+  .fr-row .fw { font-weight: 900; font-size: 1.1rem; color: var(--accent); white-space: nowrap; }
+  .fr-row .fw small { font-size: .62rem; color: var(--muted); font-weight: 700; }
+  .fr-row .fx { width: 30px; height: 30px; border-radius: 10px; border: 1px solid var(--border); background: none; color: var(--muted); cursor: pointer; flex-shrink: 0; }
+
 </style>
 </head>
 <body>
@@ -1422,6 +1465,12 @@
     </div>
   </section>
 
+  <section class="card" data-tab="look" id="seasonCard">
+    <h2>🎃 季節限定</h2>
+    <p class="hint" style="margin-top:0">その季節の間だけ手に入る着せ替えです。一度手に入れたら、ずっと使えます（帽子のアクセサリーつき）。</p>
+    <div class="season-grid" id="seasonGrid"></div>
+  </section>
+
   <section class="card" data-tab="look">
     <h2>✨ おまかせセット</h2>
     <div class="preset-grid" id="presetGrid"><button data-preset="0" style="background:linear-gradient(135deg,#f45fae,#b98cff,#7fb3ff)">ゆめかわ<small>ハート・キャンディ</small></button><button data-preset="1" style="background:linear-gradient(135deg,#1a1e58,#7b8cff)">よぞら<small>星・ドット</small></button><button data-preset="2" style="background:linear-gradient(135deg,#8a5a44,#c79a73)">カフェ<small>ねこ・ノート・明朝</small></button><button data-preset="3" style="background:linear-gradient(135deg,#00c8f0,#ff3df2)">ネオン<small>やま・シャープ</small></button><button data-preset="4" style="background:linear-gradient(135deg,#5a8a32,#a3c062)">抹茶<small>お花・なみ</small></button><button data-preset="5" style="background:linear-gradient(135deg,#1f8ef1,#56cfff)">ソーダ<small>くも・チェック</small></button><button data-preset="6" style="background:linear-gradient(135deg,#2c2c36,#6b6b7b)">シンプル<small>定番の録音アプリ風</small></button><button class="dice" id="lookRandom">🎲 ランダム<small>なにが出るかな</small></button></div>
@@ -1466,6 +1515,11 @@
       <button data-pat="flower"><span class="patbox"></span>お花</button>
       <button data-pat="check"><span class="patbox"></span>チェック</button>
       <button data-pat="ribbon"><span class="patbox"></span>リボン</button>
+      <button data-pat="pumpkin"><span class="patbox"></span>かぼちゃ</button>
+      <button data-pat="bat"><span class="patbox"></span>こうもり</button>
+      <button data-pat="snow"><span class="patbox"></span>ゆき</button>
+      <button data-pat="petal"><span class="patbox"></span>はなびら</button>
+      <button data-pat="wave"><span class="patbox"></span>なみ</button>
     </div>
     <div class="look-label">写真のかべ紙</div>
     <div class="look-row">
@@ -1563,7 +1617,7 @@
     <button id="openLookBtn" class="btn sheet-btn">🎀 着せ替え（色・ボタン・波形・背景・名前）</button>
     <label class="time-check"><input type="checkbox" id="bigText"> 文字を大きくする</label>
     <div class="opt-label">データ</div>
-    <button id="backupBtn" class="btn sheet-btn">📦 保存したものをまとめて書き出す（バックアップ）</button>
+    <button id="backupBtn" class="btn sheet-btn">📦 録音と記録をまとめて書き出す（バックアップ）</button>
     <button id="importBtn" class="btn sheet-btn">📥 バックアップ・音声ファイルを読み込む</button>
     <input type="file" id="importFile" accept=".zip,audio/*,.mp3,.wav,.m4a" multiple hidden>
     <div class="opt-label">そのほか</div>
@@ -1586,6 +1640,13 @@
     <div class="my-cal" id="myCal"></div>
     <div class="opt-label">バッジ</div>
     <div class="my-badges" id="myBadges"></div>
+    <div class="opt-label">👫 なかま（今週の練習日数ランキング）</div>
+    <input id="nickIn" class="look-input" maxlength="12" placeholder="ニックネーム（なかまに表示されます）" autocomplete="off">
+    <div class="look-row"><button id="cardSend" class="btn primary">📤 わたしのカードを送る</button><button id="cardCopy" class="btn">📋 コピー</button></div>
+    <input id="friendIn" class="look-input" placeholder="なかまのカード（コード）をここに貼る" autocomplete="off">
+    <div class="look-row"><button id="friendAdd" class="btn">➕ なかまに追加・更新</button></div>
+    <div class="fr-list" id="frList"></div>
+    <p class="my-how" style="margin-top:6px">サーバーを使わないので、記録はこの端末とカードを送った相手にしか見えません。最新の記録にしたいときは、カードを送り直してね。</p>
     <p class="my-how">♪のため方：録音 +10（その日はじめての録音は +20 おまけ）・保存 +5・ストーリー画像 +5・ロングトーン採点で点数の1/10。レベルが上がると、キャラのアクセサリーが増えます。</p>
   </div>
 </div>
@@ -3459,9 +3520,9 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   }
   async function exportBackup() {
     const items = (await libAll()).sort((a, b) => a.at - b.at);
-    if (!items.length) { toast('保存したものがまだありません', 'err'); return; }
     toast('バックアップを作っています…');
-    const zip = await makeZip(items);
+    // 録音に加えて、記録・ポイント・バッジ・着せ替え・なかまも入れる
+    const zip = await makeZip([{ name: 'hibiki_data.json', blob: await backupData(items), at: Date.now() }].concat(items));
     const d = new Date(), fname = `響_バックアップ_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}.zip`;
     if (canShareFiles) {
       const file = new File([zip], fname, { type: 'application/zip' });
@@ -3471,25 +3532,26 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       }
     }
     downloadBlob(zip, fname);
-    toast(`${items.length} 件をまとめて書き出しました`, 'ok');
+    toast(`録音 ${items.length} 件と記録をまとめて書き出しました`, 'ok');
   }
   async function importFiles(fileList) {
     const used = new Set((await libAll()).map(x => x.name));
     const free = (nm) => { if (!used.has(nm)) return nm; const m = nm.match(/^(.*?)(\.[^.]+)?$/); for (let i = 2; ; i++) { const c = `${m[1]}_${i}${m[2] || ''}`; if (!used.has(c)) return c; } };
-    let count = 0, skipped = 0;
+    let count = 0, skipped = 0, restored = false, stickers = {};
     for (const f of fileList) {
       let entries = [];
       if (/\.zip$/i.test(f.name) || f.type === 'application/zip') {
         try { entries = await readZip(f); } catch (_) { skipped++; continue; }
       } else entries = [{ name: f.name, blob: f }];
       for (const en of entries) {
+        if (en.name === 'hibiki_data.json') { stickers = Object.assign(stickers, await restoreData(en.blob)); restored = true; continue; }
         if (!/^audio\//.test(en.blob.type) && !/\.(mp3|wav|m4a|mp4|webm|ogg|aac)$/i.test(en.name)) { skipped++; continue; }
         const nm = free(en.name); used.add(nm);
-        await libAdd(nm, en.blob); count++;
+        await libAdd(nm, en.blob, stickers[en.name] ? { sticker: stickers[en.name] } : null); count++;
       }
     }
     renderLibrary();
-    toast(count ? `${count} 件を保存一覧に読み込みました${skipped ? `（${skipped} 件は読めませんでした）` : ''}` : '読み込める音声がありませんでした', count ? 'ok' : 'err');
+    if (count || !restored) toast(count ? `${count} 件を保存一覧に読み込みました${skipped ? `（${skipped} 件は読めませんでした）` : ''}` : '読み込める音声がありませんでした', count ? 'ok' : 'err');
     showTab('lib');
   }
   const importFile = $('importFile');
@@ -4695,11 +4757,11 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   if (window.matchMedia) { try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (theme === 'auto') applyTheme(); }); } catch (_) {} }
   // ========== 🎀 きせかえ（色・ボタン・波形・背景・カード・文字・名前） ==========
   const SKINS = [["lavender", "ラベンダー", "#5b5bf0", "#9a5cf5", "#f3f2fb"], ["sakura", "さくら", "#f0508c", "#ff9ac1", "#fff3f7"], ["yumekawa", "ゆめかわ", "#f45fae", "#7fb3ff", "#fbf4ff"], ["mint", "ミント", "#0fa883", "#57d1b0", "#effaf6"], ["matcha", "抹茶", "#5a8a32", "#a3c062", "#f5f8ee"], ["soda", "ソーダ", "#1f8ef1", "#56cfff", "#eef6ff"], ["lemon", "レモン", "#e09a00", "#ffd23f", "#fffbea"], ["peach", "ピーチ", "#f2643f", "#ffad66", "#fff5ef"], ["choco", "カフェ", "#8a5a44", "#c79a73", "#faf5f0"], ["mono", "モノクロ", "#2c2c36", "#6b6b7b", "#f2f2f5"], ["yozora", "よぞら", "#7b8cff", "#c08cff", "#0d1030"], ["neon", "ネオン", "#00c8f0", "#ff3df2", "#07070f"]]; // [名前, 表示名, 色1, 色2, 背景色]
-  const SKIN_BG = Object.fromEntries(SKINS.map(s => [s[0], s[4]]));
+  const SKIN_BG = Object.assign(Object.fromEntries(SKINS.map(s => [s[0], s[4]])), { halloween: '#170f26', xmas: '#fff6f2', spring: '#fff6f8', summer: '#effbff' });
   const LOOK_DEF = { skin: 'lavender', color: '#ff6fae', color2: '#ffb36b', btn: 'circle', recc: 'red', wave: 'bar', pat: 'none', card: 'glass', radius: 'normal', font: 'normal', chara: 'cat', title: '', tag: '', wallDim: 35 };
   const LOOK_OK = {
-    skin: SKINS.map(s => s[0]).concat('custom'), btn: ['circle', 'heart', 'star', 'flower', 'cat', 'cloud'], recc: ['red', 'theme'],
-    wave: ['bar', 'candy', 'block', 'dot', 'line', 'mirror'], pat: ['none', 'heart', 'star', 'note', 'dot', 'flower', 'check', 'ribbon'],
+    skin: SKINS.map(s => s[0]).concat('custom', 'halloween', 'xmas', 'spring', 'summer'), btn: ['circle', 'heart', 'star', 'flower', 'cat', 'cloud'], recc: ['red', 'theme'],
+    wave: ['bar', 'candy', 'block', 'dot', 'line', 'mirror'], pat: ['none', 'heart', 'star', 'note', 'dot', 'flower', 'check', 'ribbon', 'pumpkin', 'bat', 'snow', 'petal', 'wave'],
     card: ['glass', 'solid', 'pop', 'note'], radius: ['small', 'normal', 'round'], font: ['normal', 'round', 'mincho'],
     chara: ['none', 'cat', 'rabbit', 'bear', 'penguin', 'dog', 'frog', 'hamster']
   };
@@ -4751,7 +4813,12 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       dot: `<circle cx="14" cy="14" r="4" fill="${c}" ${o}/><circle cx="42" cy="42" r="4" fill="${c}" ${o}/>`,
       flower: `<g fill="${c}" ${o}><circle cx="14" cy="9" r="3"/><circle cx="19" cy="14" r="3"/><circle cx="14" cy="19" r="3"/><circle cx="9" cy="14" r="3"/></g><circle cx="14" cy="14" r="2" fill="${c}"/><circle cx="44" cy="42" r="2" fill="${c}" ${o}/>`,
       check: `<rect width="28" height="56" fill="${c}" fill-opacity=".1"/><rect width="56" height="28" fill="${c}" fill-opacity=".1"/>`,
-      ribbon: `<path d="M14 14l-7-5v10zM14 14l7-5v10z" fill="${c}" ${o}/><circle cx="14" cy="14" r="2.4" fill="${c}"/><circle cx="44" cy="42" r="2" fill="${c}" ${o}/>`
+      ribbon: `<path d="M14 14l-7-5v10zM14 14l7-5v10z" fill="${c}" ${o}/><circle cx="14" cy="14" r="2.4" fill="${c}"/><circle cx="44" cy="42" r="2" fill="${c}" ${o}/>`,
+      pumpkin: `<g fill="${c}" ${o}><ellipse cx="14" cy="17" rx="8.5" ry="6.5"/><rect x="12.8" y="7.5" width="2.6" height="4.5" rx="1.2"/></g><circle cx="44" cy="42" r="2" fill="${c}" ${o}/>`,
+      bat: `<path d="M14 12c-2-3-6-4-10-2 2 1 3 3 3 5 2-1 4-1 5 1 .8-1.8 1.4-3 2-4 .6 1 1.2 2.2 2 4 1-2 3-2 5-1 0-2 1-4 3-5-4-2-8-1-10 2z" fill="${c}" ${o}/><circle cx="44" cy="42" r="2" fill="${c}" ${o}/>`,
+      snow: `<g stroke="${c}" stroke-opacity=".3" stroke-width="2" stroke-linecap="round"><path d="M14 6v16M6 14h16M8.3 8.3l11.4 11.4M19.7 8.3L8.3 19.7"/></g><circle cx="44" cy="42" r="2.6" fill="${c}" ${o}/>`,
+      petal: `<path d="M14 7c4.5 2.5 5.5 7.5 0 13-5.5-5.5-4.5-10.5 0-13z" fill="${c}" ${o} transform="rotate(35 14 14)"/><path d="M44 37c2.5 1.4 3 4 0 7-3-3-2.5-5.6 0-7z" fill="${c}" ${o} transform="rotate(-25 44 40)"/>`,
+      wave: `<path d="M2 16q6-6 12 0t12 0" stroke="${c}" stroke-opacity=".3" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M30 44q6-6 12 0t12 0" stroke="${c}" stroke-opacity=".3" stroke-width="2.4" fill="none" stroke-linecap="round"/>`
     };
     if (!P[kind]) return 'none';
     return `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56">${P[kind]}</svg>`)}")`;
@@ -4869,7 +4936,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   }));
   $('lookRandom').addEventListener('click', () => {
     const pick = (a) => a[Math.floor(Math.random() * a.length)], p = {};
-    for (const k of Object.keys(LOOK_OK)) p[k] = pick(k === 'skin' ? LOOK_OK.skin.filter(s => s !== 'custom') : LOOK_OK[k]);
+    for (const k of Object.keys(LOOK_OK)) p[k] = pick(k === 'skin' ? LOOK_OK.skin.filter(s => s !== 'custom' && !['halloween', 'xmas', 'spring', 'summer'].includes(s)) : LOOK_OK[k]);
     setLook(p); toast('🎲 ランダムに着せ替えました', 'ok');
   });
   // 写真のかべ紙（端末の中にだけ保存）
@@ -4957,6 +5024,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   function greetLine() {
     const h = new Date().getHours();
     let st = 0; try { st = streak(); } catch (_) {}
+    try { const se = curSeason(); if (se && Math.random() < .5) return se.greet; } catch (_) {}
     if (st >= 2) return `${st}日連続中！今日もいこ〜`;
     if (h >= 5 && h < 10) return 'おはよう！朝練えらい☀️';
     if (h >= 22 || h < 4) return '夜おそくまでおつかれさま🌙';
@@ -4991,12 +5059,14 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
 
   // ========== 🔥 続けたくなるしくみ（連続記録・ポイント・バッジ・アクセサリー） ==========
   const dayKey = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-  const PROG_DEF = { days: {}, pts: 0, badges: {}, recs: 0, saves: 0, stories: 0, acc: 'none' };
+  const PROG_DEF = { days: {}, pts: 0, badges: {}, seasons: {}, recs: 0, saves: 0, stories: 0, acc: 'none', id: '' };
   function progLoad() {
     let o = {}; try { o = JSON.parse(loadPref('prog', '{}')) || {}; } catch (_) {}
     const p = Object.assign({}, PROG_DEF, o);
     if (typeof p.days !== 'object' || !p.days) p.days = {};
     if (typeof p.badges !== 'object' || !p.badges) p.badges = {};
+    if (typeof p.seasons !== 'object' || !p.seasons) p.seasons = {};
+    if (!/^[a-z0-9]{8,16}$/.test(p.id || '')) p.id = Math.random().toString(36).slice(2, 12).padEnd(10, '0');
     ['pts', 'recs', 'saves', 'stories'].forEach(k => { p[k] = Math.max(0, +p[k] || 0); });
     return p;
   }
@@ -5018,10 +5088,13 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     ['lt95', '💯', 'ほぼ完璧', '採点で95点以上'], ['story', '📸', 'ストーリーデビュー', 'ストーリー画像を作る'],
     ['night', '🌙', '夜ふかし練習', '22時〜4時に録音'], ['morning', '🌅', '朝練', '5時〜8時に録音'],
     ['kisekae', '🎀', 'おしゃれさん', '着せ替えを変える'], ['lv5', '⭐', 'レベル5', 'レベル5になる'],
-    ['lv10', '🏆', 'レベル10', 'レベル10になる'], ['sticker', '💖', 'デコ上手', 'スタンプ付きで保存']
+    ['lv10', '🏆', 'レベル10', 'レベル10になる'], ['sticker', '💖', 'デコ上手', 'スタンプ付きで保存'],
+    ['season', '🍂', '季節をたのしむ', '季節限定を手に入れる'], ['friend', '👫', 'なかまができた', 'なかまのカードを登録']
   ];
   const ACCS = [['none', 'なし', 1], ['ribbon', 'リボン', 2], ['headphones', 'ヘッドホン', 3], ['flower', 'お花', 4],
-    ['glasses', 'サングラス', 5], ['crown', '王冠', 6], ['star', '星のピン', 7], ['beret', 'ベレー帽', 8]];
+    ['glasses', 'サングラス', 5], ['crown', '王冠', 6], ['star', '星のピン', 7], ['beret', 'ベレー帽', 8],
+    ['witch', 'まじょの帽子', 's:halloween'], ['santa', 'サンタぼうし', 's:xmas'], ['gradcap', '卒業ぼうし', 's:spring'], ['straw', 'むぎわらぼうし', 's:summer']];
+  const accOk = (a) => typeof a[2] === 'number' ? levelOf(prog.pts) >= a[2] : !!prog.seasons[a[2].slice(2)];
   // お知らせは重ならないよう順番に出す
   const noteQ = []; let noteBusy = false;
   function notify(msg) {
@@ -5073,6 +5146,10 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       case 'glasses': return `<g fill="#1f1b2a" fill-opacity=".9" stroke="#1f1b2a" stroke-width="1.6"><rect x="${l - 9}" y="${ey - 6}" width="18" height="12" rx="5"/><rect x="${r - 9}" y="${ey - 6}" width="18" height="12" rx="5"/></g><path d="M${l + 9} ${ey - 2} h${r - l - 18}" stroke="#1f1b2a" stroke-width="2"/><path d="M${l - 5} ${ey - 3} l4 -1.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".8"/><path d="M${r - 5} ${ey - 3} l4 -1.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".8"/>`;
       case 'crown': return `<path d="M35 ${k === 'frog' ? 26 : 30} L37 14 L44 22 L50 9 L56 22 L63 14 L65 ${k === 'frog' ? 26 : 30}Z" fill="#ffcf3f" stroke="#e0a400" stroke-width="2" stroke-linejoin="round"/><circle cx="50" cy="${k === 'frog' ? 21 : 24}" r="2.6" fill="#ff5c8a"/>`;
       case 'star': return `<path d="M70 21l2.6 6.4 6.9.5-5.3 4.4 1.7 6.7-5.9-3.7-5.9 3.7 1.7-6.7-5.3-4.4 6.9-.5z" fill="#ffd84a" stroke="#e6a800" stroke-width="1.5" stroke-linejoin="round"/>`;
+      case 'witch': return `<path d="M27 31 Q40 28 47 4 Q52 -4 60 2 Q54 4 56 12 L70 31Z" fill="#3a2a5c" stroke="#22163a" stroke-width="1.8" stroke-linejoin="round"/><path d="M33 27 L66 27 L68 31 L31 31Z" fill="#ff8a1f"/><ellipse cx="50" cy="32" rx="31" ry="5.5" fill="#3a2a5c" stroke="#22163a" stroke-width="1.8"/>`;
+      case 'santa': return `<path d="M27 30 Q46 -2 72 18 L80 24" fill="none" stroke="none"/><path d="M28 31 Q44 0 70 14 Q76 18 74 28 L72 31Z" fill="#e23b4a" stroke="#b8202f" stroke-width="1.6" stroke-linejoin="round"/><rect x="24" y="26" width="52" height="9" rx="4.5" fill="#fff" stroke="#e8e0e0" stroke-width="1.2"/><circle cx="75" cy="29" r="5" fill="#fff" stroke="#e8e0e0" stroke-width="1.2"/>`;
+      case 'gradcap': return `<path d="M30 22 Q50 30 70 22 L70 30 Q50 38 30 30Z" fill="#2b2b36"/><path d="M18 18 L50 6 L82 18 L50 30Z" fill="#2b2b36" stroke="#16161e" stroke-width="1.4" stroke-linejoin="round"/><path d="M50 18 L76 22 L76 34" stroke="#ffcf3f" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="76" cy="36" r="2.6" fill="#ffcf3f"/>`;
+      case 'straw': return `<ellipse cx="50" cy="30" rx="36" ry="8" fill="#f3d27a" stroke="#d4a944" stroke-width="1.6"/><path d="M33 29 Q34 12 50 12 Q66 12 67 29Z" fill="#f6dc8e" stroke="#d4a944" stroke-width="1.6"/><path d="M33.5 24 Q50 28 66.5 24 L67 28.5 Q50 32 33 28.5Z" fill="#e23b4a"/>`;
       case 'beret': return `<g transform="rotate(-12 46 26)"><ellipse cx="46" cy="26" rx="25" ry="9.5" fill="${col}" stroke="#2b2233" stroke-width="1.6" stroke-opacity=".5"/><path d="M46 16.5v-4" stroke="#2b2233" stroke-width="3" stroke-linecap="round"/></g>`;
       default: return '';
     }
@@ -5106,18 +5183,18 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     $('myCal').innerHTML = h;
     $('myBadges').innerHTML = BADGES.map(([id, ic, nm, how]) => `<div class="bdg${prog.badges[id] ? ' got' : ''}"><span>${prog.badges[id] ? ic : '🔒'}</span><b>${nm}</b><small>${how}</small></div>`).join('');
   }
-  myBar.addEventListener('click', () => { openSheet(mySheet); renderMy(); });
+  myBar.addEventListener('click', () => { openSheet(mySheet); renderMy(); renderFriends(); });
   mySheet.querySelectorAll('[data-close]').forEach(x => x.addEventListener('click', () => closeSheet(mySheet)));
   // アクセサリー選び（きせかえタブ）
   function renderAccGrid() {
     const lv = levelOf(prog.pts), k = (typeof look !== 'undefined' && look.chara !== 'none') ? look.chara : 'cat';
     $('accGrid').innerHTML = ACCS.map(([id, nm, need]) => {
-      const ok = lv >= need;
-      return `<button data-acc="${id}" class="${prog.acc === id ? 'on' : ''}${ok ? '' : ' locked'}"${ok ? '' : ' aria-disabled="true"'}><span class="chara">${id === 'none' ? '<span class="ico">🚫</span>' : charaSVG(k, id)}</span>${ok ? nm : `🔒 Lv.${need}`}</button>`;
+      const ok = accOk([id, nm, need]);
+      return `<button data-acc="${id}" class="${prog.acc === id ? 'on' : ''}${ok ? '' : ' locked'}"${ok ? '' : ' aria-disabled="true"'}><span class="chara">${id === 'none' ? '<span class="ico">🚫</span>' : charaSVG(k, id)}</span>${ok ? nm : (typeof need === 'number' ? `🔒 Lv.${need}` : '🔒 季節限定')}</button>`;
     }).join('');
     $('accGrid').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
       const a = ACCS.find(x => x[0] === b.dataset.acc);
-      if (levelOf(prog.pts) < a[2]) { toast(`レベル${a[2]}で使えるようになります`); return; }
+      if (!accOk(a)) { toast(typeof a[2] === 'number' ? `レベル${a[2]}で使えるようになります` : 'その季節に「季節限定」から手に入れられます'); return; }
       prog.acc = a[0]; progSave(); renderBuddy(); renderAccGrid(); vibrate(8);
     }));
   }
@@ -5206,6 +5283,138 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     else downloadBlob(storyBlob, 'hibiki_story.png');
   });
   $('storySave').addEventListener('click', () => { if (storyBlob) downloadBlob(storyBlob, `hibiki_${dayKey()}.png`); });
+
+  // ========== 🎃 季節限定 ==========
+  const SEASONS = [
+    { id: 'halloween', name: 'ハロウィン', icon: '🎃', from: 1001, to: 1107, bg: 'linear-gradient(135deg,#ff8a1f,#ff5ca8,#a45cff)', look: { skin: 'halloween', pat: 'bat', btn: 'star', wave: 'dot', card: 'glass', recc: 'theme' }, acc: 'witch', accName: 'まじょの帽子', greet: 'トリック・オア・トリート🎃' },
+    { id: 'xmas', name: 'クリスマス', icon: '🎄', from: 1201, to: 1231, bg: 'linear-gradient(135deg,#d93445,#ef6b5b,#2e9e5b)', look: { skin: 'xmas', pat: 'snow', btn: 'star', wave: 'candy', card: 'pop', recc: 'theme' }, acc: 'santa', accName: 'サンタぼうし', greet: 'メリークリスマス🎄' },
+    { id: 'spring', name: '卒業・春', icon: '🌸', from: 301, to: 430, bg: 'linear-gradient(135deg,#e8618c,#f7b3c8)', look: { skin: 'spring', pat: 'petal', btn: 'flower', wave: 'candy', card: 'solid', recc: 'theme' }, acc: 'gradcap', accName: '卒業ぼうし', greet: '春だね🌸 新しい曲やろ！' },
+    { id: 'summer', name: 'なつ', icon: '🌻', from: 701, to: 831, bg: 'linear-gradient(135deg,#00a6d6,#3ccbd0,#ffc23d)', look: { skin: 'summer', pat: 'wave', btn: 'circle', wave: 'line', card: 'pop', recc: 'theme' }, acc: 'straw', accName: 'むぎわらぼうし', greet: '夏コン近い？がんばろ🌻' }
+  ];
+  const mdNow = () => { const d = new Date(); return (d.getMonth() + 1) * 100 + d.getDate(); };
+  const inSeason = (se) => { const m = mdNow(); return m >= se.from && m <= se.to; };
+  const curSeason = () => SEASONS.find(inSeason) || null;
+  function renderSeasons() {
+    $('seasonGrid').innerHTML = SEASONS.map(se => {
+      const now = inSeason(se), got = !!prog.seasons[se.id];
+      const st = got ? (now ? '手に入れた！タップで着る' : 'タップで着る') : now ? 'タップで手に入れる' : `🔒 ${Math.floor(se.from / 100)}月に登場`;
+      return `<button data-season="${se.id}" class="${now ? 'now' : ''}${!now && !got ? ' locked' : ''}" style="background:${se.bg}"><span class="si">${se.icon}</span><b>${se.name}</b><small>${st}</small></button>`;
+    }).join('');
+    $('seasonGrid').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      const se = SEASONS.find(x => x.id === b.dataset.season);
+      if (!inSeason(se) && !prog.seasons[se.id]) { toast(`${Math.floor(se.from / 100)}月になったら手に入るよ`); return; }
+      if (!prog.seasons[se.id]) {
+        prog.seasons[se.id] = Date.now(); progSave();
+        notify(`🎁 季節限定「${se.accName}」も手に入れたよ`); unlock('season');
+      }
+      prog.acc = se.acc; progSave();
+      setLook(se.look); renderSeasons();
+      toast(`${se.icon} ${se.name}の着せ替えにしました`, 'ok');
+    }));
+  }
+  // 季節のお知らせ（きせかえタブの上）
+  (function seasonBanner() {
+    const se = curSeason(); if (!se) return;
+    const b = document.createElement('button');
+    b.className = 'season-banner'; b.style.background = se.bg; b.setAttribute('data-tab', 'rec');
+    b.innerHTML = `<span class="si">${se.icon}</span><span>今だけの「${se.name}」着せ替えが来てるよ！<small>きせかえタブで手に入れよう →</small></span>`;
+    b.addEventListener('click', () => { showTab('look'); requestAnimationFrame(() => $('seasonCard').scrollIntoView({ block: 'start', behavior: 'smooth' })); });
+    myBar.insertAdjacentElement('afterend', b);
+    b.classList.toggle('on', myBar.classList.contains('on'));
+    tabPanels.push(b);
+  })();
+
+  // ========== 👫 なかま（カードを送り合う） ==========
+  const nickIn = $('nickIn');
+  nickIn.value = loadPref('nick', '');
+  nickIn.addEventListener('input', () => { savePref('nick', nickIn.value.slice(0, 12)); renderFriends(); });
+  function weekStart(d = new Date()) { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
+  const weekKey = () => dayKey(weekStart());
+  function weekDays() { const s = weekStart(); let n = 0; for (let i = 0; i < 7; i++) { const d = new Date(s); d.setDate(s.getDate() + i); if (prog.days[dayKey(d)]) n++; } return n; }
+  const b64e = (o) => btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const b64d = (t) => { let b = t.replace(/-/g, '+').replace(/_/g, '/'); while (b.length % 4) b += '='; return JSON.parse(decodeURIComponent(escape(atob(b)))); };
+  function myCard() {
+    return { i: prog.id, n: (loadPref('nick', '') || 'なまえなし').slice(0, 12), c: look.chara, a: prog.acc, w: weekDays(), st: streak(), lv: levelOf(prog.pts), wk: weekKey(), d: dayKey() };
+  }
+  const myCode = () => 'HBF1.' + b64e(myCard());
+  function cleanCard(o) {
+    if (!o || typeof o !== 'object' || !/^[a-z0-9]{8,16}$/.test(o.i || '')) return null;
+    const num = (v, mx) => Math.max(0, Math.min(mx, Math.floor(+v || 0)));
+    const date = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v : '';
+    return { i: o.i, n: String(o.n || 'なかま').slice(0, 12), c: LOOK_OK.chara.includes(o.c) ? o.c : 'cat', a: ACCS.some(x => x[0] === o.a) ? o.a : 'none',
+      w: num(o.w, 7), st: num(o.st, 9999), lv: num(o.lv, 99), wk: date(o.wk), d: date(o.d) };
+  }
+  function friendsLoad() { try { const f = JSON.parse(loadPref('friends', '{}')); return f && typeof f === 'object' ? f : {}; } catch (_) { return {}; } }
+  let friends = friendsLoad();
+  const friendsSave = () => savePref('friends', JSON.stringify(friends));
+  function renderFriends() {
+    const wk = weekKey(), me = Object.assign(myCard(), { me: true });
+    const rows = [me].concat(Object.values(friends).map(cleanCard).filter(Boolean));
+    const score = (r) => r.wk === wk ? r.w : 0;
+    rows.sort((a, b) => score(b) - score(a) || b.st - a.st || b.lv - a.lv);
+    const medal = ['🥇', '🥈', '🥉'];
+    $('frList').innerHTML = rows.map((r, i) => {
+      const old = !r.me && r.wk !== wk;
+      return `<div class="fr-row${r.me ? ' me' : ''}"><span class="rk">${medal[i] || i + 1}</span><span class="fc">${charaSVG(r.c === 'none' ? 'cat' : r.c, r.a)}</span>` +
+        `<span class="fm"><b>${escHtml(r.n)}${r.me ? '（わたし）' : ''}</b><small>🔥${r.st}日連続 ・ Lv.${r.lv}${old ? ` ・ ${escHtml(r.d.slice(5).replace('-', '/'))}の記録` : ''}</small></span>` +
+        `<span class="fw">${old ? '–' : r.w}<small>日/週</small></span>${r.me ? '' : `<button class="fx" data-del="${escHtml(r.i)}" aria-label="削除">✕</button>`}</div>`;
+    }).join('');
+    $('frList').querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
+      const f = friends[b.dataset.del]; if (!f || !confirm(`「${cleanCard(f)?.n || 'なかま'}」をはずしますか？`)) return;
+      delete friends[b.dataset.del]; friendsSave(); renderFriends();
+    }));
+  }
+  $('cardCopy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(myCode()); toast('カードをコピーしました', 'ok'); } catch (_) { toast('コピーできませんでした', 'err'); }
+  });
+  $('cardSend').addEventListener('click', async () => {
+    const text = `${loadPref('nick', '') || 'わたし'}の練習カード🎵（今週${weekDays()}日・🔥${streak()}日連続）\nHibikiの「わたしの記録」に貼ってね：\n${myCode()}`;
+    if (navigator.share) { try { await navigator.share({ text }); } catch (_) {} }
+    else { try { await navigator.clipboard.writeText(text); toast('カードをコピーしました（LINEなどに貼ってね）', 'ok'); } catch (_) {} }
+  });
+  $('friendAdd').addEventListener('click', () => {
+    const m = String($('friendIn').value || '').match(/HBF1\.([A-Za-z0-9_-]+)/);
+    let c = null; try { c = m && cleanCard(b64d(m[1])); } catch (_) {}
+    if (!c) { toast('カードが読めませんでした', 'err'); return; }
+    if (c.i === prog.id) { toast('それは自分のカードだよ', 'err'); return; }
+    const isNew = !friends[c.i]; friends[c.i] = c; friendsSave(); $('friendIn').value = '';
+    renderFriends(); unlock('friend'); toast(`${c.n} を${isNew ? 'なかまに追加' : '更新'}しました`, 'ok');
+  });
+
+  // ========== 💾 記録・着せ替えもバックアップに ==========
+  async function backupData(items) {
+    let growth = []; try { growth = JSON.parse(localStorage.getItem('hibiki.growth') || '[]'); } catch (_) {}
+    const stickers = {}; (items || []).forEach(it => { if (it.sticker) stickers[it.name] = it.sticker; });
+    const data = { app: 'hibiki', v: 1, at: Date.now(), prog, look, growth, friends, nick: loadPref('nick', ''), stickers };
+    return new Blob([JSON.stringify(data)], { type: 'application/json' });
+  }
+  async function restoreData(blob) {
+    let d; try { d = JSON.parse(await blob.text()); } catch (_) { return {}; }
+    if (!d || d.app !== 'hibiki') return {};
+    const ip = d.prog || {}, isDay = (k) => /^\d{4}-\d{2}-\d{2}$/.test(k);
+    if (ip.days && typeof ip.days === 'object') for (const k of Object.keys(ip.days)) if (isDay(k)) prog.days[k] = Math.max(prog.days[k] || 0, Math.min(999, +ip.days[k] || 1));
+    for (const key of ['badges', 'seasons']) if (ip[key] && typeof ip[key] === 'object') for (const k of Object.keys(ip[key])) {
+      if ((key === 'badges' && BADGES.some(b => b[0] === k)) || (key === 'seasons' && SEASONS.some(x => x.id === k))) prog[key][k] = prog[key][k] || +ip[key][k] || Date.now();
+    }
+    for (const k of ['pts', 'recs', 'saves', 'stories']) prog[k] = Math.max(prog[k], Math.min(1e7, Math.floor(+ip[k] || 0)));
+    if (/^[a-z0-9]{8,16}$/.test(ip.id || '')) prog.id = ip.id;
+    if (prog.acc === 'none' && ACCS.some(a => a[0] === ip.acc)) prog.acc = ip.acc;
+    progSave();
+    if (Array.isArray(d.growth)) {
+      let g = []; try { g = JSON.parse(localStorage.getItem('hibiki.growth') || '[]'); } catch (_) {}
+      const seen = new Set(g.map(x => x.t + x.k));
+      d.growth.forEach(x => { if (x && typeof x.t === 'number' && ['lt', 'rep'].includes(x.k) && !seen.has(x.t + x.k)) g.push({ t: x.t, k: x.k, v: Math.max(0, Math.min(100, +x.v || 0)) }); });
+      g.sort((a, b) => a.t - b.t); try { localStorage.setItem('hibiki.growth', JSON.stringify(g.slice(-500))); } catch (_) {}
+    }
+    if (d.friends && typeof d.friends === 'object') { for (const f of Object.values(d.friends)) { const c = cleanCard(f); if (c && c.i !== prog.id && (!friends[c.i] || (friends[c.i].d || '') < c.d)) friends[c.i] = c; } friendsSave(); }
+    if (!loadPref('nick', '') && typeof d.nick === 'string') { savePref('nick', d.nick.slice(0, 12)); nickIn.value = d.nick.slice(0, 12); }
+    if (d.look && confirm('着せ替えも、バックアップしたときの状態に戻しますか？')) { look = sanitizeLook(d.look); applyLook(); }
+    renderMy(); renderBuddy(); renderSeasons(); try { drawGrowth(); } catch (_) {}
+    toast('記録・ポイント・バッジを読み込みました', 'ok');
+    const st = {}; if (d.stickers && typeof d.stickers === 'object') for (const [k, v] of Object.entries(d.stickers)) if (typeof v === 'string' && v.length <= 8) st[k] = v;
+    return st;
+  }
+  renderSeasons(); renderFriends();
 
   const bigText = $('bigText');
   bigText.checked = loadPref('big', '0') === '1';
