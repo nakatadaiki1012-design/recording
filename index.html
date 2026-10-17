@@ -917,6 +917,57 @@
   .opt-grid button .chara svg { width: 100%; height: 100%; display: block; }
   .opt-grid button .chara .m-open { opacity: 0; }
   @media (prefers-reduced-motion: reduce) { .buddy svg, .buddy .eyes { animation: none !important; } }
+
+  /* ---- 🔥 きょうの記録バー ---- */
+  .my-bar { display: none; width: 100%; font: inherit; color: var(--text); cursor: pointer; text-align: left;
+    align-items: center; gap: 10px; padding: 10px 14px; border-radius: 18px; border: 1px solid var(--border);
+    background: var(--panel); box-shadow: var(--shadow-card); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+  [data-tab].my-bar.on { display: flex; }
+  .my-bar .mb-fire { font-size: .9rem; font-weight: 800; white-space: nowrap; }
+  .my-bar .mb-fire b { font-size: 1.25rem; color: var(--accent); }
+  .my-bar.hot .mb-fire b { color: #ff6a3d; }
+  .my-bar .mb-week { flex: 1; display: flex; justify-content: center; gap: 5px; }
+  .my-bar .mb-week i { width: 12px; height: 12px; border-radius: 50%; background: var(--panel-2); border: 1.5px solid var(--border); }
+  .my-bar .mb-week i.on { background: var(--grad); border-color: transparent; }
+  .my-bar .mb-week i.today { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+  .my-bar .mb-lv { font-size: .76rem; font-weight: 800; color: var(--muted); white-space: nowrap; text-align: right; line-height: 1.25; }
+  .my-bar .mb-lv b { color: var(--text); }
+  /* 記録シート */
+  .my-top { display: flex; align-items: center; gap: 14px; margin-top: 10px; }
+  .my-top .my-chara { width: 84px; height: 84px; flex-shrink: 0; }
+  .my-top .my-chara svg { width: 100%; height: 100%; }
+  .my-top .my-chara .m-open { opacity: 0; }
+  .my-lv { font-size: 1.6rem; font-weight: 900; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .my-bar-track { height: 12px; border-radius: 6px; background: var(--panel-2); border: 1px solid var(--border); overflow: hidden; margin-top: 6px; }
+  .my-bar-track i { display: block; height: 100%; background: var(--grad); border-radius: 6px; transition: width .4s; }
+  .my-next { font-size: .78rem; color: var(--muted); margin-top: 4px; }
+  .my-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 14px; }
+  .my-stats div { background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; padding: 8px 4px; text-align: center; font-size: .7rem; color: var(--muted); }
+  .my-stats b { display: block; font-size: 1.15rem; color: var(--text); }
+  .my-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 8px; text-align: center; }
+  .my-cal .w { font-size: .7rem; color: var(--muted); font-weight: 700; }
+  .my-cal .d { position: relative; aspect-ratio: 1; border-radius: 10px; background: var(--panel-2); display: grid; place-items: center; }
+  .my-cal .d small { position: absolute; top: 2px; left: 5px; font-size: .58rem; color: var(--muted); }
+  .my-cal .d.on { background: var(--grad); }
+  .my-cal .d.on small { color: #fff; }
+  .my-cal .d em { font-style: normal; color: #fff; font-weight: 900; font-size: 1rem; }
+  .my-cal .d.today { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .my-badges { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+  .bdg { background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; padding: 8px 2px; text-align: center; opacity: .55; }
+  .bdg.got { opacity: 1; border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: color-mix(in srgb, var(--accent) 8%, var(--panel)); }
+  .bdg span { font-size: 1.5rem; display: block; }
+  .bdg b { display: block; font-size: .62rem; margin-top: 2px; line-height: 1.25; }
+  .bdg small { display: block; font-size: .54rem; color: var(--muted); line-height: 1.25; margin-top: 2px; }
+  .my-how { font-size: .74rem; color: var(--muted); line-height: 1.7; margin-top: 10px; }
+  /* スタンプ（保存時） */
+  .stickers { display: flex; gap: 6px; overflow-x: auto; margin-top: 10px; padding: 2px 2px 6px; scrollbar-width: none; }
+  .stickers::-webkit-scrollbar { display: none; }
+  .stickers button { flex-shrink: 0; width: 44px; height: 44px; font-size: 1.35rem; border-radius: 14px; cursor: pointer; background: var(--btn); border: 1.5px solid var(--btn-b); }
+  .stickers button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--panel)); transform: scale(1.06); }
+  .lib-item .stk { font-size: 1.15rem; margin-right: 4px; }
+  /* ストーリー画像 */
+  .story-img { display: block; width: 62%; max-width: 280px; margin: 12px auto 0; border-radius: 18px; box-shadow: 0 12px 30px rgba(30,20,80,.25); }
+  .opt-grid button.locked { opacity: .5; }
 </style>
 </head>
 <body>
@@ -934,6 +985,11 @@
     </button>
   </div>
 
+  <button id="myBar" class="my-bar" data-tab="rec" aria-label="きょうの記録">
+    <span class="mb-fire">🔥 <b id="mbStreak">0</b>日連続</span>
+    <span class="mb-week" id="mbWeek" aria-hidden="true"></span>
+    <span class="mb-lv">Lv.<b id="mbLv">1</b><br>♪<b id="mbPts">0</b></span>
+  </button>
   <div id="restoreBar" class="restore hidden" data-tab="rec">
     <span id="restoreText">前回の録音があります</span>
     <div class="restore-btns">
@@ -1319,10 +1375,12 @@
       <button class="tag" data-tag="[個人]">個人</button>
       <button class="tag" data-tag="[本番]">本番</button>
     </div>
+    <div class="stickers" id="stickerRow" aria-label="スタンプ"><button data-stk="🎺">🎺</button><button data-stk="🎷">🎷</button><button data-stk="🎵">🎵</button><button data-stk="🥁">🥁</button><button data-stk="🎤">🎤</button><button data-stk="🎹">🎹</button><button data-stk="🎻">🎻</button><button data-stk="🎸">🎸</button><button data-stk="💖">💖</button><button data-stk="✨">✨</button><button data-stk="🔥">🔥</button><button data-stk="🌸">🌸</button><button data-stk="⭐">⭐</button><button data-stk="😭">😭</button><button data-stk="🥳">🥳</button><button data-stk="🍀">🍀</button></div>
     <div id="saveGrid" class="save-grid">
       <button id="saveBtn" class="btn primary big">💾 保存する</button>
       <button id="shareBtn" class="btn big hidden">📤 共有</button>
     </div>
+    <button id="storyBtn" class="btn" style="width:100%;margin-top:10px">📸 ストーリー用の画像を作る</button>
     <details class="sub" id="saveOpts">
       <summary>⚙️ 保存の設定（形式・日付の書き方）</summary>
       <div class="opt-label">ファイル形式</div>
@@ -1447,6 +1505,8 @@
       <button data-chara="frog"><span class="chara"></span>かえる</button>
       <button data-chara="hamster"><span class="chara"></span>ハムスター</button>
     </div>
+    <div class="look-label">アクセサリー（レベルが上がると増えるよ）</div>
+    <div class="opt-grid" id="accGrid"></div>
   </section>
 
   <section class="card" data-tab="look">
@@ -1509,6 +1569,35 @@
     <div class="opt-label">そのほか</div>
     <button id="guideBtn" class="btn sheet-btn">❓ 使い方をもう一度見る</button>
     <p class="opt-note">録音データはこの端末の中だけに保存され、外部には送られません。</p>
+  </div>
+</div>
+
+<!-- 記録シート -->
+<div id="mySheet" class="sheet hidden" role="dialog" aria-modal="true" aria-label="わたしの記録">
+  <div class="sheet-bg" data-close></div>
+  <div class="sheet-body">
+    <div class="sheet-head"><b>わたしの記録</b><button class="icon-btn" data-close aria-label="閉じる">✕</button></div>
+    <div class="my-top">
+      <div class="my-chara" id="myChara"></div>
+      <div style="flex:1;min-width:0"><div class="my-lv" id="myLv">Lv.1</div><div class="my-bar-track"><i id="myLvBar"></i></div><div class="my-next" id="myLvNext"></div></div>
+    </div>
+    <div class="my-stats" id="myStats"></div>
+    <div class="opt-label" id="myMonth">今月</div>
+    <div class="my-cal" id="myCal"></div>
+    <div class="opt-label">バッジ</div>
+    <div class="my-badges" id="myBadges"></div>
+    <p class="my-how">♪のため方：録音 +10（その日はじめての録音は +20 おまけ）・保存 +5・ストーリー画像 +5・ロングトーン採点で点数の1/10。レベルが上がると、キャラのアクセサリーが増えます。</p>
+  </div>
+</div>
+
+<!-- ストーリー画像 -->
+<div id="storySheet" class="sheet hidden" role="dialog" aria-modal="true" aria-label="ストーリー画像">
+  <div class="sheet-bg" data-close></div>
+  <div class="sheet-body">
+    <div class="sheet-head"><b>📸 ストーリー画像</b><button class="icon-btn" data-close aria-label="閉じる">✕</button></div>
+    <img id="storyImg" class="story-img" alt="作った画像">
+    <div class="look-row"><button id="storyShare" class="btn primary">📤 シェア</button><button id="storySave" class="btn">⬇️ 画像を保存</button></div>
+    <p class="opt-note">インスタのストーリーなどにそのまま使える縦長の画像です。音声は入っていません。</p>
   </div>
 </div>
 
@@ -2269,7 +2358,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       nameInput.value = `${pcmPartBase}_part${pcmParts + 1}`; nameEdited = true;
       toast(`前の ${pcmParts} 区間は保存一覧にあります。ここには最後の区間が出ています`, 'ok');
     }
-    finalizeRecording(buf);
+    finalizeRecording(buf).then(() => { if (audioBuffer) onRecorded(); });
   }
 
   async function onRecordingStopped() {
@@ -2288,6 +2377,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       return;
     }
     await finalizeRecording(decoded);
+    if (audioBuffer) onRecorded();
   }
 
   // 録音データを受け取って編集できる状態にする（PCM/圧縮 共通）
@@ -2832,9 +2922,10 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     const blob = encodeAudio(audioBuffer, selStart, selEnd);
     const name = await uniqueName(baseName()); // 同じ名前がある時は _2, _3 … を付ける
     downloadBlob(blob, name);
-    await libAdd(name, blob);   // アプリ内の一覧にも残す
+    await libAdd(name, blob, curSticker ? { sticker: curSticker } : null);   // アプリ内の一覧にも残す
     renderLibrary();
     unsaved = false;
+    onSaved(!!curSticker);
     vibrate(30);
     toast(`「${name}」を保存しました`, 'ok');
   }
@@ -2855,7 +2946,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     const name = await uniqueName(baseName());
     try {
       await navigator.share({ files: [new File([blob], name, { type: blob.type || 'audio/mpeg' })], title: name });
-      await libAdd(name, blob); renderLibrary(); unsaved = false;
+      await libAdd(name, blob, curSticker ? { sticker: curSticker } : null); renderLibrary(); unsaved = false; onSaved(!!curSticker);
     } catch (e) {
       if (e && e.name !== 'AbortError') toast('共有できませんでした。「保存」を使ってください', 'err');
     }
@@ -3230,12 +3321,12 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       });
     } catch (_) { return []; }
   }
-  async function libAdd(name, blob) {
+  async function libAdd(name, blob, meta) {
     try {
       const db = await openDB();
       await new Promise((res, rej) => {
         const tx = db.transaction(LIB, 'readwrite');
-        tx.objectStore(LIB).add({ name, blob, at: Date.now() });
+        tx.objectStore(LIB).add(Object.assign({ name, blob, at: Date.now() }, meta || {}));
         tx.oncomplete = res; tx.onerror = () => rej(tx.error);
       });
     } catch (_) {}
@@ -3263,7 +3354,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       row.className = 'lib-item';
       const d = new Date(it.at);
       const size = (it.blob.size / 1024 / 1024).toFixed(1);
-      row.innerHTML = `<div class="meta"><div class="nm">${escHtml(it.name)}</div>` +
+      row.innerHTML = `<div class="meta"><div class="nm">${it.sticker ? `<span class="stk">${escHtml(it.sticker)}</span>` : ''}${escHtml(it.name)}</div>` +
         `<div class="sub">${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())} ・ ${size}MB</div></div>`;
       const play = document.createElement('button'); play.textContent = '▶'; play.title = '再生';
       const shareOrDl = document.createElement('button');
@@ -3794,6 +3885,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     const stars = '★'.repeat(Math.round(score / 20)) + '☆'.repeat(5 - Math.round(score / 20));
     ltNote.innerHTML = `${stars}<br>音程のブレ ±${pitchStd.toFixed(0)}セント ／ 音量のムラ ${(volCv * 100).toFixed(0)}%`;
     addGrowth('lt', score);
+    award(Math.round(score / 10)); if (score >= 80) unlock('lt80'); if (score >= 95) unlock('lt95');
     vibrate(score >= 80 ? [20, 60, 20] : 20);
   }
 
@@ -4759,7 +4851,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     applyTheme();
     requestAnimationFrame(drawLookPreviews);
   }
-  function setLook(part) { look = sanitizeLook(Object.assign({}, look, part)); applyLook(); vibrate(8); }
+  function setLook(part) { look = sanitizeLook(Object.assign({}, look, part)); applyLook(); vibrate(8); try { unlock('kisekae'); } catch (_) {} }
   const bindOpt = (sel, key) => document.querySelectorAll(sel).forEach(b => b.addEventListener('click', () => setLook({ [key]: b.dataset[key] })));
   bindOpt('#skinGrid button[data-skin]:not([data-skin="custom"])', 'skin'); bindOpt('#btnGrid button', 'btn'); bindOpt('#reccSeg button', 'recc');
   bindOpt('#waveGrid button', 'wave'); bindOpt('#patGrid button', 'pat'); bindOpt('#cardGrid button', 'card');
@@ -4846,7 +4938,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     frog: () => `<circle cx="31" cy="36" r="14" fill="#7ccf6a" stroke="#58a94a" stroke-width="2"/><circle cx="69" cy="36" r="14" fill="#7ccf6a" stroke="#58a94a" stroke-width="2"/><ellipse cx="50" cy="62" rx="38" ry="26" fill="#7ccf6a" stroke="#58a94a" stroke-width="2"/><circle cx="31" cy="36" r="8.5" fill="#fff"/><circle cx="69" cy="36" r="8.5" fill="#fff"/>` + face([31, 69], 37, { my: 66, cy: 60, er: 4.6 }),
     hamster: () => `<circle cx="27" cy="32" r="9" fill="#f0b77a"/><circle cx="73" cy="32" r="9" fill="#f0b77a"/><circle cx="27" cy="32" r="4.5" fill="#ffc9b0"/><circle cx="73" cy="32" r="4.5" fill="#ffc9b0"/><ellipse cx="50" cy="60" rx="36" ry="31" fill="#f0b77a"/><path d="M18 64c2 16 16 25 32 25s30-9 32-25c-6 7-14 8-20 6-4 6-20 6-24 0-6 2-14 1-20-6z" fill="#fff7ee"/><ellipse cx="50" cy="63" rx="3.6" ry="2.8" fill="#d77a6a"/>` + face([37, 63], 55, { my: 69, cy: 63 }),
   };
-  function charaSVG(k) { return CHARA[k] ? `<svg viewBox="0 0 100 100" aria-hidden="true">${CHARA[k]()}</svg>` : ''; }
+  function charaSVG(k, a, col) { if (!CHARA[k]) return ''; const ac = a === undefined ? curAcc() : a; return `<svg viewBox="0 0 100 100" aria-hidden="true">${CHARA[k]()}${accSVG(ac, k, col || cssVar('--accent'))}</svg>`; }
   const buddyEl = $('buddy'), buddyBubble = $('buddyBubble'), lpBuddy = $('lpBuddy');
   const BUDDY_LINES = {
     idle: ['いっしょに録ろう！', '今日も練習えらい！', 'ボタンを押してね', 'いい音きかせて〜', 'ロングトーンする？'],
@@ -4862,6 +4954,14 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     clearTimeout(bubbleTimer); bubbleTimer = setTimeout(() => buddyBubble.classList.remove('show'), ms);
   }
   const pickLine = (k) => BUDDY_LINES[k][Math.floor(Math.random() * BUDDY_LINES[k].length)];
+  function greetLine() {
+    const h = new Date().getHours();
+    let st = 0; try { st = streak(); } catch (_) {}
+    if (st >= 2) return `${st}日連続中！今日もいこ〜`;
+    if (h >= 5 && h < 10) return 'おはよう！朝練えらい☀️';
+    if (h >= 22 || h < 4) return '夜おそくまでおつかれさま🌙';
+    return pickLine('idle');
+  }
   function buddyCheer() {
     if (!buddyEl || buddyEl.classList.contains('hidden')) return;
     buddyEl.classList.remove('happy'); void buddyEl.offsetWidth; buddyEl.classList.add('happy');
@@ -4873,6 +4973,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     [buddyEl, lpBuddy].forEach(el => { if (!el) return; el.innerHTML = svg; el.classList.toggle('hidden', !svg); });
     if (!svg) buddyBubble.classList.remove('show');
     document.querySelectorAll('#charaGrid button[data-chara]').forEach(b => { const c = b.querySelector('.chara'); if (c) c.innerHTML = charaSVG(b.dataset.chara); });
+    if (typeof renderAccGrid === 'function') try { renderAccGrid(); renderMy(); } catch (_) {}
   }
   buddyEl.addEventListener('click', () => {
     buddyEl.classList.remove('happy'); void buddyEl.offsetWidth; buddyEl.classList.add('happy');
@@ -4886,7 +4987,225 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     buddyEl.classList.toggle('rec', on);
     buddySay(pickLine(on ? 'rec' : 'stop'));
   }).observe(recBtn, { attributes: true, attributeFilter: ['class'] });
-  setTimeout(() => buddySay(pickLine('idle'), 3200), 900);
+  setTimeout(() => buddySay(greetLine(), 3200), 900);
+
+  // ========== 🔥 続けたくなるしくみ（連続記録・ポイント・バッジ・アクセサリー） ==========
+  const dayKey = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const PROG_DEF = { days: {}, pts: 0, badges: {}, recs: 0, saves: 0, stories: 0, acc: 'none' };
+  function progLoad() {
+    let o = {}; try { o = JSON.parse(loadPref('prog', '{}')) || {}; } catch (_) {}
+    const p = Object.assign({}, PROG_DEF, o);
+    if (typeof p.days !== 'object' || !p.days) p.days = {};
+    if (typeof p.badges !== 'object' || !p.badges) p.badges = {};
+    ['pts', 'recs', 'saves', 'stories'].forEach(k => { p[k] = Math.max(0, +p[k] || 0); });
+    return p;
+  }
+  let prog = progLoad();
+  const progSave = () => savePref('prog', JSON.stringify(prog));
+  const LV_PTS = [0, 50, 120, 220, 350, 520, 750, 1000, 1300, 1700, 2200, 2800];
+  const levelOf = (p) => { let l = 1; for (let i = 0; i < LV_PTS.length; i++) if (p >= LV_PTS[i]) l = i + 1; return l; };
+  function streak() {
+    let n = 0; const d = new Date();
+    if (!prog.days[dayKey(d)]) d.setDate(d.getDate() - 1);
+    while (prog.days[dayKey(d)]) { n++; d.setDate(d.getDate() - 1); }
+    return n;
+  }
+  const BADGES = [
+    ['first', '🎙', 'はじめの一歩', '1回録音する'], ['streak3', '🔥', '3日連続', '3日続けて録音'],
+    ['streak7', '🌟', '1週間連続', '7日続けて録音'], ['streak30', '👑', '30日連続', '30日続けて録音'],
+    ['rec10', '🎵', '10回録音', '録音を10回'], ['rec50', '🎼', '50回録音', '録音を50回'],
+    ['save10', '💾', 'コレクター', '10回保存'], ['lt80', '🎯', 'ロングトーン名人', '採点で80点以上'],
+    ['lt95', '💯', 'ほぼ完璧', '採点で95点以上'], ['story', '📸', 'ストーリーデビュー', 'ストーリー画像を作る'],
+    ['night', '🌙', '夜ふかし練習', '22時〜4時に録音'], ['morning', '🌅', '朝練', '5時〜8時に録音'],
+    ['kisekae', '🎀', 'おしゃれさん', '着せ替えを変える'], ['lv5', '⭐', 'レベル5', 'レベル5になる'],
+    ['lv10', '🏆', 'レベル10', 'レベル10になる'], ['sticker', '💖', 'デコ上手', 'スタンプ付きで保存']
+  ];
+  const ACCS = [['none', 'なし', 1], ['ribbon', 'リボン', 2], ['headphones', 'ヘッドホン', 3], ['flower', 'お花', 4],
+    ['glasses', 'サングラス', 5], ['crown', '王冠', 6], ['star', '星のピン', 7], ['beret', 'ベレー帽', 8]];
+  // お知らせは重ならないよう順番に出す
+  const noteQ = []; let noteBusy = false;
+  function notify(msg) {
+    noteQ.push(msg); if (noteBusy) return;
+    const next = () => { const m = noteQ.shift(); if (!m) { noteBusy = false; return; } noteBusy = true; toast(m, 'ok'); setTimeout(next, 2400); };
+    setTimeout(next, 1400);
+  }
+  function award(pts) {
+    const before = levelOf(prog.pts); prog.pts += pts; progSave();
+    const after = levelOf(prog.pts);
+    if (after > before) {
+      notify(`🎉 レベル${after}になった！`);
+      const a = ACCS.find(x => x[2] === after); if (a) notify(`🎁 アクセサリー「${a[1]}」が使えるよ（きせかえ）`);
+      if (after >= 5) unlock('lv5'); if (after >= 10) unlock('lv10');
+    }
+    renderMy();
+  }
+  function unlock(id) {
+    if (prog.badges[id]) return;
+    prog.badges[id] = Date.now(); progSave();
+    const b = BADGES.find(x => x[0] === id); if (b) notify(`🏅 バッジ獲得：${b[1]} ${b[2]}`);
+    renderMy();
+  }
+  function onRecorded() {
+    const k = dayKey(), first = !prog.days[k];
+    prog.days[k] = (prog.days[k] || 0) + 1; prog.recs++; progSave();
+    award(10 + (first ? 20 : 0));
+    unlock('first');
+    const s = streak();
+    if (s >= 3) unlock('streak3'); if (s >= 7) unlock('streak7'); if (s >= 30) unlock('streak30');
+    if (prog.recs >= 10) unlock('rec10'); if (prog.recs >= 50) unlock('rec50');
+    const h = new Date().getHours(); if (h >= 22 || h < 4) unlock('night'); if (h >= 5 && h < 8) unlock('morning');
+    if (first && s >= 2) setTimeout(() => buddySay(`${s}日連続だね！すごい！`, 3200), 2600);
+    else if (first) setTimeout(() => buddySay('今日のスタンプゲット！', 3000), 2600);
+  }
+  function onSaved(withSticker) {
+    prog.saves++; progSave(); award(5);
+    if (prog.saves >= 10) unlock('save10'); if (withSticker) unlock('sticker');
+  }
+
+  // アクセサリー（キャラの上に重ねる）
+  const EYE = { cat: [39, 61, 55], rabbit: [39, 61, 59], bear: [37, 63, 55], penguin: [39, 61, 56], dog: [37, 63, 54], frog: [31, 69, 37], hamster: [37, 63, 55] };
+  function accSVG(a, k, col) {
+    const [l, r, ey] = EYE[k] || [39, 61, 55];
+    switch (a) {
+      case 'ribbon': return `<g transform="translate(70 30) rotate(18)"><path d="M0 0 L-13 -8 L-13 8Z" fill="#ff5c8a" stroke="#d93a6a" stroke-width="1.5" stroke-linejoin="round"/><path d="M0 0 L13 -8 L13 8Z" fill="#ff5c8a" stroke="#d93a6a" stroke-width="1.5" stroke-linejoin="round"/><circle r="3.6" fill="#ff8fb1" stroke="#d93a6a" stroke-width="1.5"/></g>`;
+      case 'headphones': return `<path d="M16 ${ey + 4} A34 34 0 0 1 84 ${ey + 4}" stroke="#2b2233" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="9" y="${ey - 4}" width="13" height="20" rx="6" fill="${col}" stroke="#2b2233" stroke-width="2"/><rect x="78" y="${ey - 4}" width="13" height="20" rx="6" fill="${col}" stroke="#2b2233" stroke-width="2"/>`;
+      case 'flower': return `<g transform="translate(29 31)"><g fill="#ffb3cf" stroke="#ff7fae" stroke-width="1">${[0, 72, 144, 216, 288].map(d => `<circle cx="${(6 * Math.cos(d * Math.PI / 180)).toFixed(1)}" cy="${(6 * Math.sin(d * Math.PI / 180)).toFixed(1)}" r="5"/>`).join('')}</g><circle r="3.6" fill="#ffd84a"/></g>`;
+      case 'glasses': return `<g fill="#1f1b2a" fill-opacity=".9" stroke="#1f1b2a" stroke-width="1.6"><rect x="${l - 9}" y="${ey - 6}" width="18" height="12" rx="5"/><rect x="${r - 9}" y="${ey - 6}" width="18" height="12" rx="5"/></g><path d="M${l + 9} ${ey - 2} h${r - l - 18}" stroke="#1f1b2a" stroke-width="2"/><path d="M${l - 5} ${ey - 3} l4 -1.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".8"/><path d="M${r - 5} ${ey - 3} l4 -1.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".8"/>`;
+      case 'crown': return `<path d="M35 ${k === 'frog' ? 26 : 30} L37 14 L44 22 L50 9 L56 22 L63 14 L65 ${k === 'frog' ? 26 : 30}Z" fill="#ffcf3f" stroke="#e0a400" stroke-width="2" stroke-linejoin="round"/><circle cx="50" cy="${k === 'frog' ? 21 : 24}" r="2.6" fill="#ff5c8a"/>`;
+      case 'star': return `<path d="M70 21l2.6 6.4 6.9.5-5.3 4.4 1.7 6.7-5.9-3.7-5.9 3.7 1.7-6.7-5.3-4.4 6.9-.5z" fill="#ffd84a" stroke="#e6a800" stroke-width="1.5" stroke-linejoin="round"/>`;
+      case 'beret': return `<g transform="rotate(-12 46 26)"><ellipse cx="46" cy="26" rx="25" ry="9.5" fill="${col}" stroke="#2b2233" stroke-width="1.6" stroke-opacity=".5"/><path d="M46 16.5v-4" stroke="#2b2233" stroke-width="3" stroke-linecap="round"/></g>`;
+      default: return '';
+    }
+  }
+  function curAcc() { try { return prog.acc || 'none'; } catch (_) { return 'none'; } }
+
+  // 録音画面の「きょうの記録」バーと、記録シート
+  const myBar = $('myBar'), mySheet = $('mySheet');
+  function renderMy() {
+    const s = streak(), lv = levelOf(prog.pts);
+    $('mbStreak').textContent = s; $('mbLv').textContent = lv; $('mbPts').textContent = prog.pts;
+    myBar.classList.toggle('hot', s >= 3);
+    const wk = $('mbWeek'); wk.innerHTML = '';
+    for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); const e = document.createElement('i'); if (prog.days[dayKey(d)]) e.className = 'on'; if (i === 0) e.classList.add('today'); wk.appendChild(e); }
+    if (mySheet.classList.contains('hidden')) return;
+    const next = LV_PTS[lv] || null, base = LV_PTS[lv - 1];
+    $('myLv').textContent = `Lv.${lv}`;
+    $('myLvBar').style.width = next ? `${Math.round((prog.pts - base) / (next - base) * 100)}%` : '100%';
+    $('myLvNext').textContent = next ? `次のレベルまで あと ${next - prog.pts}♪` : '最高レベル！';
+    $('myStats').innerHTML = `<div><b>${s}</b>日連続</div><div><b>${Object.keys(prog.days).length}</b>日練習</div><div><b>${prog.recs}</b>回録音</div><div><b>${prog.pts}</b>♪</div>`;
+    $('myChara').innerHTML = charaSVG((typeof look !== 'undefined' && look.chara !== 'none') ? look.chara : 'cat');
+    // カレンダー（今月）
+    const now = new Date(), y = now.getFullYear(), m = now.getMonth(), first = new Date(y, m, 1).getDay(), days = new Date(y, m + 1, 0).getDate();
+    $('myMonth').textContent = `${y}年${m + 1}月`;
+    let h = '日月火水木金土'.split('').map(w => `<span class="w">${w}</span>`).join('');
+    for (let i = 0; i < first; i++) h += '<span></span>';
+    for (let d = 1; d <= days; d++) {
+      const k = dayKey(new Date(y, m, d)), c = prog.days[k];
+      h += `<span class="d${c ? ' on' : ''}${d === now.getDate() ? ' today' : ''}">${c ? '<em>♪</em>' : ''}<small>${d}</small></span>`;
+    }
+    $('myCal').innerHTML = h;
+    $('myBadges').innerHTML = BADGES.map(([id, ic, nm, how]) => `<div class="bdg${prog.badges[id] ? ' got' : ''}"><span>${prog.badges[id] ? ic : '🔒'}</span><b>${nm}</b><small>${how}</small></div>`).join('');
+  }
+  myBar.addEventListener('click', () => { openSheet(mySheet); renderMy(); });
+  mySheet.querySelectorAll('[data-close]').forEach(x => x.addEventListener('click', () => closeSheet(mySheet)));
+  // アクセサリー選び（きせかえタブ）
+  function renderAccGrid() {
+    const lv = levelOf(prog.pts), k = (typeof look !== 'undefined' && look.chara !== 'none') ? look.chara : 'cat';
+    $('accGrid').innerHTML = ACCS.map(([id, nm, need]) => {
+      const ok = lv >= need;
+      return `<button data-acc="${id}" class="${prog.acc === id ? 'on' : ''}${ok ? '' : ' locked'}"${ok ? '' : ' aria-disabled="true"'}><span class="chara">${id === 'none' ? '<span class="ico">🚫</span>' : charaSVG(k, id)}</span>${ok ? nm : `🔒 Lv.${need}`}</button>`;
+    }).join('');
+    $('accGrid').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      const a = ACCS.find(x => x[0] === b.dataset.acc);
+      if (levelOf(prog.pts) < a[2]) { toast(`レベル${a[2]}で使えるようになります`); return; }
+      prog.acc = a[0]; progSave(); renderBuddy(); renderAccGrid(); vibrate(8);
+    }));
+  }
+
+  // 📸 ストーリー画像（縦長 1080×1920）
+  let curSticker = '';
+  document.querySelectorAll('#stickerRow button').forEach(b => b.addEventListener('click', () => {
+    curSticker = curSticker === b.dataset.stk ? '' : b.dataset.stk;
+    document.querySelectorAll('#stickerRow button').forEach(x => x.classList.toggle('on', x.dataset.stk === curSticker && curSticker !== ''));
+    vibrate(8);
+  }));
+  function loadImg(src) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; }); }
+  function wrapText(g, text, maxW) {
+    const out = []; let line = '';
+    for (const ch of text) { if (g.measureText(line + ch).width > maxW && line) { out.push(line); line = ch; } else line += ch; }
+    if (line) out.push(line); return out.slice(0, 2);
+  }
+  async function makeStory() {
+    const W = 1080, H = 1920, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d'), font = getComputedStyle(document.body).fontFamily;
+    const acc = cssVar('--accent'), acc2 = cssVar('--accent-2'), text = '#2a2438', muted = '#8a84a0';
+    const bgG = g.createLinearGradient(0, 0, W, H); bgG.addColorStop(0, acc); bgG.addColorStop(1, acc2);
+    g.fillStyle = bgG; g.fillRect(0, 0, W, H);
+    // 模様
+    const pat = patURL(look.pat === 'none' ? 'star' : look.pat, '#ffffff');
+    try { const pimg = await loadImg(pat.slice(5, -2)); const pp = g.createPattern(pimg, 'repeat'); g.save(); g.globalAlpha = .9; g.scale(2.2, 2.2); g.fillStyle = pp; g.fillRect(0, 0, W, H); g.restore(); } catch (_) {}
+    g.globalAlpha = .16; g.fillStyle = '#fff';
+    [[170, 250, 230], [960, 430, 170], [900, 1700, 280], [100, 1560, 130]].forEach(([x, y, r]) => { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); });
+    g.globalAlpha = 1;
+    // カード
+    const cx = 80, cy = 330, cw = 920, ch = 1150;
+    g.save(); g.shadowColor = 'rgba(30,20,80,.25)'; g.shadowBlur = 60; g.shadowOffsetY = 20; g.fillStyle = 'rgba(255,255,255,.96)'; rr(g, cx, cy, cw, ch, 70); g.restore();
+    // 上の文字
+    g.fillStyle = '#fff'; g.textAlign = 'center'; g.font = `800 64px ${font}`;
+    g.fillText(look.title || 'Hibiki', W / 2, 200);
+    g.font = `600 34px ${font}`; g.globalAlpha = .9; g.fillText(look.tag || '録る・整える・磨く', W / 2, 256); g.globalAlpha = 1;
+    // 日付・タイトル
+    const d = new Date();
+    g.textAlign = 'left'; g.fillStyle = muted; g.font = `700 36px ${font}`;
+    g.fillText(`${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}  ・  ${fmtTime(selEnd - selStart)}`, cx + 70, cy + 110);
+    g.fillStyle = text; g.font = `800 72px ${font}`;
+    const title = (curSticker ? curSticker + ' ' : '') + (sanitize(nameInput.value).replace(/^(\[[^\]]+\])+/, '') || '今日の録音');
+    wrapText(g, title, cw - 140).forEach((ln, i) => g.fillText(ln, cx + 70, cy + 210 + i * 88));
+    // 波形
+    const { data } = selectedMono();
+    const wst = look.wave, { bw, stride } = waveGeo(wst, 3), wx = cx + 70, ww = cw - 140, n = Math.floor(ww / stride);
+    const amps = new Array(n).fill(0), per = Math.max(1, Math.floor(data.length / n));
+    let mx = 1e-6;
+    for (let i = 0; i < n; i++) { let m = 0; for (let j = i * per; j < Math.min(data.length, (i + 1) * per); j += 4) { const v = Math.abs(data[j]); if (v > m) m = v; } amps[i] = m; if (m > mx) mx = m; }
+    for (let i = 0; i < n; i++) amps[i] /= mx;
+    const wg = g.createLinearGradient(wx, 0, wx + ww, 0); wg.addColorStop(0, acc); wg.addColorStop(1, acc2);
+    g.fillStyle = wg; renderWave(g, amps, (i) => wx + i * stride, bw, cy + 600, 190, wst, 3);
+    // 連続記録とレベル
+    const s = streak(), lv = levelOf(prog.pts);
+    const chip = (x, y, label) => { g.font = `800 40px ${font}`; const tw = g.measureText(label).width + 64; g.fillStyle = acc; g.globalAlpha = .12; rr(g, x, y, tw, 84, 42); g.globalAlpha = 1; g.fillStyle = acc; g.fillText(label, x + 32, y + 56); return tw; };
+    let x = cx + 70; x += chip(x, cy + 880, s ? `🔥 ${s}日連続` : '🎵 練習中') + 20; chip(x, cy + 880, `⭐ Lv.${lv}`);
+    // キャラ
+    const k = look.chara !== 'none' ? look.chara : null;
+    if (k) {
+      const svg = charaSVG(k, undefined, acc).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" ').replace(/class="m-open"/, 'opacity="0" class="m-open"');
+      try { const im = await loadImg('data:image/svg+xml,' + encodeURIComponent(svg)); g.drawImage(im, cx + cw - 400, cy + ch - 330, 380, 380); } catch (_) {}
+    }
+    g.fillStyle = '#fff'; g.textAlign = 'center'; g.font = `700 36px ${font}`;
+    g.fillText('🎶 きょうも練習した！', W / 2, 1640);
+    g.font = `600 28px ${font}`; g.globalAlpha = .85; g.fillText(`${look.title || 'Hibiki'} で録音`, W / 2, 1700); g.globalAlpha = 1;
+    return c;
+  }
+  const storySheet = $('storySheet'); let storyBlob = null;
+  $('storyBtn').addEventListener('click', async () => {
+    if (!audioBuffer) { toast('先に録音してください', 'err'); return; }
+    $('storyBtn').disabled = true;
+    try {
+      const c = await makeStory();
+      storyBlob = await new Promise(r => c.toBlob(r, 'image/png'));
+      $('storyImg').src = URL.createObjectURL(storyBlob);
+      openSheet(storySheet);
+      prog.stories++; progSave(); unlock('story'); award(5);
+    } catch (e) { toast('画像を作れませんでした', 'err'); }
+    $('storyBtn').disabled = false;
+  });
+  storySheet.querySelectorAll('[data-close]').forEach(x => x.addEventListener('click', () => closeSheet(storySheet)));
+  $('storyShare').addEventListener('click', async () => {
+    if (!storyBlob) return;
+    const f = new File([storyBlob], 'hibiki_story.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [f] })) { try { await navigator.share({ files: [f] }); } catch (_) {} }
+    else downloadBlob(storyBlob, 'hibiki_story.png');
+  });
+  $('storySave').addEventListener('click', () => { if (storyBlob) downloadBlob(storyBlob, `hibiki_${dayKey()}.png`); });
 
   const bigText = $('bigText');
   bigText.checked = loadPref('big', '0') === '1';
@@ -4920,6 +5239,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   showTab('rec');
   applyWall();
   applyLook();
+  renderMy();
   if (loadPref('guided', '0') !== '1') openGuide();
   loadState().then(st => {
     if (st) {
