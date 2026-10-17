@@ -889,6 +889,34 @@
   .preset-grid button.dice { background: var(--btn); color: var(--text); border: 1.5px dashed var(--accent); text-shadow: none; box-shadow: none; }
   .sheet-body { background: linear-gradient(var(--panel), var(--panel)), var(--bg); }
   input[type=checkbox], input[type=range] { accent-color: var(--accent); }
+
+  /* ---- 🐾 相棒キャラクター ---- */
+  section.card.rec-card { position: relative; }
+  .buddy { position: absolute; top: 10px; right: 12px; width: 74px; height: 74px; cursor: pointer; z-index: 2; -webkit-tap-highlight-color: transparent; }
+  .buddy svg { width: 100%; height: 100%; display: block; overflow: visible; transform-origin: 50% 90%; animation: buddySway 3.2s ease-in-out infinite; filter: drop-shadow(0 4px 6px rgba(40,30,90,.18)); }
+  .buddy .eyes { transform-box: fill-box; transform-origin: center; animation: buddyBlink 4.2s infinite; }
+  .buddy .m-open { opacity: 0; }
+  .buddy.rec svg { animation: none; transform: translateY(calc(var(--lvl, 0) * -9px)) scale(calc(1 + var(--lvl, 0) * .1)); transition: transform .08s linear; }
+  .buddy.rec .m-open { opacity: calc(var(--lvl, 0) * 3.5); }
+  .buddy.rec .m-smile { opacity: calc(1 - var(--lvl, 0) * 3.5); }
+  .buddy.happy svg { animation: buddyJump .7s cubic-bezier(.3,1.6,.5,1); }
+  .buddy.happy .eyes { animation: none; transform: scaleY(.35); }
+  @keyframes buddySway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+  @keyframes buddyBlink { 0%, 91%, 100% { transform: scaleY(1); } 94% { transform: scaleY(.1); } }
+  @keyframes buddyJump { 0% { transform: translateY(0) scale(1); } 35% { transform: translateY(-16px) scale(1.08, .94); } 70% { transform: translateY(0) scale(.96, 1.05); } 100% { transform: none; } }
+  .buddy-bubble {
+    position: absolute; top: 18px; right: 92px; max-width: 170px; z-index: 3; pointer-events: none;
+    background: var(--panel); color: var(--text); border: 1.5px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+    font-size: .76rem; font-weight: 700; line-height: 1.35; padding: 7px 11px; border-radius: 14px;
+    box-shadow: 0 6px 16px rgba(40,30,90,.12); opacity: 0; transform: translateY(4px) scale(.96); transition: opacity .2s, transform .2s;
+  }
+  .buddy-bubble::after { content: ""; position: absolute; right: -6px; top: 14px; width: 10px; height: 10px; background: inherit; border-right: inherit; border-top: inherit; transform: rotate(45deg); border-radius: 0 3px 0 0; }
+  .buddy-bubble.show { opacity: 1; transform: none; }
+  .look-prev .buddy { top: 8px; right: 10px; width: 54px; height: 54px; pointer-events: none; }
+  .opt-grid button .chara { width: 42px; height: 42px; }
+  .opt-grid button .chara svg { width: 100%; height: 100%; display: block; }
+  .opt-grid button .chara .m-open { opacity: 0; }
+  @media (prefers-reduced-motion: reduce) { .buddy svg, .buddy .eyes { animation: none !important; } }
 </style>
 </head>
 <body>
@@ -915,7 +943,9 @@
   </div>
 
   <!-- 1. 録音 -->
-  <section class="card" data-tab="rec">
+  <section class="card rec-card" data-tab="rec">
+    <div class="buddy hidden" id="buddy" role="button" aria-label="キャラクター"></div>
+    <div class="buddy-bubble" id="buddyBubble"></div>
     <h2>録音</h2>
     <div class="rec-area">
       <button id="recBtn" class="rec-btn" aria-label="録音開始 / 停止"><span class="dot"></span></button>
@@ -1326,6 +1356,7 @@
   </section>
   <!-- 🎀 きせかえ -->
   <section class="card look-prev" data-tab="look" id="lookPrev">
+    <div class="buddy hidden" id="lpBuddy" aria-hidden="true"></div>
     <div class="lp-title" id="lpTitle">Hibiki<small>録る・整える・磨く</small></div>
     <div class="lp-row">
       <div class="rec-btn mini" aria-hidden="true"><span class="dot"></span></div>
@@ -1401,6 +1432,21 @@
     <div class="seg" id="radiusSeg"><button data-radius="small">ひかえめ</button><button data-radius="normal">ふつう</button><button data-radius="round">まんまる</button></div>
     <div class="look-label">文字</div>
     <div class="seg" id="fontSeg"><button data-font="normal">ふつう</button><button data-font="round" style="font-family:'Hiragino Maru Gothic ProN','Zen Maru Gothic',sans-serif">まるもじ</button><button data-font="mincho" style="font-family:'Hiragino Mincho ProN','Yu Mincho','Noto Serif JP',serif">明朝</button></div>
+  </section>
+
+  <section class="card" data-tab="look">
+    <h2>🐾 キャラクター</h2>
+    <p class="hint" style="margin-top:0">録音画面にいる相棒です。音に合わせて口を動かしたり、保存すると喜んだりします。タップすると話します。</p>
+    <div class="opt-grid" id="charaGrid">
+      <button data-chara="none"><span class="ico">🚫</span>なし</button>
+      <button data-chara="cat"><span class="chara"></span>ねこ</button>
+      <button data-chara="rabbit"><span class="chara"></span>うさぎ</button>
+      <button data-chara="bear"><span class="chara"></span>くま</button>
+      <button data-chara="penguin"><span class="chara"></span>ペンギン</button>
+      <button data-chara="dog"><span class="chara"></span>しば犬</button>
+      <button data-chara="frog"><span class="chara"></span>かえる</button>
+      <button data-chara="hamster"><span class="chara"></span>ハムスター</button>
+    </div>
   </section>
 
   <section class="card" data-tab="look">
@@ -1815,6 +1861,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   // ---------- 要素 ----------
   const $ = (id) => document.getElementById(id);
   const recBtn = $('recBtn'), timerEl = $('timer'), statusEl = $('status');
+  const recCard = recBtn.closest('.card');
   const liveCanvas = $('live'), waveCanvas = $('wave'), waveEmpty = $('waveEmpty');
   const editCard = $('editCard'), saveCard = $('saveCard');
   const rangeEl = $('range'), hStart = $('hStart'), hEnd = $('hEnd'), fill = $('fill');
@@ -1922,6 +1969,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   }
   let toastTimer = 0;
   function toast(msg, type = '') {
+    if (type === 'ok' && typeof buddyCheer === 'function') buddyCheer();
     toastEl.textContent = msg;
     toastEl.className = 'toast show ' + type;
     clearTimeout(toastTimer);
@@ -2125,7 +2173,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     for (let i = 0; i < liveData.length; i++) { const v = (liveData[i] - 128) / 128; sum += v * v; }
     const lvl = Math.min(1, Math.sqrt(sum / liveData.length) * 3.4);
     liveLvl += (lvl - liveLvl) * 0.35; // なめらかに
-    recBtn.style.setProperty('--lvl', liveLvl.toFixed(3));
+    recCard.style.setProperty('--lvl', liveLvl.toFixed(3));
     const now = performance.now();
     if (now - liveLast > 40) { liveLevels.push(liveLvl); liveLast = now; }
     const wst = curWave(), { bw, stride } = waveGeo(wst, dpr), n = Math.ceil(w / stride) + 1;
@@ -2148,7 +2196,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   function clearLive() {
     const { w, h } = fitCanvas(liveCanvas);
     liveCanvas.getContext('2d').clearRect(0, 0, w, h);
-    liveLevels = []; liveLvl = 0; recBtn.style.setProperty('--lvl', 0);
+    liveLevels = []; liveLvl = 0; recCard.style.setProperty('--lvl', 0);
   }
 
   // 録音データをモノラル化。高音質モードは元の音質(最大48kHz)を保ち、
@@ -4556,11 +4604,12 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   // ========== 🎀 きせかえ（色・ボタン・波形・背景・カード・文字・名前） ==========
   const SKINS = [["lavender", "ラベンダー", "#5b5bf0", "#9a5cf5", "#f3f2fb"], ["sakura", "さくら", "#f0508c", "#ff9ac1", "#fff3f7"], ["yumekawa", "ゆめかわ", "#f45fae", "#7fb3ff", "#fbf4ff"], ["mint", "ミント", "#0fa883", "#57d1b0", "#effaf6"], ["matcha", "抹茶", "#5a8a32", "#a3c062", "#f5f8ee"], ["soda", "ソーダ", "#1f8ef1", "#56cfff", "#eef6ff"], ["lemon", "レモン", "#e09a00", "#ffd23f", "#fffbea"], ["peach", "ピーチ", "#f2643f", "#ffad66", "#fff5ef"], ["choco", "カフェ", "#8a5a44", "#c79a73", "#faf5f0"], ["mono", "モノクロ", "#2c2c36", "#6b6b7b", "#f2f2f5"], ["yozora", "よぞら", "#7b8cff", "#c08cff", "#0d1030"], ["neon", "ネオン", "#00c8f0", "#ff3df2", "#07070f"]]; // [名前, 表示名, 色1, 色2, 背景色]
   const SKIN_BG = Object.fromEntries(SKINS.map(s => [s[0], s[4]]));
-  const LOOK_DEF = { skin: 'lavender', color: '#ff6fae', color2: '#ffb36b', btn: 'circle', recc: 'red', wave: 'bar', pat: 'none', card: 'glass', radius: 'normal', font: 'normal', title: '', tag: '', wallDim: 35 };
+  const LOOK_DEF = { skin: 'lavender', color: '#ff6fae', color2: '#ffb36b', btn: 'circle', recc: 'red', wave: 'bar', pat: 'none', card: 'glass', radius: 'normal', font: 'normal', chara: 'cat', title: '', tag: '', wallDim: 35 };
   const LOOK_OK = {
     skin: SKINS.map(s => s[0]).concat('custom'), btn: ['circle', 'heart', 'star', 'flower', 'cat', 'cloud'], recc: ['red', 'theme'],
     wave: ['bar', 'candy', 'block', 'dot', 'line', 'mirror'], pat: ['none', 'heart', 'star', 'note', 'dot', 'flower', 'check', 'ribbon'],
-    card: ['glass', 'solid', 'pop', 'note'], radius: ['small', 'normal', 'round'], font: ['normal', 'round', 'mincho']
+    card: ['glass', 'solid', 'pop', 'note'], radius: ['small', 'normal', 'round'], font: ['normal', 'round', 'mincho'],
+    chara: ['none', 'cat', 'rabbit', 'bear', 'penguin', 'dog', 'frog', 'hamster']
   };
   function sanitizeLook(l) {
     const o = Object.assign({}, LOOK_DEF);
@@ -4680,7 +4729,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     const on = (sel, key, val) => document.querySelectorAll(sel).forEach(b => b.classList.toggle('on', b.dataset[key] === val));
     on('#skinGrid button', 'skin', look.skin); on('#btnGrid button', 'btn', look.btn); on('#reccSeg button', 'recc', look.recc);
     on('#waveGrid button', 'wave', look.wave); on('#patGrid button', 'pat', look.pat); on('#cardGrid button', 'card', look.card);
-    on('#radiusSeg button', 'radius', look.radius); on('#fontSeg button', 'font', look.font);
+    on('#radiusSeg button', 'radius', look.radius); on('#fontSeg button', 'font', look.font); on('#charaGrid button', 'chara', look.chara);
     $('customSw').style.background = look.skin === 'custom' ? `linear-gradient(135deg, ${look.color}, ${look.color2})` : '';
     $('customColor').value = look.color;
     const acc = cssVar('--accent');
@@ -4705,6 +4754,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     const title = look.title || 'Hibiki', tag = look.tag || '録る・整える・磨く';
     document.querySelectorAll('.brand .name, #lpTitle').forEach(el => { el.firstChild.nodeValue = title; el.querySelector('small').textContent = tag; });
     if (save) savePref('look', JSON.stringify(look));
+    renderBuddy();
     syncLookUI();
     applyTheme();
     requestAnimationFrame(drawLookPreviews);
@@ -4713,7 +4763,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   const bindOpt = (sel, key) => document.querySelectorAll(sel).forEach(b => b.addEventListener('click', () => setLook({ [key]: b.dataset[key] })));
   bindOpt('#skinGrid button[data-skin]:not([data-skin="custom"])', 'skin'); bindOpt('#btnGrid button', 'btn'); bindOpt('#reccSeg button', 'recc');
   bindOpt('#waveGrid button', 'wave'); bindOpt('#patGrid button', 'pat'); bindOpt('#cardGrid button', 'card');
-  bindOpt('#radiusSeg button', 'radius'); bindOpt('#fontSeg button', 'font');
+  bindOpt('#radiusSeg button', 'radius'); bindOpt('#fontSeg button', 'font'); bindOpt('#charaGrid button', 'chara');
   const customColor = $('customColor');
   customColor.addEventListener('input', () => setLook({ skin: 'custom', color: customColor.value, color2: deriveColor2(customColor.value) }));
   customColor.addEventListener('click', () => { if (look.skin !== 'custom') setLook({ skin: 'custom' }); });
@@ -4721,7 +4771,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   $('lookTag').addEventListener('input', (e) => setLook({ tag: e.target.value }));
   $('wallDim').addEventListener('input', (e) => { look.wallDim = +e.target.value; document.documentElement.style.setProperty('--wall-dim', String(look.wallDim / 100)); savePref('look', JSON.stringify(look)); });
   // おまかせセット
-  const PRESETS = [{"name": "ゆめかわ", "look": {"skin": "yumekawa", "btn": "heart", "wave": "candy", "pat": "heart", "card": "pop", "radius": "round", "font": "round", "recc": "theme"}}, {"name": "よぞら", "look": {"skin": "yozora", "btn": "star", "wave": "dot", "pat": "star", "card": "glass", "radius": "normal", "font": "normal", "recc": "theme"}}, {"name": "カフェ", "look": {"skin": "choco", "btn": "cat", "wave": "block", "pat": "dot", "card": "note", "radius": "round", "font": "mincho", "recc": "theme"}}, {"name": "ネオン", "look": {"skin": "neon", "btn": "circle", "wave": "mirror", "pat": "none", "card": "glass", "radius": "small", "font": "normal", "recc": "theme"}}, {"name": "抹茶", "look": {"skin": "matcha", "btn": "flower", "wave": "line", "pat": "flower", "card": "solid", "radius": "round", "font": "round", "recc": "theme"}}, {"name": "ソーダ", "look": {"skin": "soda", "btn": "cloud", "wave": "candy", "pat": "check", "card": "pop", "radius": "round", "font": "round", "recc": "theme"}}, {"name": "シンプル", "look": {"skin": "mono", "btn": "circle", "wave": "bar", "pat": "none", "card": "solid", "radius": "small", "font": "normal", "recc": "red"}}];
+  const PRESETS = [{"name": "ゆめかわ", "look": {"skin": "yumekawa", "chara": "rabbit", "btn": "heart", "wave": "candy", "pat": "heart", "card": "pop", "radius": "round", "font": "round", "recc": "theme"}}, {"name": "よぞら", "look": {"skin": "yozora", "chara": "penguin", "btn": "star", "wave": "dot", "pat": "star", "card": "glass", "radius": "normal", "font": "normal", "recc": "theme"}}, {"name": "カフェ", "look": {"skin": "choco", "chara": "cat", "btn": "cat", "wave": "block", "pat": "dot", "card": "note", "radius": "round", "font": "mincho", "recc": "theme"}}, {"name": "ネオン", "look": {"skin": "neon", "chara": "frog", "btn": "circle", "wave": "mirror", "pat": "none", "card": "glass", "radius": "small", "font": "normal", "recc": "theme"}}, {"name": "抹茶", "look": {"skin": "matcha", "chara": "bear", "btn": "flower", "wave": "line", "pat": "flower", "card": "solid", "radius": "round", "font": "round", "recc": "theme"}}, {"name": "ソーダ", "look": {"skin": "soda", "chara": "dog", "btn": "cloud", "wave": "candy", "pat": "check", "card": "pop", "radius": "round", "font": "round", "recc": "theme"}}, {"name": "シンプル", "look": {"skin": "mono", "chara": "none", "btn": "circle", "wave": "bar", "pat": "none", "card": "solid", "radius": "small", "font": "normal", "recc": "red"}}];
   document.querySelectorAll('#presetGrid button[data-preset]').forEach(b => b.addEventListener('click', () => {
     setLook(PRESETS[+b.dataset.preset].look); toast(`「${PRESETS[+b.dataset.preset].name}」にしました`, 'ok');
   }));
@@ -4776,6 +4826,68 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     look = Object.assign({}, LOOK_DEF); applyLook(); toast('はじめに戻しました', 'ok');
   });
   $('openLookBtn').addEventListener('click', () => { closeSheet(sheet); showTab('look'); });
+
+  // ========== 🐾 相棒キャラクター（オリジナルの動物） ==========
+  const INK = '#2b2233';
+  function face(ex, ey, opt = {}) {
+    const [l, r] = ex, er = opt.er || 4.2;
+    const eyes = `<g class="eyes"><ellipse cx="${l}" cy="${ey}" rx="${er}" ry="${er * 1.2}" fill="${INK}"/><ellipse cx="${r}" cy="${ey}" rx="${er}" ry="${er * 1.2}" fill="${INK}"/><circle cx="${l + 1.4}" cy="${ey - 1.8}" r="1.4" fill="#fff"/><circle cx="${r + 1.4}" cy="${ey - 1.8}" r="1.4" fill="#fff"/></g>`;
+    const my = opt.my || ey + 11, cy = opt.cy || ey + 8;
+    const cheeks = opt.noCheek ? '' : `<ellipse cx="${l - 8}" cy="${cy}" rx="6" ry="3.8" fill="#ff8fa3" opacity=".55"/><ellipse cx="${r + 8}" cy="${cy}" rx="6" ry="3.8" fill="#ff8fa3" opacity=".55"/>`;
+    const smile = opt.cat ? `<path class="m-smile" d="M44 ${my} q3 4 6 0 q3 4 6 0" stroke="${INK}" stroke-width="2.4" fill="none" stroke-linecap="round"/>` : `<path class="m-smile" d="M45 ${my} q5 5 10 0" stroke="${INK}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+    return eyes + cheeks + smile + `<ellipse class="m-open" cx="50" cy="${my + 2}" rx="5" ry="4.6" fill="#c2415a" stroke="${INK}" stroke-width="2"/>`;
+  }
+  const CHARA = {
+    cat: () => `<path d="M22 44 L26 12 L48 30Z" fill="#ffd59e" stroke="#e8a85f" stroke-width="2" stroke-linejoin="round"/><path d="M78 44 L74 12 L52 30Z" fill="#ffd59e" stroke="#e8a85f" stroke-width="2" stroke-linejoin="round"/><path d="M28 34 L29 20 L40 29Z" fill="#ffb3c1"/><path d="M72 34 L71 20 L60 29Z" fill="#ffb3c1"/><ellipse cx="50" cy="58" rx="34" ry="30" fill="#ffd59e" stroke="#e8a85f" stroke-width="2"/><path d="M44 31v7M50 30v8M56 31v7" stroke="#e8a85f" stroke-width="2.6" stroke-linecap="round"/><path d="M18 62h12M18 68h11M82 62H70M82 68H71" stroke="${INK}" stroke-width="1.6" stroke-linecap="round" opacity=".5"/>` + face([39, 61], 55, { cat: true, my: 64 }),
+    rabbit: () => `<ellipse cx="37" cy="22" rx="8.5" ry="22" fill="#fff" stroke="#f0cfdc" stroke-width="2" transform="rotate(-8 37 22)"/><ellipse cx="63" cy="22" rx="8.5" ry="22" fill="#fff" stroke="#f0cfdc" stroke-width="2" transform="rotate(8 63 22)"/><ellipse cx="37" cy="24" rx="4" ry="15" fill="#ffc2d4" transform="rotate(-8 37 24)"/><ellipse cx="63" cy="24" rx="4" ry="15" fill="#ffc2d4" transform="rotate(8 63 24)"/><ellipse cx="50" cy="62" rx="32" ry="28" fill="#fff" stroke="#f0cfdc" stroke-width="2"/>` + face([39, 61], 59, { my: 69 }),
+    bear: () => `<circle cx="25" cy="34" r="12" fill="#c98f63"/><circle cx="75" cy="34" r="12" fill="#c98f63"/><circle cx="25" cy="34" r="6" fill="#efc3a0"/><circle cx="75" cy="34" r="6" fill="#efc3a0"/><ellipse cx="50" cy="60" rx="34" ry="30" fill="#c98f63"/><ellipse cx="50" cy="70" rx="15" ry="11" fill="#f1d0b4"/><ellipse cx="50" cy="65" rx="4.5" ry="3.4" fill="#3a2a22"/>` + face([37, 63], 55, { my: 70, cy: 66 }),
+    penguin: () => `<ellipse cx="50" cy="56" rx="36" ry="34" fill="#34406a"/><path d="M50 40c-9-8-26-6-26 12 0 14 11 26 26 26s26-12 26-26c0-18-17-20-26-12z" fill="#fff"/><path d="M45 64h10l-5 6z" fill="#ffa53b" stroke="#e5862a" stroke-width="1.4" stroke-linejoin="round"/>` + face([39, 61], 56, { my: 74, cy: 64 }),
+    dog: () => `<path d="M20 46 L24 14 L46 28Z" fill="#e8954a" stroke="#cf7c35" stroke-width="2" stroke-linejoin="round"/><path d="M80 46 L76 14 L54 28Z" fill="#e8954a" stroke="#cf7c35" stroke-width="2" stroke-linejoin="round"/><path d="M26 36 L27 22 L38 29Z" fill="#fff1e0"/><path d="M74 36 L73 22 L62 29Z" fill="#fff1e0"/><ellipse cx="50" cy="58" rx="34" ry="30" fill="#f2a65a" stroke="#cf7c35" stroke-width="2"/><path d="M22 64c4 14 16 22 28 22s24-8 28-22c-8 6-18 4-28 4s-20 2-28-4z" fill="#fff4e6"/><ellipse cx="50" cy="64" rx="5" ry="3.6" fill="#2b2233"/><ellipse cx="35" cy="46" rx="4" ry="2.4" fill="#fff4e6"/><ellipse cx="65" cy="46" rx="4" ry="2.4" fill="#fff4e6"/>` + face([37, 63], 54, { my: 70, cy: 64 }),
+    frog: () => `<circle cx="31" cy="36" r="14" fill="#7ccf6a" stroke="#58a94a" stroke-width="2"/><circle cx="69" cy="36" r="14" fill="#7ccf6a" stroke="#58a94a" stroke-width="2"/><ellipse cx="50" cy="62" rx="38" ry="26" fill="#7ccf6a" stroke="#58a94a" stroke-width="2"/><circle cx="31" cy="36" r="8.5" fill="#fff"/><circle cx="69" cy="36" r="8.5" fill="#fff"/>` + face([31, 69], 37, { my: 66, cy: 60, er: 4.6 }),
+    hamster: () => `<circle cx="27" cy="32" r="9" fill="#f0b77a"/><circle cx="73" cy="32" r="9" fill="#f0b77a"/><circle cx="27" cy="32" r="4.5" fill="#ffc9b0"/><circle cx="73" cy="32" r="4.5" fill="#ffc9b0"/><ellipse cx="50" cy="60" rx="36" ry="31" fill="#f0b77a"/><path d="M18 64c2 16 16 25 32 25s30-9 32-25c-6 7-14 8-20 6-4 6-20 6-24 0-6 2-14 1-20-6z" fill="#fff7ee"/><ellipse cx="50" cy="63" rx="3.6" ry="2.8" fill="#d77a6a"/>` + face([37, 63], 55, { my: 69, cy: 63 }),
+  };
+  function charaSVG(k) { return CHARA[k] ? `<svg viewBox="0 0 100 100" aria-hidden="true">${CHARA[k]()}</svg>` : ''; }
+  const buddyEl = $('buddy'), buddyBubble = $('buddyBubble'), lpBuddy = $('lpBuddy');
+  const BUDDY_LINES = {
+    idle: ['いっしょに録ろう！', '今日も練習えらい！', 'ボタンを押してね', 'いい音きかせて〜', 'ロングトーンする？'],
+    rec: ['きいてるよ…', 'いい感じ！', 'その調子〜'],
+    stop: ['おつかれさま！', 'いい録音だね', '聞きなおしてみよ'],
+    ok: ['やったね！', 'できた〜！', 'ばっちり！'],
+    tap: ['なあに？', 'えへへ', 'がんばってるね', '音楽たのしいね', 'つぎは何録る？']
+  };
+  let bubbleTimer = 0;
+  function buddySay(text, ms = 2600) {
+    if (!buddyEl || buddyEl.classList.contains('hidden')) return;
+    buddyBubble.textContent = text; buddyBubble.classList.add('show');
+    clearTimeout(bubbleTimer); bubbleTimer = setTimeout(() => buddyBubble.classList.remove('show'), ms);
+  }
+  const pickLine = (k) => BUDDY_LINES[k][Math.floor(Math.random() * BUDDY_LINES[k].length)];
+  function buddyCheer() {
+    if (!buddyEl || buddyEl.classList.contains('hidden')) return;
+    buddyEl.classList.remove('happy'); void buddyEl.offsetWidth; buddyEl.classList.add('happy');
+    setTimeout(() => buddyEl.classList.remove('happy'), 900);
+    buddySay(pickLine('ok'), 1800);
+  }
+  function renderBuddy() {
+    const k = (typeof look !== 'undefined' && look.chara) || 'none', svg = charaSVG(k);
+    [buddyEl, lpBuddy].forEach(el => { if (!el) return; el.innerHTML = svg; el.classList.toggle('hidden', !svg); });
+    if (!svg) buddyBubble.classList.remove('show');
+    document.querySelectorAll('#charaGrid button[data-chara]').forEach(b => { const c = b.querySelector('.chara'); if (c) c.innerHTML = charaSVG(b.dataset.chara); });
+  }
+  buddyEl.addEventListener('click', () => {
+    buddyEl.classList.remove('happy'); void buddyEl.offsetWidth; buddyEl.classList.add('happy');
+    setTimeout(() => buddyEl.classList.remove('happy'), 900);
+    buddySay(pickLine(isRecording() ? 'rec' : 'tap')); vibrate(10);
+  });
+  // 録音の開始・停止に合わせてキャラの様子を変える
+  new MutationObserver(() => {
+    const on = recBtn.classList.contains('recording');
+    if (on === buddyEl.classList.contains('rec')) return;
+    buddyEl.classList.toggle('rec', on);
+    buddySay(pickLine(on ? 'rec' : 'stop'));
+  }).observe(recBtn, { attributes: true, attributeFilter: ['class'] });
+  setTimeout(() => buddySay(pickLine('idle'), 3200), 900);
+
   const bigText = $('bigText');
   bigText.checked = loadPref('big', '0') === '1';
   bigText.addEventListener('change', () => {
