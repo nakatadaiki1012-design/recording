@@ -12,7 +12,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<script>try{var t=localStorage.getItem('hibiki.theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);if(localStorage.getItem('hibiki.big')==='1')document.documentElement.setAttribute('data-big','1');var k=localStorage.getItem('hibiki.skin');if(k&&k!=='lavender')document.documentElement.setAttribute('data-skin',k);if(localStorage.getItem('hibiki.round')==='1')document.documentElement.setAttribute('data-round','1');if(localStorage.getItem('hibiki.deco')==='1')document.documentElement.setAttribute('data-deco','1');}catch(e){}</script>
+<script>(function(){try{var r=document.documentElement,ls=localStorage,t=ls.getItem('hibiki.theme');if(t==='light'||t==='dark')r.setAttribute('data-theme',t);if(ls.getItem('hibiki.big')==='1')r.setAttribute('data-big','1');var L=null;try{L=JSON.parse(ls.getItem('hibiki.look'));}catch(e){}if(L){if(L.skin&&L.skin!=='lavender')r.setAttribute('data-skin',L.skin);var D={btn:'circle',recc:'red',card:'glass',radius:'normal',font:'normal',pat:'none'};for(var k in D){if(L[k]&&L[k]!==D[k])r.setAttribute('data-'+k,L[k]);}if(L.skin==='custom'&&/^#[0-9a-f]{6}$/i.test(L.color||'')){var c2=/^#[0-9a-f]{6}$/i.test(L.color2||'')?L.color2:L.color;r.style.setProperty('--accent',L.color);r.style.setProperty('--accent-2',c2);r.style.setProperty('--grad','linear-gradient(135deg,'+L.color+' 0%,'+c2+' 100%)');}}else{var k2=ls.getItem('hibiki.skin');if(k2&&k2!=='lavender')r.setAttribute('data-skin',k2);if(ls.getItem('hibiki.round')==='1')r.setAttribute('data-font','round');}var W=ls.getItem('hibiki.wall');if(W){r.setAttribute('data-wall','1');r.style.setProperty('--wall','url("'+W+'")');}}catch(e){}})();</script>
 <title>Hibiki — 録音・チューナー・採点</title>
 <style>
   :root {
@@ -736,53 +736,163 @@
   }
 
   /* =====================================================================
-     着せ替え（スキン）・まるもじ・模様
+     きせかえ（色・録音ボタン・波形・背景・カード・文字）
      ===================================================================== */
-  :root[data-round="1"] body, :root[data-round="1"] input, :root[data-round="1"] textarea, :root[data-round="1"] select {
+  :root[data-skin="sakura"] { --accent: #f0508c; --accent-2: #ff9ac1; --grad: linear-gradient(135deg, #f0508c 0%, #ff9ac1 100%); --bg: #fff3f7; --panel-2: #fff5f9; --border: #f6dfe9; --btn: #fff4f8; --btn-b: #f4d6e3; --btn-press: #fde6ef; --sub: #fffafc; --wave: #f3c4d6; --wave-sel: #f0508c; --text: #3b1d2b; --muted: #9b7286; --on-accent: #fff; --dim: color-mix(in srgb, #fff3f7 66%, transparent); }
+  :root[data-skin="yumekawa"] { --accent: #f45fae; --accent-2: #7fb3ff; --grad: linear-gradient(135deg, #f45fae 0%, #b98cff 50%, #7fb3ff 100%); --bg: #fbf4ff; --panel-2: #fbf5ff; --border: #eedff7; --btn: #fbf5ff; --btn-b: #ead8f5; --btn-press: #f4e6fb; --sub: #fefaff; --wave: #e6c8ef; --wave-sel: #f45fae; --text: #3a2647; --muted: #957aa6; --on-accent: #fff; --dim: color-mix(in srgb, #fbf4ff 66%, transparent); }
+  :root[data-skin="mint"] { --accent: #0fa883; --accent-2: #57d1b0; --grad: linear-gradient(135deg, #0fa883 0%, #57d1b0 100%); --bg: #effaf6; --panel-2: #f0faf6; --border: #d9efe7; --btn: #f0faf6; --btn-b: #cfe9df; --btn-press: #e2f5ee; --sub: #f8fdfb; --wave: #b5e3d4; --wave-sel: #0fa883; --text: #14302a; --muted: #6a8a82; --on-accent: #fff; --dim: color-mix(in srgb, #effaf6 66%, transparent); }
+  :root[data-skin="matcha"] { --accent: #5a8a32; --accent-2: #a3c062; --grad: linear-gradient(135deg, #5a8a32 0%, #a3c062 100%); --bg: #f5f8ee; --panel-2: #f4f8ec; --border: #e1e9d2; --btn: #f4f8ec; --btn-b: #dae5c6; --btn-press: #e8f0db; --sub: #fbfdf7; --wave: #cddcb2; --wave-sel: #5a8a32; --text: #22301a; --muted: #7c8a6c; --on-accent: #fff; --dim: color-mix(in srgb, #f5f8ee 66%, transparent); }
+  :root[data-skin="soda"] { --accent: #1f8ef1; --accent-2: #56cfff; --grad: linear-gradient(135deg, #1f8ef1 0%, #56cfff 100%); --bg: #eef6ff; --panel-2: #f0f7ff; --border: #d8e8f8; --btn: #f0f7ff; --btn-b: #d0e2f5; --btn-press: #e1eefc; --sub: #f8fbff; --wave: #b7d6f3; --wave-sel: #1f8ef1; --text: #132a40; --muted: #6a8299; --on-accent: #fff; --dim: color-mix(in srgb, #eef6ff 66%, transparent); }
+  :root[data-skin="lemon"] { --accent: #e09a00; --accent-2: #ffd23f; --grad: linear-gradient(135deg, #e09a00 0%, #ffd23f 100%); --bg: #fffbea; --panel-2: #fffaeb; --border: #f3e8c4; --btn: #fffaeb; --btn-b: #f0e2b5; --btn-press: #fbf1cf; --sub: #fffdf5; --wave: #f0dc9a; --wave-sel: #e09a00; --text: #3a2e10; --muted: #8f8160; --on-accent: #3a2e10; --dim: color-mix(in srgb, #fffbea 66%, transparent); }
+  :root[data-skin="peach"] { --accent: #f2643f; --accent-2: #ffad66; --grad: linear-gradient(135deg, #f2643f 0%, #ffad66 100%); --bg: #fff5ef; --panel-2: #fff6f1; --border: #f6e2d8; --btn: #fff5f0; --btn-b: #f3d8ca; --btn-press: #fde8dd; --sub: #fffbf8; --wave: #f5cbb6; --wave-sel: #f2643f; --text: #3a2219; --muted: #9a7a6c; --on-accent: #fff; --dim: color-mix(in srgb, #fff5ef 66%, transparent); }
+  :root[data-skin="choco"] { --accent: #8a5a44; --accent-2: #c79a73; --grad: linear-gradient(135deg, #8a5a44 0%, #c79a73 100%); --bg: #faf5f0; --panel-2: #f8f2ec; --border: #ece0d5; --btn: #f7f1eb; --btn-b: #e5d7ca; --btn-press: #efe5db; --sub: #fdfaf7; --wave: #dcc8b6; --wave-sel: #8a5a44; --text: #2e2018; --muted: #8a786c; --on-accent: #fff; --dim: color-mix(in srgb, #faf5f0 66%, transparent); }
+  :root[data-skin="mono"] { --accent: #2c2c36; --accent-2: #6b6b7b; --grad: linear-gradient(135deg, #2c2c36 0%, #6b6b7b 100%); --bg: #f2f2f5; --panel-2: #f4f4f7; --border: #e2e2e8; --btn: #f4f4f7; --btn-b: #dcdce3; --btn-press: #e8e8ee; --sub: #fafafc; --wave: #c8c8d2; --wave-sel: #2c2c36; --text: #18181f; --muted: #77778a; --on-accent: #fff; --dim: color-mix(in srgb, #f2f2f5 66%, transparent); }
+  :root[data-skin="yozora"] { --accent: #7b8cff; --accent-2: #c08cff; --grad: linear-gradient(135deg, #7b8cff 0%, #c08cff 100%); --bg: #0d1030; --panel-2: #1a1e48; --border: #2a2f62; --btn: #1c2050; --btn-b: #2c3270; --btn-press: #252a5e; --sub: #151a40; --wave: #3b4180; --wave-sel: #7b8cff; --text: #eef0ff; --muted: #9aa0d0; --on-accent: #fff; --dim: rgba(13,16,48,.66); --panel: rgba(22,26,64,.9); --tabbar: rgba(20,24,58,.9); }
+  :root[data-skin="neon"] { --accent: #00c8f0; --accent-2: #ff3df2; --grad: linear-gradient(135deg, #00c8f0 0%, #ff3df2 100%); --bg: #07070f; --panel-2: #14142a; --border: #26264a; --btn: #15152c; --btn-b: #2a2a52; --btn-press: #1f1f3e; --sub: #10101f; --wave: #2f2f5a; --wave-sel: #00c8f0; --text: #f2f2ff; --muted: #9a9ac8; --on-accent: #fff; --dim: rgba(7,7,15,.66); --panel: rgba(18,18,36,.92); --tabbar: rgba(16,16,32,.9); }
+  :root[data-skin][data-theme="dark"] { --bg: #0e0d1a; --panel: rgba(27,26,46,.92); --panel-2: #22213a; --border: #302f50; --text: #ecebfb; --muted: #9a98c0; --btn: #272642; --btn-b: #383659; --btn-press: #302f50; --sub: #1f1e36; --tabbar: rgba(24,23,41,.88); --dim: rgba(14,13,26,.66); }
+  @media (prefers-color-scheme: dark) { :root[data-skin]:not([data-theme="light"]) { --bg: #0e0d1a; --panel: rgba(27,26,46,.92); --panel-2: #22213a; --border: #302f50; --text: #ecebfb; --muted: #9a98c0; --btn: #272642; --btn-b: #383659; --btn-press: #302f50; --sub: #1f1e36; --tabbar: rgba(24,23,41,.88); --dim: rgba(14,13,26,.66); } }
+  :root[data-skin="lavender"][data-theme="dark"] { --accent: #8c8cff; --accent-2: #b48cff; --grad: linear-gradient(135deg, #8c8cff 0%, #b48cff 100%); --wave: #4a4872; --wave-sel: #8c8cff; --on-accent: #fff; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="lavender"]:not([data-theme="light"]) { --accent: #8c8cff; --accent-2: #b48cff; --grad: linear-gradient(135deg, #8c8cff 0%, #b48cff 100%); --wave: #4a4872; --wave-sel: #8c8cff; --on-accent: #fff; } }
+  :root[data-skin="sakura"][data-theme="dark"] { --accent: #ff7aab; --accent-2: #ffb0cc; --grad: linear-gradient(135deg, #ff7aab 0%, #ffb0cc 100%); --wave: #6e4558; --wave-sel: #ff7aab; --on-accent: #fff; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="sakura"]:not([data-theme="light"]) { --accent: #ff7aab; --accent-2: #ffb0cc; --grad: linear-gradient(135deg, #ff7aab 0%, #ffb0cc 100%); --wave: #6e4558; --wave-sel: #ff7aab; --on-accent: #fff; } }
+  :root[data-skin="yumekawa"][data-theme="dark"] { --accent: #ff8cc6; --accent-2: #9cc6ff; --grad: linear-gradient(135deg, #ff8cc6 0%, #c9a2ff 50%, #9cc6ff 100%); --wave: #5a4670; --wave-sel: #ff8cc6; --on-accent: #fff; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="yumekawa"]:not([data-theme="light"]) { --accent: #ff8cc6; --accent-2: #9cc6ff; --grad: linear-gradient(135deg, #ff8cc6 0%, #c9a2ff 50%, #9cc6ff 100%); --wave: #5a4670; --wave-sel: #ff8cc6; --on-accent: #fff; } }
+  :root[data-skin="mint"][data-theme="dark"] { --accent: #4fd8b0; --accent-2: #8ce8cf; --grad: linear-gradient(135deg, #4fd8b0 0%, #8ce8cf 100%); --wave: #3c6359; --wave-sel: #4fd8b0; --on-accent: #fff; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="mint"]:not([data-theme="light"]) { --accent: #4fd8b0; --accent-2: #8ce8cf; --grad: linear-gradient(135deg, #4fd8b0 0%, #8ce8cf 100%); --wave: #3c6359; --wave-sel: #4fd8b0; --on-accent: #fff; } }
+  :root[data-skin="matcha"][data-theme="dark"] { --accent: #9cc86a; --accent-2: #c8e09a; --grad: linear-gradient(135deg, #9cc86a 0%, #c8e09a 100%); --wave: #4a5a38; --wave-sel: #9cc86a; --on-accent: #fff; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="matcha"]:not([data-theme="light"]) { --accent: #9cc86a; --accent-2: #c8e09a; --grad: linear-gradient(135deg, #9cc86a 0%, #c8e09a 100%); --wave: #4a5a38; --wave-sel: #9cc86a; --on-accent: #fff; } }
+  :root[data-skin="soda"][data-theme="dark"] { --accent: #5fb1ff; --accent-2: #8fe0ff; --grad: linear-gradient(135deg, #5fb1ff 0%, #8fe0ff 100%); --wave: #3d5a78; --wave-sel: #5fb1ff; --on-accent: #fff; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="soda"]:not([data-theme="light"]) { --accent: #5fb1ff; --accent-2: #8fe0ff; --grad: linear-gradient(135deg, #5fb1ff 0%, #8fe0ff 100%); --wave: #3d5a78; --wave-sel: #5fb1ff; --on-accent: #fff; } }
+  :root[data-skin="lemon"][data-theme="dark"] { --accent: #ffcf4d; --accent-2: #ffe48a; --grad: linear-gradient(135deg, #ffcf4d 0%, #ffe48a 100%); --wave: #6a5a2e; --wave-sel: #ffcf4d; --on-accent: #2a2208; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="lemon"]:not([data-theme="light"]) { --accent: #ffcf4d; --accent-2: #ffe48a; --grad: linear-gradient(135deg, #ffcf4d 0%, #ffe48a 100%); --wave: #6a5a2e; --wave-sel: #ffcf4d; --on-accent: #2a2208; } }
+  :root[data-skin="peach"][data-theme="dark"] { --accent: #ff8a66; --accent-2: #ffc28f; --grad: linear-gradient(135deg, #ff8a66 0%, #ffc28f 100%); --wave: #6e4a3d; --wave-sel: #ff8a66; --on-accent: #fff; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="peach"]:not([data-theme="light"]) { --accent: #ff8a66; --accent-2: #ffc28f; --grad: linear-gradient(135deg, #ff8a66 0%, #ffc28f 100%); --wave: #6e4a3d; --wave-sel: #ff8a66; --on-accent: #fff; } }
+  :root[data-skin="choco"][data-theme="dark"] { --accent: #d4a27f; --accent-2: #e8c4a0; --grad: linear-gradient(135deg, #d4a27f 0%, #e8c4a0 100%); --wave: #5c4a3e; --wave-sel: #d4a27f; --on-accent: #fff; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="choco"]:not([data-theme="light"]) { --accent: #d4a27f; --accent-2: #e8c4a0; --grad: linear-gradient(135deg, #d4a27f 0%, #e8c4a0 100%); --wave: #5c4a3e; --wave-sel: #d4a27f; --on-accent: #fff; } }
+  :root[data-skin="mono"][data-theme="dark"] { --accent: #d8d8e4; --accent-2: #a0a0b4; --grad: linear-gradient(135deg, #d8d8e4 0%, #a0a0b4 100%); --wave: #4a4a58; --wave-sel: #d8d8e4; --on-accent: #18181f; }
+  @media (prefers-color-scheme: dark) { :root[data-skin="mono"]:not([data-theme="light"]) { --accent: #d8d8e4; --accent-2: #a0a0b4; --grad: linear-gradient(135deg, #d8d8e4 0%, #a0a0b4 100%); --wave: #4a4a58; --wave-sel: #d8d8e4; --on-accent: #18181f; } }
+  :root[data-skin="yozora"][data-theme="dark"] { --accent: #7b8cff; --accent-2: #c08cff; --grad: linear-gradient(135deg, #7b8cff 0%, #c08cff 100%); --bg: #0d1030; --panel-2: #1a1e48; --border: #2a2f62; --btn: #1c2050; --btn-b: #2c3270; --btn-press: #252a5e; --sub: #151a40; --wave: #3b4180; --wave-sel: #7b8cff; --text: #eef0ff; --muted: #9aa0d0; --on-accent: #fff; --dim: rgba(13,16,48,.66); --panel: rgba(22,26,64,.9); --tabbar: rgba(20,24,58,.9); }
+  @media (prefers-color-scheme: dark) { :root[data-skin="yozora"]:not([data-theme="light"]) { --accent: #7b8cff; --accent-2: #c08cff; --grad: linear-gradient(135deg, #7b8cff 0%, #c08cff 100%); --bg: #0d1030; --panel-2: #1a1e48; --border: #2a2f62; --btn: #1c2050; --btn-b: #2c3270; --btn-press: #252a5e; --sub: #151a40; --wave: #3b4180; --wave-sel: #7b8cff; --text: #eef0ff; --muted: #9aa0d0; --on-accent: #fff; --dim: rgba(13,16,48,.66); --panel: rgba(22,26,64,.9); --tabbar: rgba(20,24,58,.9); } }
+  :root[data-skin="neon"][data-theme="dark"] { --accent: #00c8f0; --accent-2: #ff3df2; --grad: linear-gradient(135deg, #00c8f0 0%, #ff3df2 100%); --bg: #07070f; --panel-2: #14142a; --border: #26264a; --btn: #15152c; --btn-b: #2a2a52; --btn-press: #1f1f3e; --sub: #10101f; --wave: #2f2f5a; --wave-sel: #00c8f0; --text: #f2f2ff; --muted: #9a9ac8; --on-accent: #fff; --dim: rgba(7,7,15,.66); --panel: rgba(18,18,36,.92); --tabbar: rgba(16,16,32,.9); }
+  @media (prefers-color-scheme: dark) { :root[data-skin="neon"]:not([data-theme="light"]) { --accent: #00c8f0; --accent-2: #ff3df2; --grad: linear-gradient(135deg, #00c8f0 0%, #ff3df2 100%); --bg: #07070f; --panel-2: #14142a; --border: #26264a; --btn: #15152c; --btn-b: #2a2a52; --btn-press: #1f1f3e; --sub: #10101f; --wave: #2f2f5a; --wave-sel: #00c8f0; --text: #f2f2ff; --muted: #9a9ac8; --on-accent: #fff; --dim: rgba(7,7,15,.66); --panel: rgba(18,18,36,.92); --tabbar: rgba(16,16,32,.9); } }
+  :root[data-skin="yozora"] .rec-btn { background: radial-gradient(circle at 30% 25%, #3a3a6a 0%, #1c1c3c 75%); }
+  :root[data-skin="yozora"] .card, :root[data-skin="yozora"] .tabbar { border-color: rgba(255,255,255,.08); }
+  :root[data-skin="yozora"] .brand .name small { -webkit-text-fill-color: var(--muted); }
+  :root[data-skin="neon"] .rec-btn { background: radial-gradient(circle at 30% 25%, #3a3a6a 0%, #1c1c3c 75%); }
+  :root[data-skin="neon"] .card, :root[data-skin="neon"] .tabbar { border-color: rgba(255,255,255,.08); }
+  :root[data-skin="neon"] .brand .name small { -webkit-text-fill-color: var(--muted); }
+  :root[data-skin="neon"] .card { box-shadow: 0 0 0 1px rgba(0,200,240,.15), 0 10px 30px rgba(255,61,242,.10); }
+  :root[data-btn="heart"] .rec-btn:not(.recording) .dot { clip-path: polygon(50.0% 26.4%, 50.0% 25.9%, 50.3% 24.5%, 50.9% 22.3%, 52.0% 19.5%, 53.8% 16.3%, 56.2% 13.1%, 59.4% 10.1%, 63.3% 7.6%, 67.7% 5.8%, 72.5% 4.8%, 77.5% 4.9%, 82.5% 6.1%, 87.2% 8.2%, 91.5% 11.3%, 95.1% 15.1%, 97.8% 19.6%, 99.4% 24.4%, 100.0% 29.5%, 99.4% 34.7%, 97.8% 39.9%, 95.1% 45.0%, 91.5% 49.9%, 87.2% 54.6%, 82.5% 59.2%, 77.5% 63.6%, 72.5% 67.9%, 67.7% 72.0%, 63.3% 76.0%, 59.4% 79.9%, 56.3% 83.5%, 53.8% 86.7%, 52.0% 89.6%, 50.9% 91.9%, 50.3% 93.7%, 50.0% 94.8%, 50.0% 95.2%, 50.0% 94.8%, 49.7% 93.7%, 49.1% 91.9%, 48.0% 89.6%, 46.2% 86.7%, 43.7% 83.5%, 40.6% 79.9%, 36.7% 76.0%, 32.3% 72.0%, 27.5% 67.9%, 22.5% 63.6%, 17.5% 59.2%, 12.8% 54.6%, 8.5% 49.9%, 4.9% 45.0%, 2.2% 39.9%, 0.6% 34.7%, 0.0% 29.5%, 0.6% 24.4%, 2.2% 19.6%, 4.9% 15.1%, 8.5% 11.3%, 12.8% 8.2%, 17.5% 6.1%, 22.5% 4.9%, 27.5% 4.8%, 32.3% 5.8%, 36.7% 7.6%, 40.6% 10.1%, 43.8% 13.1%, 46.2% 16.3%, 48.0% 19.5%, 49.1% 22.3%, 49.7% 24.5%, 50.0% 25.9%); -webkit-clip-path: polygon(50.0% 26.4%, 50.0% 25.9%, 50.3% 24.5%, 50.9% 22.3%, 52.0% 19.5%, 53.8% 16.3%, 56.2% 13.1%, 59.4% 10.1%, 63.3% 7.6%, 67.7% 5.8%, 72.5% 4.8%, 77.5% 4.9%, 82.5% 6.1%, 87.2% 8.2%, 91.5% 11.3%, 95.1% 15.1%, 97.8% 19.6%, 99.4% 24.4%, 100.0% 29.5%, 99.4% 34.7%, 97.8% 39.9%, 95.1% 45.0%, 91.5% 49.9%, 87.2% 54.6%, 82.5% 59.2%, 77.5% 63.6%, 72.5% 67.9%, 67.7% 72.0%, 63.3% 76.0%, 59.4% 79.9%, 56.3% 83.5%, 53.8% 86.7%, 52.0% 89.6%, 50.9% 91.9%, 50.3% 93.7%, 50.0% 94.8%, 50.0% 95.2%, 50.0% 94.8%, 49.7% 93.7%, 49.1% 91.9%, 48.0% 89.6%, 46.2% 86.7%, 43.7% 83.5%, 40.6% 79.9%, 36.7% 76.0%, 32.3% 72.0%, 27.5% 67.9%, 22.5% 63.6%, 17.5% 59.2%, 12.8% 54.6%, 8.5% 49.9%, 4.9% 45.0%, 2.2% 39.9%, 0.6% 34.7%, 0.0% 29.5%, 0.6% 24.4%, 2.2% 19.6%, 4.9% 15.1%, 8.5% 11.3%, 12.8% 8.2%, 17.5% 6.1%, 22.5% 4.9%, 27.5% 4.8%, 32.3% 5.8%, 36.7% 7.6%, 40.6% 10.1%, 43.8% 13.1%, 46.2% 16.3%, 48.0% 19.5%, 49.1% 22.3%, 49.7% 24.5%, 50.0% 25.9%); border-radius: 0; width: 52%; height: 52%; box-shadow: none; }
+  :root[data-btn="star"] .rec-btn:not(.recording) .dot { clip-path: polygon(50.0% 2.4%, 64.8% 34.6%, 100.0% 38.8%, 74.0% 62.8%, 80.9% 97.6%, 50.0% 80.3%, 19.1% 97.6%, 26.0% 62.8%, 0.0% 38.8%, 35.2% 34.6%); -webkit-clip-path: polygon(50.0% 2.4%, 64.8% 34.6%, 100.0% 38.8%, 74.0% 62.8%, 80.9% 97.6%, 50.0% 80.3%, 19.1% 97.6%, 26.0% 62.8%, 0.0% 38.8%, 35.2% 34.6%); border-radius: 0; width: 52%; height: 52%; box-shadow: none; }
+  :root[data-btn="flower"] .rec-btn:not(.recording) .dot { clip-path: polygon(50.0% 2.1%, 54.4% 3.7%, 58.2% 8.0%, 60.7% 14.3%, 62.0% 21.4%, 62.4% 27.9%, 62.5% 32.7%, 63.2% 35.5%, 65.3% 36.1%, 69.3% 35.1%, 75.0% 33.4%, 81.9% 32.0%, 88.9% 31.9%, 95.0% 33.4%, 98.9% 36.6%, 100.0% 41.0%, 98.1% 45.9%, 93.6% 50.5%, 87.6% 54.3%, 81.3% 57.1%, 76.0% 58.9%, 72.7% 60.4%, 71.8% 62.3%, 73.2% 65.2%, 76.3% 69.5%, 79.8% 75.2%, 82.7% 81.8%, 83.9% 88.3%, 83.0% 93.7%, 79.9% 97.1%, 75.2% 97.9%, 69.4% 96.1%, 63.7% 92.1%, 58.8% 87.0%, 54.9% 82.1%, 52.1% 78.6%, 50.0% 77.3%, 47.9% 78.6%, 45.1% 82.1%, 41.2% 87.0%, 36.3% 92.1%, 30.6% 96.1%, 24.8% 97.9%, 20.1% 97.1%, 17.0% 93.7%, 16.1% 88.3%, 17.3% 81.8%, 20.2% 75.2%, 23.7% 69.5%, 26.8% 65.2%, 28.2% 62.3%, 27.3% 60.4%, 24.0% 58.9%, 18.7% 57.1%, 12.4% 54.3%, 6.4% 50.5%, 1.9% 45.9%, 0.0% 41.0%, 1.1% 36.6%, 5.0% 33.4%, 11.1% 31.9%, 18.1% 32.0%, 25.0% 33.4%, 30.7% 35.1%, 34.7% 36.1%, 36.8% 35.5%, 37.5% 32.7%, 37.6% 27.9%, 38.0% 21.4%, 39.3% 14.3%, 41.8% 8.0%, 45.6% 3.7%); -webkit-clip-path: polygon(50.0% 2.1%, 54.4% 3.7%, 58.2% 8.0%, 60.7% 14.3%, 62.0% 21.4%, 62.4% 27.9%, 62.5% 32.7%, 63.2% 35.5%, 65.3% 36.1%, 69.3% 35.1%, 75.0% 33.4%, 81.9% 32.0%, 88.9% 31.9%, 95.0% 33.4%, 98.9% 36.6%, 100.0% 41.0%, 98.1% 45.9%, 93.6% 50.5%, 87.6% 54.3%, 81.3% 57.1%, 76.0% 58.9%, 72.7% 60.4%, 71.8% 62.3%, 73.2% 65.2%, 76.3% 69.5%, 79.8% 75.2%, 82.7% 81.8%, 83.9% 88.3%, 83.0% 93.7%, 79.9% 97.1%, 75.2% 97.9%, 69.4% 96.1%, 63.7% 92.1%, 58.8% 87.0%, 54.9% 82.1%, 52.1% 78.6%, 50.0% 77.3%, 47.9% 78.6%, 45.1% 82.1%, 41.2% 87.0%, 36.3% 92.1%, 30.6% 96.1%, 24.8% 97.9%, 20.1% 97.1%, 17.0% 93.7%, 16.1% 88.3%, 17.3% 81.8%, 20.2% 75.2%, 23.7% 69.5%, 26.8% 65.2%, 28.2% 62.3%, 27.3% 60.4%, 24.0% 58.9%, 18.7% 57.1%, 12.4% 54.3%, 6.4% 50.5%, 1.9% 45.9%, 0.0% 41.0%, 1.1% 36.6%, 5.0% 33.4%, 11.1% 31.9%, 18.1% 32.0%, 25.0% 33.4%, 30.7% 35.1%, 34.7% 36.1%, 36.8% 35.5%, 37.5% 32.7%, 37.6% 27.9%, 38.0% 21.4%, 39.3% 14.3%, 41.8% 8.0%, 45.6% 3.7%); border-radius: 0; width: 52%; height: 52%; box-shadow: none; }
+  :root[data-btn="cat"] .rec-btn:not(.recording) .dot { clip-path: polygon(50.0% 7.3%, 54.2% 7.5%, 58.4% 8.0%, 62.5% 8.9%, 67.6% 7.3%, 74.0% 4.3%, 81.1% 2.0%, 88.7% 0.5%, 96.9% 0.0%, 99.7% 6.0%, 99.7% 13.6%, 98.7% 20.9%, 96.8% 27.7%, 94.1% 33.9%, 95.4% 37.8%, 96.6% 41.6%, 97.6% 45.6%, 98.1% 49.6%, 98.3% 53.6%, 98.1% 57.7%, 97.6% 61.7%, 96.6% 65.6%, 95.4% 69.5%, 93.8% 73.2%, 91.8% 76.8%, 89.6% 80.2%, 87.0% 83.4%, 84.1% 86.4%, 81.0% 89.2%, 77.7% 91.6%, 74.1% 93.8%, 70.4% 95.7%, 66.5% 97.2%, 62.5% 98.4%, 58.4% 99.3%, 54.2% 99.8%, 50.0% 100.0%, 45.8% 99.8%, 41.6% 99.3%, 37.5% 98.4%, 33.5% 97.2%, 29.6% 95.7%, 25.9% 93.8%, 22.3% 91.6%, 19.0% 89.2%, 15.9% 86.4%, 13.0% 83.4%, 10.4% 80.2%, 8.2% 76.8%, 6.2% 73.2%, 4.6% 69.5%, 3.4% 65.6%, 2.4% 61.7%, 1.9% 57.7%, 1.7% 53.6%, 1.9% 49.6%, 2.4% 45.6%, 3.4% 41.6%, 4.6% 37.8%, 5.9% 33.9%, 3.2% 27.7%, 1.3% 20.9%, 0.3% 13.6%, 0.3% 6.0%, 3.1% 0.0%, 11.3% 0.5%, 18.9% 2.0%, 26.0% 4.3%, 32.4% 7.3%, 37.5% 8.9%, 41.6% 8.0%, 45.8% 7.5%); -webkit-clip-path: polygon(50.0% 7.3%, 54.2% 7.5%, 58.4% 8.0%, 62.5% 8.9%, 67.6% 7.3%, 74.0% 4.3%, 81.1% 2.0%, 88.7% 0.5%, 96.9% 0.0%, 99.7% 6.0%, 99.7% 13.6%, 98.7% 20.9%, 96.8% 27.7%, 94.1% 33.9%, 95.4% 37.8%, 96.6% 41.6%, 97.6% 45.6%, 98.1% 49.6%, 98.3% 53.6%, 98.1% 57.7%, 97.6% 61.7%, 96.6% 65.6%, 95.4% 69.5%, 93.8% 73.2%, 91.8% 76.8%, 89.6% 80.2%, 87.0% 83.4%, 84.1% 86.4%, 81.0% 89.2%, 77.7% 91.6%, 74.1% 93.8%, 70.4% 95.7%, 66.5% 97.2%, 62.5% 98.4%, 58.4% 99.3%, 54.2% 99.8%, 50.0% 100.0%, 45.8% 99.8%, 41.6% 99.3%, 37.5% 98.4%, 33.5% 97.2%, 29.6% 95.7%, 25.9% 93.8%, 22.3% 91.6%, 19.0% 89.2%, 15.9% 86.4%, 13.0% 83.4%, 10.4% 80.2%, 8.2% 76.8%, 6.2% 73.2%, 4.6% 69.5%, 3.4% 65.6%, 2.4% 61.7%, 1.9% 57.7%, 1.7% 53.6%, 1.9% 49.6%, 2.4% 45.6%, 3.4% 41.6%, 4.6% 37.8%, 5.9% 33.9%, 3.2% 27.7%, 1.3% 20.9%, 0.3% 13.6%, 0.3% 6.0%, 3.1% 0.0%, 11.3% 0.5%, 18.9% 2.0%, 26.0% 4.3%, 32.4% 7.3%, 37.5% 8.9%, 41.6% 8.0%, 45.8% 7.5%); border-radius: 0; width: 52%; height: 52%; box-shadow: none; }
+  :root[data-btn="cloud"] .rec-btn:not(.recording) .dot { clip-path: polygon(96.4% 50.0%, 98.2% 52.9%, 99.5% 56.0%, 100.0% 59.3%, 99.6% 62.5%, 98.3% 65.5%, 96.0% 68.3%, 92.9% 70.7%, 89.2% 72.5%, 85.1% 73.9%, 80.7% 74.8%, 78.1% 77.0%, 75.6% 79.8%, 72.6% 82.2%, 69.0% 84.1%, 64.9% 85.5%, 60.5% 86.1%, 56.0% 86.1%, 51.5% 85.4%, 47.4% 84.0%, 43.6% 82.3%, 39.7% 81.5%, 35.2% 81.9%, 30.7% 81.9%, 26.2% 81.3%, 22.1% 80.0%, 18.4% 78.1%, 15.5% 75.7%, 13.3% 72.9%, 11.9% 69.8%, 11.2% 66.6%, 10.7% 63.6%, 7.3% 61.5%, 4.3% 59.0%, 2.0% 56.2%, 0.5% 53.2%, 0.0% 50.0%, 0.5% 46.8%, 2.0% 43.8%, 4.3% 41.0%, 7.3% 38.5%, 10.7% 36.4%, 11.2% 33.4%, 11.9% 30.2%, 13.3% 27.1%, 15.5% 24.3%, 18.4% 21.9%, 22.1% 20.0%, 26.2% 18.7%, 30.7% 18.1%, 35.2% 18.1%, 39.7% 18.5%, 43.6% 17.7%, 47.4% 16.0%, 51.5% 14.6%, 56.0% 13.9%, 60.5% 13.9%, 64.9% 14.5%, 69.0% 15.9%, 72.6% 17.8%, 75.6% 20.2%, 78.1% 23.0%, 80.7% 25.2%, 85.1% 26.1%, 89.2% 27.5%, 92.9% 29.3%, 96.0% 31.7%, 98.3% 34.5%, 99.6% 37.5%, 100.0% 40.7%, 99.5% 44.0%, 98.2% 47.1%); -webkit-clip-path: polygon(96.4% 50.0%, 98.2% 52.9%, 99.5% 56.0%, 100.0% 59.3%, 99.6% 62.5%, 98.3% 65.5%, 96.0% 68.3%, 92.9% 70.7%, 89.2% 72.5%, 85.1% 73.9%, 80.7% 74.8%, 78.1% 77.0%, 75.6% 79.8%, 72.6% 82.2%, 69.0% 84.1%, 64.9% 85.5%, 60.5% 86.1%, 56.0% 86.1%, 51.5% 85.4%, 47.4% 84.0%, 43.6% 82.3%, 39.7% 81.5%, 35.2% 81.9%, 30.7% 81.9%, 26.2% 81.3%, 22.1% 80.0%, 18.4% 78.1%, 15.5% 75.7%, 13.3% 72.9%, 11.9% 69.8%, 11.2% 66.6%, 10.7% 63.6%, 7.3% 61.5%, 4.3% 59.0%, 2.0% 56.2%, 0.5% 53.2%, 0.0% 50.0%, 0.5% 46.8%, 2.0% 43.8%, 4.3% 41.0%, 7.3% 38.5%, 10.7% 36.4%, 11.2% 33.4%, 11.9% 30.2%, 13.3% 27.1%, 15.5% 24.3%, 18.4% 21.9%, 22.1% 20.0%, 26.2% 18.7%, 30.7% 18.1%, 35.2% 18.1%, 39.7% 18.5%, 43.6% 17.7%, 47.4% 16.0%, 51.5% 14.6%, 56.0% 13.9%, 60.5% 13.9%, 64.9% 14.5%, 69.0% 15.9%, 72.6% 17.8%, 75.6% 20.2%, 78.1% 23.0%, 80.7% 25.2%, 85.1% 26.1%, 89.2% 27.5%, 92.9% 29.3%, 96.0% 31.7%, 98.3% 34.5%, 99.6% 37.5%, 100.0% 40.7%, 99.5% 44.0%, 98.2% 47.1%); border-radius: 0; width: 52%; height: 52%; box-shadow: none; }
+
+  /* ---- きせかえ：共通 ---- */
+  :root[data-font="round"] body, :root[data-font="round"] input, :root[data-font="round"] textarea, :root[data-font="round"] select {
     font-family: "Hiragino Maru Gothic ProN", "Hiragino Maru Gothic Pro", "M PLUS Rounded 1c", "Zen Maru Gothic", "Kosugi Maru", "Arial Rounded MT Bold", "Hiragino Sans", "Noto Sans JP", sans-serif;
   }
-  body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity .3s; background-image: var(--pat); background-size: 56px 56px; }
-  :root[data-deco="1"] body::before { opacity: .55; }
-  :root[data-deco="1"][data-theme="dark"] body::before { opacity: .3; }
-  .skin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+  :root[data-font="mincho"] body, :root[data-font="mincho"] input, :root[data-font="mincho"] textarea, :root[data-font="mincho"] select {
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", "Noto Serif CJK JP", serif;
+  }
+  button.btn.primary, .playbig .pic { color: var(--on-accent, #fff); }
+  /* 模様（背景） */
+  body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity .3s; background-image: var(--pat, none); background-size: var(--pat-size, 56px 56px); }
+  :root[data-pat]:not([data-pat="none"]) body::before { opacity: .6; }
+  :root[data-theme="dark"][data-pat]:not([data-pat="none"]) body::before { opacity: .35; }
+  /* 写真の壁紙 */
+  #wall { position: fixed; inset: 0; z-index: -2; pointer-events: none; display: none; background: var(--wall) center / cover no-repeat; }
+  #wall::after { content: ""; position: absolute; inset: 0; background: var(--bg); opacity: var(--wall-dim, .35); }
+  :root[data-wall="1"] #wall { display: block; }
+  :root[data-wall="1"] body { background: transparent; }
+  /* カードの見た目 */
+  :root[data-card="solid"] .card { background: linear-gradient(var(--panel), var(--panel)), var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  :root[data-card="pop"] .card { border: 2.5px solid color-mix(in srgb, var(--accent) 55%, var(--text)); box-shadow: 5px 6px 0 color-mix(in srgb, var(--accent) 40%, transparent); }
+  :root[data-card="pop"] button.btn { border-width: 2px; border-color: color-mix(in srgb, var(--accent) 35%, var(--btn-b)); box-shadow: 0 3px 0 color-mix(in srgb, var(--accent) 30%, transparent); }
+  :root[data-card="pop"] button.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 30%, transparent); }
+  :root[data-card="pop"] .tabbar { border: 2.5px solid color-mix(in srgb, var(--accent) 55%, var(--text)); box-shadow: 4px 5px 0 color-mix(in srgb, var(--accent) 40%, transparent); }
+  :root[data-card="note"] .card {
+    border: 2px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+    background: repeating-linear-gradient(180deg, transparent 0 29px, color-mix(in srgb, var(--accent) 9%, transparent) 29px 30px), var(--panel);
+    box-shadow: 0 6px 18px rgba(60,50,140,.06);
+  }
+  /* 角の丸さ */
+  :root[data-radius="small"] { --radius: 12px; --r-btn: 10px; }
+  :root[data-radius="round"] { --radius: 34px; --r-btn: 26px; }
+  button.btn { border-radius: var(--r-btn, 16px); }
+  :root[data-radius="small"] .tabbar { border-radius: 16px; }
+  :root[data-radius="small"] .tabbar button { border-radius: 10px; }
+  /* 録音ボタンの色：テーマの色 */
+  :root[data-recc="theme"] { --rec: var(--accent); }
+  :root[data-recc="theme"] .rec-btn .dot { background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--accent-2) 55%, #fff) 0%, var(--accent) 62%, color-mix(in srgb, var(--accent) 75%, #000) 100%); box-shadow: 0 6px 14px color-mix(in srgb, var(--accent) 45%, transparent); }
+  :root[data-recc="theme"] .rec-btn { box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 12%, transparent), 0 0 0 1px var(--border), 0 18px 38px color-mix(in srgb, var(--accent) 24%, transparent); }
+  :root[data-recc="theme"] .rec-btn.recording {
+    box-shadow:
+      0 0 0 calc(7px + var(--lvl, 0) * 20px) color-mix(in srgb, var(--accent) calc(16% + var(--lvl, 0) * 14%), transparent),
+      0 0 0 calc(2px + var(--lvl, 0) * 34px) color-mix(in srgb, var(--accent) 8%, transparent),
+      0 18px 38px color-mix(in srgb, var(--accent) 32%, transparent);
+  }
+  /* 録音ボタンの形は止まっている時だけ（録音中は■で「止める」がわかるように） */
+  .rec-btn .dot { transition: border-radius .2s, width .2s, height .2s, clip-path .2s; }
+
+  /* ---- きせかえタブ ---- */
+  .tabbar { grid-template-columns: repeat(5, 1fr); }
+  .tabbar button { font-size: .64rem; }
+  .look-prev:not(.on) { display: none; }
+  .look-prev.on { display: flex; }
+  .card.look-prev { background: linear-gradient(var(--panel), var(--panel)), var(--bg); box-shadow: 0 12px 30px rgba(40,30,110,.16); }
+  .look-prev { flex-direction: column; align-items: center; gap: 6px; padding: 12px 16px; position: sticky; top: 8px; z-index: 6; }
+  .look-prev .lp-title { font-size: 1.05rem !important; }
+  .look-prev .lp-title { font-size: 1.35rem; font-weight: 800; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; line-height: 1.1; text-align: center; }
+  .look-prev .lp-title small { display: block; font-size: .7rem; letter-spacing: .18em; -webkit-text-fill-color: var(--muted); font-weight: 600; margin-top: 4px; }
+  .look-prev .lp-row { display: flex; align-items: center; gap: 16px; width: 100%; }
+  .rec-btn.mini { width: 64px; height: 64px; flex-shrink: 0; pointer-events: none; }
+  .rec-btn.mini .dot { width: 28px; height: 28px; }
+  :root[data-btn]:not([data-btn="circle"]) .rec-btn.mini .dot { width: 52%; height: 52%; }
+  #lookWave { flex: 1; height: 60px; min-width: 0; display: block; }
+  .look-prev .lp-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+  .look-prev .lp-btns .btn { min-height: 44px; pointer-events: none; }
+  .opt-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+  .opt-grid.three { grid-template-columns: repeat(3, 1fr); }
+  .opt-grid button {
+    font: inherit; font-size: .74rem; font-weight: 700; color: var(--text); cursor: pointer; line-height: 1.25;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 10px 2px 8px; min-height: 74px;
+    background: var(--panel-2); border: 1.5px solid var(--border); border-radius: 14px; position: relative; overflow: hidden;
+  }
+  .opt-grid button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); color: var(--accent); }
+  .opt-grid button .ico { font-size: 1.5rem; line-height: 1; }
+  .opt-grid button canvas { width: 100%; height: 30px; display: block; }
+  .opt-grid button .shape { width: 30px; height: 30px; background: var(--rec); }
+  :root[data-recc="theme"] .opt-grid button .shape { background: var(--grad); }
+  .opt-grid button .patbox { width: 100%; height: 34px; border-radius: 8px; background-color: var(--panel); background-size: 28px 28px; border: 1px solid var(--border); }
+  .skin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 4px; }
   .skin-grid button {
-    font: inherit; font-size: .74rem; font-weight: 700; color: var(--text); cursor: pointer;
+    font: inherit; font-size: .72rem; font-weight: 700; color: var(--text); cursor: pointer;
     display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 2px 8px;
-    background: var(--panel-2); border: 1.5px solid var(--border); border-radius: 14px;
+    background: var(--panel-2); border: 1.5px solid var(--border); border-radius: 14px; position: relative;
   }
   .skin-grid button i { width: 34px; height: 34px; border-radius: 50%; box-shadow: inset 0 0 0 3px rgba(255,255,255,.6), 0 3px 8px rgba(0,0,0,.12); }
   .skin-grid button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
   .skin-grid button.on i { outline: 2px solid var(--accent); outline-offset: 2px; }
-  :root[data-skin][data-theme="dark"] { --bg: #0e0d1a; --panel: rgba(27,26,46,.92); --panel-2: #22213a; --border: #302f50; --text: #ecebfb; --muted: #9a98c0; --btn: #272642; --btn-b: #383659; --btn-press: #302f50; --sub: #1f1e36; --tabbar: rgba(24,23,41,.88); --dim: rgba(14,13,26,.66); }
-  @media (prefers-color-scheme: dark) { :root[data-skin]:not([data-theme="light"]) { --bg: #0e0d1a; --panel: rgba(27,26,46,.92); --panel-2: #22213a; --border: #302f50; --text: #ecebfb; --muted: #9a98c0; --btn: #272642; --btn-b: #383659; --btn-press: #302f50; --sub: #1f1e36; --tabbar: rgba(24,23,41,.88); --dim: rgba(14,13,26,.66); } }
-  :root { --pat: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2256%22%20height%3D%2256%22%3E%3Cpath%20d%3D%22M14%208v11.5a3%203%200%201%201-2-2.8V6l9-2v3z%22%20fill%3D%22%235b5bf033%22/%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2240%22%20r%3D%222%22%20fill%3D%22%235b5bf033%22/%3E%3C/svg%3E"); }
-  :root[data-skin="lavender"][data-theme="dark"] { --accent: #8c8cff; --accent-2: #b48cff; --grad: linear-gradient(135deg, #8c8cff 0%, #b48cff 100%); --wave: #4a4872; --wave-sel: #8c8cff; }
-  @media (prefers-color-scheme: dark) { :root[data-skin="lavender"]:not([data-theme="light"]) { --accent: #8c8cff; --accent-2: #b48cff; --grad: linear-gradient(135deg, #8c8cff 0%, #b48cff 100%); --wave: #4a4872; --wave-sel: #8c8cff; } }
-  :root[data-skin="sakura"] { --accent: #f0508c; --accent-2: #ff9ac1; --grad: linear-gradient(135deg, #f0508c 0%, #ff9ac1 100%); --bg: #fff3f7; --panel-2: #fff5f9; --border: #f6dfe9; --btn: #fff4f8; --btn-b: #f4d6e3; --btn-press: #fde6ef; --sub: #fffafc; --wave: #f3c4d6; --wave-sel: #f0508c; --text: #3b1d2b; --muted: #9b7286; --dim: color-mix(in srgb, #fff3f7 66%, transparent); --pat: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2256%22%20height%3D%2256%22%3E%3Cpath%20d%3D%22M14%2020s-7-4.4-7-9a4%204%200%200%201%207-2.6A4%204%200%200%201%2021%2011c0%204.6-7%209-7%209z%22%20fill%3D%22%23f0508c33%22/%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2242%22%20r%3D%222%22%20fill%3D%22%23f0508c33%22/%3E%3C/svg%3E"); }
-  :root[data-skin="sakura"][data-theme="dark"] { --accent: #ff7aab; --accent-2: #ffb0cc; --grad: linear-gradient(135deg, #ff7aab 0%, #ffb0cc 100%); --wave: #6e4558; --wave-sel: #ff7aab; }
-  @media (prefers-color-scheme: dark) { :root[data-skin="sakura"]:not([data-theme="light"]) { --accent: #ff7aab; --accent-2: #ffb0cc; --grad: linear-gradient(135deg, #ff7aab 0%, #ffb0cc 100%); --wave: #6e4558; --wave-sel: #ff7aab; } }
-  :root[data-skin="mint"] { --accent: #0fa883; --accent-2: #57d1b0; --grad: linear-gradient(135deg, #0fa883 0%, #57d1b0 100%); --bg: #effaf6; --panel-2: #f0faf6; --border: #d9efe7; --btn: #f0faf6; --btn-b: #cfe9df; --btn-press: #e2f5ee; --sub: #f8fdfb; --wave: #b5e3d4; --wave-sel: #0fa883; --text: #14302a; --muted: #6a8a82; --dim: color-mix(in srgb, #effaf6 66%, transparent); --pat: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2256%22%20height%3D%2256%22%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2214%22%20r%3D%223%22%20fill%3D%22%230fa88333%22/%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2242%22%20r%3D%222%22%20fill%3D%22%230fa88333%22/%3E%3C/svg%3E"); }
-  :root[data-skin="mint"][data-theme="dark"] { --accent: #4fd8b0; --accent-2: #8ce8cf; --grad: linear-gradient(135deg, #4fd8b0 0%, #8ce8cf 100%); --wave: #3c6359; --wave-sel: #4fd8b0; }
-  @media (prefers-color-scheme: dark) { :root[data-skin="mint"]:not([data-theme="light"]) { --accent: #4fd8b0; --accent-2: #8ce8cf; --grad: linear-gradient(135deg, #4fd8b0 0%, #8ce8cf 100%); --wave: #3c6359; --wave-sel: #4fd8b0; } }
-  :root[data-skin="soda"] { --accent: #1f8ef1; --accent-2: #56cfff; --grad: linear-gradient(135deg, #1f8ef1 0%, #56cfff 100%); --bg: #eef6ff; --panel-2: #f0f7ff; --border: #d8e8f8; --btn: #f0f7ff; --btn-b: #d0e2f5; --btn-press: #e1eefc; --sub: #f8fbff; --wave: #b7d6f3; --wave-sel: #1f8ef1; --text: #132a40; --muted: #6a8299; --dim: color-mix(in srgb, #eef6ff 66%, transparent); --pat: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2256%22%20height%3D%2256%22%3E%3Cpath%20d%3D%22M14%206l2%206%206%202-6%202-2%206-2-6-6-2%206-2z%22%20fill%3D%22%231f8ef133%22/%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2242%22%20r%3D%222%22%20fill%3D%22%231f8ef133%22/%3E%3C/svg%3E"); }
-  :root[data-skin="soda"][data-theme="dark"] { --accent: #5fb1ff; --accent-2: #8fe0ff; --grad: linear-gradient(135deg, #5fb1ff 0%, #8fe0ff 100%); --wave: #3d5a78; --wave-sel: #5fb1ff; }
-  @media (prefers-color-scheme: dark) { :root[data-skin="soda"]:not([data-theme="light"]) { --accent: #5fb1ff; --accent-2: #8fe0ff; --grad: linear-gradient(135deg, #5fb1ff 0%, #8fe0ff 100%); --wave: #3d5a78; --wave-sel: #5fb1ff; } }
-  :root[data-skin="peach"] { --accent: #f2643f; --accent-2: #ffad66; --grad: linear-gradient(135deg, #f2643f 0%, #ffad66 100%); --bg: #fff5ef; --panel-2: #fff6f1; --border: #f6e2d8; --btn: #fff5f0; --btn-b: #f3d8ca; --btn-press: #fde8dd; --sub: #fffbf8; --wave: #f5cbb6; --wave-sel: #f2643f; --text: #3a2219; --muted: #9a7a6c; --dim: color-mix(in srgb, #fff5ef 66%, transparent); --pat: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2256%22%20height%3D%2256%22%3E%3Cg%20fill%3D%22%23f2643f33%22%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%229%22%20r%3D%223%22/%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2214%22%20r%3D%223%22/%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2219%22%20r%3D%223%22/%3E%3Ccircle%20cx%3D%229%22%20cy%3D%2214%22%20r%3D%223%22/%3E%3C/g%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2242%22%20r%3D%222%22%20fill%3D%22%23f2643f33%22/%3E%3C/svg%3E"); }
-  :root[data-skin="peach"][data-theme="dark"] { --accent: #ff8a66; --accent-2: #ffc28f; --grad: linear-gradient(135deg, #ff8a66 0%, #ffc28f 100%); --wave: #6e4a3d; --wave-sel: #ff8a66; }
-  @media (prefers-color-scheme: dark) { :root[data-skin="peach"]:not([data-theme="light"]) { --accent: #ff8a66; --accent-2: #ffc28f; --grad: linear-gradient(135deg, #ff8a66 0%, #ffc28f 100%); --wave: #6e4a3d; --wave-sel: #ff8a66; } }
-  :root[data-skin="choco"] { --accent: #8a5a44; --accent-2: #c79a73; --grad: linear-gradient(135deg, #8a5a44 0%, #c79a73 100%); --bg: #faf5f0; --panel-2: #f8f2ec; --border: #ece0d5; --btn: #f7f1eb; --btn-b: #e5d7ca; --btn-press: #efe5db; --sub: #fdfaf7; --wave: #dcc8b6; --wave-sel: #8a5a44; --text: #2e2018; --muted: #8a786c; --dim: color-mix(in srgb, #faf5f0 66%, transparent); --pat: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2256%22%20height%3D%2256%22%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2214%22%20r%3D%223%22%20fill%3D%22%238a5a4433%22/%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2242%22%20r%3D%222%22%20fill%3D%22%238a5a4433%22/%3E%3C/svg%3E"); }
-  :root[data-skin="choco"][data-theme="dark"] { --accent: #d4a27f; --accent-2: #e8c4a0; --grad: linear-gradient(135deg, #d4a27f 0%, #e8c4a0 100%); --wave: #5c4a3e; --wave-sel: #d4a27f; }
-  @media (prefers-color-scheme: dark) { :root[data-skin="choco"]:not([data-theme="light"]) { --accent: #d4a27f; --accent-2: #e8c4a0; --grad: linear-gradient(135deg, #d4a27f 0%, #e8c4a0 100%); --wave: #5c4a3e; --wave-sel: #d4a27f; } }
-  :root[data-skin="mono"] { --accent: #2c2c36; --accent-2: #6b6b7b; --grad: linear-gradient(135deg, #2c2c36 0%, #6b6b7b 100%); --bg: #f2f2f5; --panel-2: #f4f4f7; --border: #e2e2e8; --btn: #f4f4f7; --btn-b: #dcdce3; --btn-press: #e8e8ee; --sub: #fafafc; --wave: #c8c8d2; --wave-sel: #2c2c36; --text: #18181f; --muted: #77778a; --dim: color-mix(in srgb, #f2f2f5 66%, transparent); --pat: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2256%22%20height%3D%2256%22%3E%3Cpath%20d%3D%22M14%206l2%206%206%202-6%202-2%206-2-6-6-2%206-2z%22%20fill%3D%22%232c2c3633%22/%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2242%22%20r%3D%222%22%20fill%3D%22%232c2c3633%22/%3E%3C/svg%3E"); }
-  :root[data-skin="mono"][data-theme="dark"] { --accent: #d8d8e4; --accent-2: #a0a0b4; --grad: linear-gradient(135deg, #d8d8e4 0%, #a0a0b4 100%); --wave: #4a4a58; --wave-sel: #d8d8e4; }
-  @media (prefers-color-scheme: dark) { :root[data-skin="mono"]:not([data-theme="light"]) { --accent: #d8d8e4; --accent-2: #a0a0b4; --grad: linear-gradient(135deg, #d8d8e4 0%, #a0a0b4 100%); --wave: #4a4a58; --wave-sel: #d8d8e4; } }
-  :root[data-skin="mono"][data-theme="dark"] button.btn.primary, :root[data-skin="mono"][data-theme="dark"] .playbig .pic { color: #18181f; }
-  @media (prefers-color-scheme: dark) { :root[data-skin="mono"]:not([data-theme="light"]) button.btn.primary, :root[data-skin="mono"]:not([data-theme="light"]) .playbig .pic { color: #18181f; } }
+  .skin-grid label.custom { cursor: pointer; }
+  .skin-grid input[type=color] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: 0; padding: 0; }
+  .skin-grid .rainbow { background: conic-gradient(#ff5c8a, #ffb347, #ffe066, #6be3a4, #5cc8ff, #9a7cff, #ff5c8a); }
+  .look-row { display: flex; gap: 8px; margin-top: 10px; }
+  .look-row .btn { flex: 1; min-height: 46px; }
+  .look-input { width: 100%; font: inherit; font-size: 16px; color: var(--text); background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-top: 8px; outline: none; }
+  .look-input:focus { border-color: var(--accent); }
+  .look-label { font-size: .78rem; font-weight: 700; color: var(--muted); margin-top: 12px; letter-spacing: .04em; }
+  .look-range { width: 100%; margin-top: 6px; height: 28px; }
+  .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+  .preset-grid button { font: inherit; font-weight: 700; font-size: .86rem; color: #fff; border: 0; border-radius: 16px; min-height: 60px; cursor: pointer; text-shadow: 0 1px 2px rgba(0,0,0,.2); box-shadow: 0 6px 14px rgba(0,0,0,.12); }
+  .preset-grid button small { display: block; font-size: .66rem; font-weight: 600; opacity: .92; margin-top: 2px; }
+  .preset-grid button.dice { background: var(--btn); color: var(--text); border: 1.5px dashed var(--accent); text-shadow: none; box-shadow: none; }
   .sheet-body { background: linear-gradient(var(--panel), var(--panel)), var(--bg); }
   input[type=checkbox], input[type=range] { accent-color: var(--accent); }
 </style>
 </head>
 <body>
+<div id="wall" aria-hidden="true"></div>
 <div class="app">
   <div class="brand">
     <div class="logo" aria-hidden="true">
@@ -1214,7 +1324,103 @@
     </div>
     <p class="hint">機種変更やデータ消えに備えて、ときどき「まとめて書き出す」でバックアップしておくと安心です。</p>
   </section>
+  <!-- 🎀 きせかえ -->
+  <section class="card look-prev" data-tab="look" id="lookPrev">
+    <div class="lp-title" id="lpTitle">Hibiki<small>録る・整える・磨く</small></div>
+    <div class="lp-row">
+      <div class="rec-btn mini" aria-hidden="true"><span class="dot"></span></div>
+      <canvas id="lookWave" aria-hidden="true"></canvas>
+    </div>
+  </section>
+
+  <section class="card" data-tab="look">
+    <h2>✨ おまかせセット</h2>
+    <div class="preset-grid" id="presetGrid"><button data-preset="0" style="background:linear-gradient(135deg,#f45fae,#b98cff,#7fb3ff)">ゆめかわ<small>ハート・キャンディ</small></button><button data-preset="1" style="background:linear-gradient(135deg,#1a1e58,#7b8cff)">よぞら<small>星・ドット</small></button><button data-preset="2" style="background:linear-gradient(135deg,#8a5a44,#c79a73)">カフェ<small>ねこ・ノート・明朝</small></button><button data-preset="3" style="background:linear-gradient(135deg,#00c8f0,#ff3df2)">ネオン<small>やま・シャープ</small></button><button data-preset="4" style="background:linear-gradient(135deg,#5a8a32,#a3c062)">抹茶<small>お花・なみ</small></button><button data-preset="5" style="background:linear-gradient(135deg,#1f8ef1,#56cfff)">ソーダ<small>くも・チェック</small></button><button data-preset="6" style="background:linear-gradient(135deg,#2c2c36,#6b6b7b)">シンプル<small>定番の録音アプリ風</small></button><button class="dice" id="lookRandom">🎲 ランダム<small>なにが出るかな</small></button></div>
+  </section>
+
+  <section class="card" data-tab="look">
+    <h2>🎨 いろ</h2>
+    <div class="skin-grid" id="skinGrid"><button data-skin="lavender"><i style="background:linear-gradient(135deg,#5b5bf0,#9a5cf5)"></i>ラベンダー</button><button data-skin="sakura"><i style="background:linear-gradient(135deg,#f0508c,#ff9ac1)"></i>さくら</button><button data-skin="yumekawa"><i style="background:linear-gradient(135deg, #f45fae, #b98cff, #7fb3ff)"></i>ゆめかわ</button><button data-skin="mint"><i style="background:linear-gradient(135deg,#0fa883,#57d1b0)"></i>ミント</button><button data-skin="matcha"><i style="background:linear-gradient(135deg,#5a8a32,#a3c062)"></i>抹茶</button><button data-skin="soda"><i style="background:linear-gradient(135deg,#1f8ef1,#56cfff)"></i>ソーダ</button><button data-skin="lemon"><i style="background:linear-gradient(135deg,#e09a00,#ffd23f)"></i>レモン</button><button data-skin="peach"><i style="background:linear-gradient(135deg,#f2643f,#ffad66)"></i>ピーチ</button><button data-skin="choco"><i style="background:linear-gradient(135deg,#8a5a44,#c79a73)"></i>カフェ</button><button data-skin="mono"><i style="background:linear-gradient(135deg,#2c2c36,#6b6b7b)"></i>モノクロ</button><button data-skin="yozora"><i style="background:linear-gradient(135deg,#7b8cff,#c08cff)"></i>よぞら</button><button data-skin="neon"><i style="background:linear-gradient(135deg,#00c8f0,#ff3df2)"></i>ネオン</button><button data-skin="custom" class="custom-btn"><i class="rainbow" id="customSw"></i>じぶん色<input type="color" id="customColor" value="#ff6fae" aria-label="好きな色を選ぶ"></button></div>
+    <div class="look-label">画面の明るさ</div>
+    <div class="seg" id="themeSeg2"><button data-themev="auto">自動</button><button data-themev="light">明るい</button><button data-themev="dark">暗い</button></div>
+  </section>
+
+  <section class="card" data-tab="look">
+    <h2>⏺ 録音ボタン</h2>
+    <div class="look-label" style="margin-top:0">かたち（止まっている時）</div>
+    <div class="opt-grid three" id="btnGrid"><button data-btn="circle"><span class="shape" style="border-radius:50%"></span>まる</button><button data-btn="heart"><span class="shape" style="clip-path:polygon(50.0% 26.4%, 50.0% 25.9%, 50.3% 24.5%, 50.9% 22.3%, 52.0% 19.5%, 53.8% 16.3%, 56.2% 13.1%, 59.4% 10.1%, 63.3% 7.6%, 67.7% 5.8%, 72.5% 4.8%, 77.5% 4.9%, 82.5% 6.1%, 87.2% 8.2%, 91.5% 11.3%, 95.1% 15.1%, 97.8% 19.6%, 99.4% 24.4%, 100.0% 29.5%, 99.4% 34.7%, 97.8% 39.9%, 95.1% 45.0%, 91.5% 49.9%, 87.2% 54.6%, 82.5% 59.2%, 77.5% 63.6%, 72.5% 67.9%, 67.7% 72.0%, 63.3% 76.0%, 59.4% 79.9%, 56.3% 83.5%, 53.8% 86.7%, 52.0% 89.6%, 50.9% 91.9%, 50.3% 93.7%, 50.0% 94.8%, 50.0% 95.2%, 50.0% 94.8%, 49.7% 93.7%, 49.1% 91.9%, 48.0% 89.6%, 46.2% 86.7%, 43.7% 83.5%, 40.6% 79.9%, 36.7% 76.0%, 32.3% 72.0%, 27.5% 67.9%, 22.5% 63.6%, 17.5% 59.2%, 12.8% 54.6%, 8.5% 49.9%, 4.9% 45.0%, 2.2% 39.9%, 0.6% 34.7%, 0.0% 29.5%, 0.6% 24.4%, 2.2% 19.6%, 4.9% 15.1%, 8.5% 11.3%, 12.8% 8.2%, 17.5% 6.1%, 22.5% 4.9%, 27.5% 4.8%, 32.3% 5.8%, 36.7% 7.6%, 40.6% 10.1%, 43.8% 13.1%, 46.2% 16.3%, 48.0% 19.5%, 49.1% 22.3%, 49.7% 24.5%, 50.0% 25.9%);-webkit-clip-path:polygon(50.0% 26.4%, 50.0% 25.9%, 50.3% 24.5%, 50.9% 22.3%, 52.0% 19.5%, 53.8% 16.3%, 56.2% 13.1%, 59.4% 10.1%, 63.3% 7.6%, 67.7% 5.8%, 72.5% 4.8%, 77.5% 4.9%, 82.5% 6.1%, 87.2% 8.2%, 91.5% 11.3%, 95.1% 15.1%, 97.8% 19.6%, 99.4% 24.4%, 100.0% 29.5%, 99.4% 34.7%, 97.8% 39.9%, 95.1% 45.0%, 91.5% 49.9%, 87.2% 54.6%, 82.5% 59.2%, 77.5% 63.6%, 72.5% 67.9%, 67.7% 72.0%, 63.3% 76.0%, 59.4% 79.9%, 56.3% 83.5%, 53.8% 86.7%, 52.0% 89.6%, 50.9% 91.9%, 50.3% 93.7%, 50.0% 94.8%, 50.0% 95.2%, 50.0% 94.8%, 49.7% 93.7%, 49.1% 91.9%, 48.0% 89.6%, 46.2% 86.7%, 43.7% 83.5%, 40.6% 79.9%, 36.7% 76.0%, 32.3% 72.0%, 27.5% 67.9%, 22.5% 63.6%, 17.5% 59.2%, 12.8% 54.6%, 8.5% 49.9%, 4.9% 45.0%, 2.2% 39.9%, 0.6% 34.7%, 0.0% 29.5%, 0.6% 24.4%, 2.2% 19.6%, 4.9% 15.1%, 8.5% 11.3%, 12.8% 8.2%, 17.5% 6.1%, 22.5% 4.9%, 27.5% 4.8%, 32.3% 5.8%, 36.7% 7.6%, 40.6% 10.1%, 43.8% 13.1%, 46.2% 16.3%, 48.0% 19.5%, 49.1% 22.3%, 49.7% 24.5%, 50.0% 25.9%)"></span>ハート</button><button data-btn="star"><span class="shape" style="clip-path:polygon(50.0% 2.4%, 64.8% 34.6%, 100.0% 38.8%, 74.0% 62.8%, 80.9% 97.6%, 50.0% 80.3%, 19.1% 97.6%, 26.0% 62.8%, 0.0% 38.8%, 35.2% 34.6%);-webkit-clip-path:polygon(50.0% 2.4%, 64.8% 34.6%, 100.0% 38.8%, 74.0% 62.8%, 80.9% 97.6%, 50.0% 80.3%, 19.1% 97.6%, 26.0% 62.8%, 0.0% 38.8%, 35.2% 34.6%)"></span>ほし</button><button data-btn="flower"><span class="shape" style="clip-path:polygon(50.0% 2.1%, 54.4% 3.7%, 58.2% 8.0%, 60.7% 14.3%, 62.0% 21.4%, 62.4% 27.9%, 62.5% 32.7%, 63.2% 35.5%, 65.3% 36.1%, 69.3% 35.1%, 75.0% 33.4%, 81.9% 32.0%, 88.9% 31.9%, 95.0% 33.4%, 98.9% 36.6%, 100.0% 41.0%, 98.1% 45.9%, 93.6% 50.5%, 87.6% 54.3%, 81.3% 57.1%, 76.0% 58.9%, 72.7% 60.4%, 71.8% 62.3%, 73.2% 65.2%, 76.3% 69.5%, 79.8% 75.2%, 82.7% 81.8%, 83.9% 88.3%, 83.0% 93.7%, 79.9% 97.1%, 75.2% 97.9%, 69.4% 96.1%, 63.7% 92.1%, 58.8% 87.0%, 54.9% 82.1%, 52.1% 78.6%, 50.0% 77.3%, 47.9% 78.6%, 45.1% 82.1%, 41.2% 87.0%, 36.3% 92.1%, 30.6% 96.1%, 24.8% 97.9%, 20.1% 97.1%, 17.0% 93.7%, 16.1% 88.3%, 17.3% 81.8%, 20.2% 75.2%, 23.7% 69.5%, 26.8% 65.2%, 28.2% 62.3%, 27.3% 60.4%, 24.0% 58.9%, 18.7% 57.1%, 12.4% 54.3%, 6.4% 50.5%, 1.9% 45.9%, 0.0% 41.0%, 1.1% 36.6%, 5.0% 33.4%, 11.1% 31.9%, 18.1% 32.0%, 25.0% 33.4%, 30.7% 35.1%, 34.7% 36.1%, 36.8% 35.5%, 37.5% 32.7%, 37.6% 27.9%, 38.0% 21.4%, 39.3% 14.3%, 41.8% 8.0%, 45.6% 3.7%);-webkit-clip-path:polygon(50.0% 2.1%, 54.4% 3.7%, 58.2% 8.0%, 60.7% 14.3%, 62.0% 21.4%, 62.4% 27.9%, 62.5% 32.7%, 63.2% 35.5%, 65.3% 36.1%, 69.3% 35.1%, 75.0% 33.4%, 81.9% 32.0%, 88.9% 31.9%, 95.0% 33.4%, 98.9% 36.6%, 100.0% 41.0%, 98.1% 45.9%, 93.6% 50.5%, 87.6% 54.3%, 81.3% 57.1%, 76.0% 58.9%, 72.7% 60.4%, 71.8% 62.3%, 73.2% 65.2%, 76.3% 69.5%, 79.8% 75.2%, 82.7% 81.8%, 83.9% 88.3%, 83.0% 93.7%, 79.9% 97.1%, 75.2% 97.9%, 69.4% 96.1%, 63.7% 92.1%, 58.8% 87.0%, 54.9% 82.1%, 52.1% 78.6%, 50.0% 77.3%, 47.9% 78.6%, 45.1% 82.1%, 41.2% 87.0%, 36.3% 92.1%, 30.6% 96.1%, 24.8% 97.9%, 20.1% 97.1%, 17.0% 93.7%, 16.1% 88.3%, 17.3% 81.8%, 20.2% 75.2%, 23.7% 69.5%, 26.8% 65.2%, 28.2% 62.3%, 27.3% 60.4%, 24.0% 58.9%, 18.7% 57.1%, 12.4% 54.3%, 6.4% 50.5%, 1.9% 45.9%, 0.0% 41.0%, 1.1% 36.6%, 5.0% 33.4%, 11.1% 31.9%, 18.1% 32.0%, 25.0% 33.4%, 30.7% 35.1%, 34.7% 36.1%, 36.8% 35.5%, 37.5% 32.7%, 37.6% 27.9%, 38.0% 21.4%, 39.3% 14.3%, 41.8% 8.0%, 45.6% 3.7%)"></span>おはな</button><button data-btn="cat"><span class="shape" style="clip-path:polygon(50.0% 7.3%, 54.2% 7.5%, 58.4% 8.0%, 62.5% 8.9%, 67.6% 7.3%, 74.0% 4.3%, 81.1% 2.0%, 88.7% 0.5%, 96.9% 0.0%, 99.7% 6.0%, 99.7% 13.6%, 98.7% 20.9%, 96.8% 27.7%, 94.1% 33.9%, 95.4% 37.8%, 96.6% 41.6%, 97.6% 45.6%, 98.1% 49.6%, 98.3% 53.6%, 98.1% 57.7%, 97.6% 61.7%, 96.6% 65.6%, 95.4% 69.5%, 93.8% 73.2%, 91.8% 76.8%, 89.6% 80.2%, 87.0% 83.4%, 84.1% 86.4%, 81.0% 89.2%, 77.7% 91.6%, 74.1% 93.8%, 70.4% 95.7%, 66.5% 97.2%, 62.5% 98.4%, 58.4% 99.3%, 54.2% 99.8%, 50.0% 100.0%, 45.8% 99.8%, 41.6% 99.3%, 37.5% 98.4%, 33.5% 97.2%, 29.6% 95.7%, 25.9% 93.8%, 22.3% 91.6%, 19.0% 89.2%, 15.9% 86.4%, 13.0% 83.4%, 10.4% 80.2%, 8.2% 76.8%, 6.2% 73.2%, 4.6% 69.5%, 3.4% 65.6%, 2.4% 61.7%, 1.9% 57.7%, 1.7% 53.6%, 1.9% 49.6%, 2.4% 45.6%, 3.4% 41.6%, 4.6% 37.8%, 5.9% 33.9%, 3.2% 27.7%, 1.3% 20.9%, 0.3% 13.6%, 0.3% 6.0%, 3.1% 0.0%, 11.3% 0.5%, 18.9% 2.0%, 26.0% 4.3%, 32.4% 7.3%, 37.5% 8.9%, 41.6% 8.0%, 45.8% 7.5%);-webkit-clip-path:polygon(50.0% 7.3%, 54.2% 7.5%, 58.4% 8.0%, 62.5% 8.9%, 67.6% 7.3%, 74.0% 4.3%, 81.1% 2.0%, 88.7% 0.5%, 96.9% 0.0%, 99.7% 6.0%, 99.7% 13.6%, 98.7% 20.9%, 96.8% 27.7%, 94.1% 33.9%, 95.4% 37.8%, 96.6% 41.6%, 97.6% 45.6%, 98.1% 49.6%, 98.3% 53.6%, 98.1% 57.7%, 97.6% 61.7%, 96.6% 65.6%, 95.4% 69.5%, 93.8% 73.2%, 91.8% 76.8%, 89.6% 80.2%, 87.0% 83.4%, 84.1% 86.4%, 81.0% 89.2%, 77.7% 91.6%, 74.1% 93.8%, 70.4% 95.7%, 66.5% 97.2%, 62.5% 98.4%, 58.4% 99.3%, 54.2% 99.8%, 50.0% 100.0%, 45.8% 99.8%, 41.6% 99.3%, 37.5% 98.4%, 33.5% 97.2%, 29.6% 95.7%, 25.9% 93.8%, 22.3% 91.6%, 19.0% 89.2%, 15.9% 86.4%, 13.0% 83.4%, 10.4% 80.2%, 8.2% 76.8%, 6.2% 73.2%, 4.6% 69.5%, 3.4% 65.6%, 2.4% 61.7%, 1.9% 57.7%, 1.7% 53.6%, 1.9% 49.6%, 2.4% 45.6%, 3.4% 41.6%, 4.6% 37.8%, 5.9% 33.9%, 3.2% 27.7%, 1.3% 20.9%, 0.3% 13.6%, 0.3% 6.0%, 3.1% 0.0%, 11.3% 0.5%, 18.9% 2.0%, 26.0% 4.3%, 32.4% 7.3%, 37.5% 8.9%, 41.6% 8.0%, 45.8% 7.5%)"></span>ねこ</button><button data-btn="cloud"><span class="shape" style="clip-path:polygon(96.4% 50.0%, 98.2% 52.9%, 99.5% 56.0%, 100.0% 59.3%, 99.6% 62.5%, 98.3% 65.5%, 96.0% 68.3%, 92.9% 70.7%, 89.2% 72.5%, 85.1% 73.9%, 80.7% 74.8%, 78.1% 77.0%, 75.6% 79.8%, 72.6% 82.2%, 69.0% 84.1%, 64.9% 85.5%, 60.5% 86.1%, 56.0% 86.1%, 51.5% 85.4%, 47.4% 84.0%, 43.6% 82.3%, 39.7% 81.5%, 35.2% 81.9%, 30.7% 81.9%, 26.2% 81.3%, 22.1% 80.0%, 18.4% 78.1%, 15.5% 75.7%, 13.3% 72.9%, 11.9% 69.8%, 11.2% 66.6%, 10.7% 63.6%, 7.3% 61.5%, 4.3% 59.0%, 2.0% 56.2%, 0.5% 53.2%, 0.0% 50.0%, 0.5% 46.8%, 2.0% 43.8%, 4.3% 41.0%, 7.3% 38.5%, 10.7% 36.4%, 11.2% 33.4%, 11.9% 30.2%, 13.3% 27.1%, 15.5% 24.3%, 18.4% 21.9%, 22.1% 20.0%, 26.2% 18.7%, 30.7% 18.1%, 35.2% 18.1%, 39.7% 18.5%, 43.6% 17.7%, 47.4% 16.0%, 51.5% 14.6%, 56.0% 13.9%, 60.5% 13.9%, 64.9% 14.5%, 69.0% 15.9%, 72.6% 17.8%, 75.6% 20.2%, 78.1% 23.0%, 80.7% 25.2%, 85.1% 26.1%, 89.2% 27.5%, 92.9% 29.3%, 96.0% 31.7%, 98.3% 34.5%, 99.6% 37.5%, 100.0% 40.7%, 99.5% 44.0%, 98.2% 47.1%);-webkit-clip-path:polygon(96.4% 50.0%, 98.2% 52.9%, 99.5% 56.0%, 100.0% 59.3%, 99.6% 62.5%, 98.3% 65.5%, 96.0% 68.3%, 92.9% 70.7%, 89.2% 72.5%, 85.1% 73.9%, 80.7% 74.8%, 78.1% 77.0%, 75.6% 79.8%, 72.6% 82.2%, 69.0% 84.1%, 64.9% 85.5%, 60.5% 86.1%, 56.0% 86.1%, 51.5% 85.4%, 47.4% 84.0%, 43.6% 82.3%, 39.7% 81.5%, 35.2% 81.9%, 30.7% 81.9%, 26.2% 81.3%, 22.1% 80.0%, 18.4% 78.1%, 15.5% 75.7%, 13.3% 72.9%, 11.9% 69.8%, 11.2% 66.6%, 10.7% 63.6%, 7.3% 61.5%, 4.3% 59.0%, 2.0% 56.2%, 0.5% 53.2%, 0.0% 50.0%, 0.5% 46.8%, 2.0% 43.8%, 4.3% 41.0%, 7.3% 38.5%, 10.7% 36.4%, 11.2% 33.4%, 11.9% 30.2%, 13.3% 27.1%, 15.5% 24.3%, 18.4% 21.9%, 22.1% 20.0%, 26.2% 18.7%, 30.7% 18.1%, 35.2% 18.1%, 39.7% 18.5%, 43.6% 17.7%, 47.4% 16.0%, 51.5% 14.6%, 56.0% 13.9%, 60.5% 13.9%, 64.9% 14.5%, 69.0% 15.9%, 72.6% 17.8%, 75.6% 20.2%, 78.1% 23.0%, 80.7% 25.2%, 85.1% 26.1%, 89.2% 27.5%, 92.9% 29.3%, 96.0% 31.7%, 98.3% 34.5%, 99.6% 37.5%, 100.0% 40.7%, 99.5% 44.0%, 98.2% 47.1%)"></span>くも</button></div>
+    <div class="look-label">いろ</div>
+    <div class="seg seg2" id="reccSeg"><button data-recc="red">あか（定番）</button><button data-recc="theme">テーマの色</button></div>
+  </section>
+
+  <section class="card" data-tab="look">
+    <h2>〰️ 波形のスタイル</h2>
+    <div class="opt-grid three" id="waveGrid">
+      <button data-wave="bar"><canvas></canvas>スリム</button>
+      <button data-wave="candy"><canvas></canvas>キャンディ</button>
+      <button data-wave="block"><canvas></canvas>ブロック</button>
+      <button data-wave="dot"><canvas></canvas>ドット</button>
+      <button data-wave="line"><canvas></canvas>なみ</button>
+      <button data-wave="mirror"><canvas></canvas>やま</button>
+    </div>
+  </section>
+
+  <section class="card" data-tab="look">
+    <h2>🌸 背景</h2>
+    <div class="look-label" style="margin-top:0">もよう</div>
+    <div class="opt-grid" id="patGrid">
+      <button data-pat="none"><span class="patbox"></span>なし</button>
+      <button data-pat="heart"><span class="patbox"></span>ハート</button>
+      <button data-pat="star"><span class="patbox"></span>キラキラ</button>
+      <button data-pat="note"><span class="patbox"></span>音符</button>
+      <button data-pat="dot"><span class="patbox"></span>水玉</button>
+      <button data-pat="flower"><span class="patbox"></span>お花</button>
+      <button data-pat="check"><span class="patbox"></span>チェック</button>
+      <button data-pat="ribbon"><span class="patbox"></span>リボン</button>
+    </div>
+    <div class="look-label">写真のかべ紙</div>
+    <div class="look-row">
+      <button id="wallPick" class="btn">📷 写真を選ぶ</button>
+      <button id="wallClear" class="btn">はずす</button>
+    </div>
+    <input type="file" id="wallFile" accept="image/*" hidden>
+    <div class="look-label">写真の見やすさ（文字を読みやすく）</div>
+    <input type="range" id="wallDim" class="look-range" min="0" max="85" value="35" aria-label="写真の上にかける色の濃さ">
+  </section>
+
+  <section class="card" data-tab="look">
+    <h2>🧁 カード・角・文字</h2>
+    <div class="look-label" style="margin-top:0">カード</div>
+    <div class="opt-grid" id="cardGrid">
+      <button data-card="glass"><span class="ico">🫧</span>ガラス</button>
+      <button data-card="solid"><span class="ico">⬜</span>くっきり</button>
+      <button data-card="pop"><span class="ico">🍭</span>ポップ</button>
+      <button data-card="note"><span class="ico">📒</span>ノート</button>
+    </div>
+    <div class="look-label">角の丸さ</div>
+    <div class="seg" id="radiusSeg"><button data-radius="small">ひかえめ</button><button data-radius="normal">ふつう</button><button data-radius="round">まんまる</button></div>
+    <div class="look-label">文字</div>
+    <div class="seg" id="fontSeg"><button data-font="normal">ふつう</button><button data-font="round" style="font-family:'Hiragino Maru Gothic ProN','Zen Maru Gothic',sans-serif">まるもじ</button><button data-font="mincho" style="font-family:'Hiragino Mincho ProN','Yu Mincho','Noto Serif JP',serif">明朝</button></div>
+  </section>
+
+  <section class="card" data-tab="look">
+    <h2>🏷 アプリの名前</h2>
+    <p class="hint" style="margin-top:0">上に出る名前を、自分の好きな名前にできます。</p>
+    <input id="lookTitle" class="look-input" maxlength="16" placeholder="Hibiki" autocomplete="off">
+    <input id="lookTag" class="look-input" maxlength="24" placeholder="録る・整える・磨く" autocomplete="off">
+  </section>
+
+  <section class="card" data-tab="look">
+    <h2>💌 友だちとおそろい</h2>
+    <p class="hint" style="margin-top:0">「コード」を送ると、友だちも同じ着せ替えにできます（写真のかべ紙はのぞきます）。</p>
+    <input id="lookCode" class="look-input" readonly aria-label="今の着せ替えのコード">
+    <div class="look-row"><button id="lookCopy" class="btn">📋 コードをコピー</button><button id="lookShare" class="btn">📤 送る</button></div>
+    <input id="lookPaste" class="look-input" placeholder="もらったコードをここに貼る" autocomplete="off">
+    <div class="look-row"><button id="lookApply" class="btn primary">✨ このコードにする</button><button id="lookReset" class="btn">↺ はじめに戻す</button></div>
+  </section>
+
 </div>
+
 
 <nav class="tabbar" id="tabbar">
   <button data-go="rec" class="on">
@@ -1233,6 +1439,10 @@
     <svg viewBox="0 0 24 24"><path d="M5 4h14v16l-7-4-7 4z"/></svg>
     保存
   </button>
+  <button data-go="look">
+    <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 1.7-1 1.2-1.9-.6-1 .2-2.3 1.4-2.3H17a4 4 0 0 0 4-4C21 7.3 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.3"/><circle cx="10" cy="7" r="1.3"/><circle cx="15" cy="7.5" r="1.3"/></svg>
+    きせかえ
+  </button>
 </nav>
 
 <!-- 設定 -->
@@ -1244,10 +1454,7 @@
     <div class="seg" id="themeSeg">
       <button data-themev="auto">自動</button><button data-themev="light">明るい</button><button data-themev="dark">暗い</button>
     </div>
-    <div class="opt-label">着せ替え</div>
-    <div class="skin-grid" id="skinGrid"><button data-skin="lavender"><i style="background:linear-gradient(135deg,#5b5bf0,#9a5cf5)"></i>ラベンダー</button><button data-skin="sakura"><i style="background:linear-gradient(135deg,#f0508c,#ff9ac1)"></i>さくら</button><button data-skin="mint"><i style="background:linear-gradient(135deg,#0fa883,#57d1b0)"></i>ミント</button><button data-skin="soda"><i style="background:linear-gradient(135deg,#1f8ef1,#56cfff)"></i>ソーダ</button><button data-skin="peach"><i style="background:linear-gradient(135deg,#f2643f,#ffad66)"></i>ピーチ</button><button data-skin="choco"><i style="background:linear-gradient(135deg,#8a5a44,#c79a73)"></i>カフェ</button><button data-skin="mono"><i style="background:linear-gradient(135deg,#2c2c36,#6b6b7b)"></i>モノクロ</button></div>
-    <label class="time-check"><input type="checkbox" id="roundText"> まるい文字にする</label>
-    <label class="time-check"><input type="checkbox" id="decoBg"> 背景に模様をつける</label>
+    <button id="openLookBtn" class="btn sheet-btn">🎀 着せ替え（色・ボタン・波形・背景・名前）</button>
     <label class="time-check"><input type="checkbox" id="bigText"> 文字を大きくする</label>
     <div class="opt-label">データ</div>
     <button id="backupBtn" class="btn sheet-btn">📦 保存したものをまとめて書き出す（バックアップ）</button>
@@ -1921,17 +2128,15 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     recBtn.style.setProperty('--lvl', liveLvl.toFixed(3));
     const now = performance.now();
     if (now - liveLast > 40) { liveLevels.push(liveLvl); liveLast = now; }
-    const bw = 3 * dpr, gap = 3 * dpr, stride = bw + gap, n = Math.ceil(w / stride) + 1;
+    const wst = curWave(), { bw, stride } = waveGeo(wst, dpr), n = Math.ceil(w / stride) + 1;
     if (liveLevels.length > n) liveLevels.splice(0, liveLevels.length - n);
     g.clearRect(0, 0, w, h);
     const grad = g.createLinearGradient(0, 0, w, 0);
-    grad.addColorStop(0, 'rgba(240,72,106,.25)'); grad.addColorStop(.6, cssVar('--rec')); grad.addColorStop(1, '#ff8a6b');
+    const rc = cssVar('--rec'); grad.addColorStop(0, rc + '40'); grad.addColorStop(.6, rc); grad.addColorStop(1, rc.startsWith('#') ? rc : '#ff8a6b');
     g.fillStyle = grad;
     const mid = h / 2;
-    for (let k = 0; k < liveLevels.length; k++) {
-      const x = w - (liveLevels.length - k) * stride, bh = Math.max(bw, liveLevels[k] * h * 0.92);
-      rr(g, x, mid - bh / 2, bw, bh, bw / 2);
-    }
+    const L = liveLevels.length;
+    renderWave(g, liveLevels, (k) => w - (L - k) * stride, bw, mid, h * 0.46, wst, dpr);
     // 録音しながらチューナーも動かす（数フレームに1回でよい）
     if ((tunerFrame++ % 4) === 0) {
       if (!liveFloat || liveFloat.length !== analyser.fftSize) liveFloat = new Float32Array(analyser.fftSize);
@@ -2188,17 +2393,20 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
         g.fillRect(x, y1, 1, Math.max(1, y2 - y1));
       }
     } else {
-      // 丸い棒の波形（選んだ範囲はグラデーション、外側は淡く）
-      const bw = 3 * dpr, stride = 5 * dpr, ig = g.createLinearGradient(Math.max(0, sx), 0, Math.max(sx + 1, ex), 0);
-      ig.addColorStop(0, cssVar('--accent')); ig.addColorStop(1, cssVar('--accent-2'));
+      // 着せ替えで選んだ形の波形（選んだ範囲はグラデーション、外側は淡く）
+      const wst = curWave(), { bw, stride } = waveGeo(wst, dpr), amps = [];
       for (let x0 = 0; x0 < w; x0 += stride) {
-        let mn = 0, mx = 0;
-        for (let x = Math.floor(x0); x < Math.min(w, x0 + stride); x++) { if (peaks[x * 2] < mn) mn = peaks[x * 2]; if (peaks[x * 2 + 1] > mx) mx = peaks[x * 2 + 1]; }
-        const bh = Math.max(bw, 2 * Math.max(-mn, mx) * amp); // 上下対称にそろえる
-        const cx = x0 + bw / 2;
-        g.fillStyle = (cx >= sx && cx <= ex) ? ig : cOut;
-        rr(g, x0, mid - bh / 2, bw, bh, bw / 2);
+        let m = 0;
+        for (let x = Math.floor(x0); x < Math.min(w, x0 + stride); x++) { const v = Math.max(-peaks[x * 2], peaks[x * 2 + 1]); if (v > m) m = v; }
+        amps.push(m);
       }
+      const ig = g.createLinearGradient(Math.max(0, sx), 0, Math.max(sx + 1, ex), 0);
+      ig.addColorStop(0, cssVar('--accent')); ig.addColorStop(1, cssVar('--accent-2'));
+      const xAt = (i) => i * stride;
+      g.fillStyle = cOut; renderWave(g, amps, xAt, bw, mid, amp, wst, dpr);
+      g.save(); g.beginPath(); g.rect(sx, 0, Math.max(0, ex - sx), h); g.clip();
+      g.fillStyle = ig; renderWave(g, amps, xAt, bw, mid, amp, wst, dpr);
+      g.restore();
       g.fillStyle = cssVar('--dim');
       g.fillRect(0, 0, sx, h);
       g.fillRect(ex, 0, w - ex, h);
@@ -3967,7 +4175,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     tabBtns.forEach(b => b.classList.toggle('on', b.dataset.go === name));
     window.scrollTo(0, 0);
     // 表示されてから描き直す（隠れている間はキャンバスの大きさが0になるため）
-    requestAnimationFrame(() => { if (audioBuffer) { peaks = null; drawWave(); } });
+    requestAnimationFrame(() => { if (audioBuffer) { peaks = null; drawWave(); } if (name === 'look') drawLookPreviews(); });
   }
   tabBtns.forEach(b => b.addEventListener('click', () => showTab(b.dataset.go)));
   // 録音の有無で編集タブの中身を出し分け（灰色の空画面を出さない）
@@ -4336,38 +4544,238 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   function applyTheme() {
     const root = document.documentElement;
     if (theme === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', theme);
-    document.querySelectorAll('#themeSeg button').forEach(b => b.classList.toggle('on', b.dataset.themev === theme));
+    document.querySelectorAll('#themeSeg button, #themeSeg2 button').forEach(b => b.classList.toggle('on', b.dataset.themev === theme));
     const dark = theme === 'dark' || (theme === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
-    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#0e0d1a' : (SKIN_BG[skin] || '#f3f2fb'));
-    requestAnimationFrame(() => { peaks = null; drawWave(); if (!isRecording()) clearLive(); });
+    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', dark ? '#0e0d1a' : (SKIN_BG[look.skin] || '#f3f2fb'));
+    requestAnimationFrame(() => { peaks = null; drawWave(); if (!isRecording()) clearLive(); if (typeof drawLookPreviews === 'function') drawLookPreviews(); });
   }
-  document.querySelectorAll('#themeSeg button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#themeSeg button, #themeSeg2 button').forEach(b => b.addEventListener('click', () => {
     theme = b.dataset.themev; savePref('theme', theme); applyTheme();
   }));
   if (window.matchMedia) { try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (theme === 'auto') applyTheme(); }); } catch (_) {} }
-  // 着せ替え
-  const SKIN_BG = {"lavender": "#f3f2fb", "sakura": "#fff3f7", "mint": "#effaf6", "soda": "#eef6ff", "peach": "#fff5ef", "choco": "#faf5f0", "mono": "#f2f2f5"};
-  let skin = loadPref('skin', 'lavender');
-  function applySkin() {
-    const root = document.documentElement;
-    if (skin === 'lavender') root.removeAttribute('data-skin'); else root.setAttribute('data-skin', skin);
-    document.querySelectorAll('#skinGrid button').forEach(b => b.classList.toggle('on', b.dataset.skin === skin));
+  // ========== 🎀 きせかえ（色・ボタン・波形・背景・カード・文字・名前） ==========
+  const SKINS = [["lavender", "ラベンダー", "#5b5bf0", "#9a5cf5", "#f3f2fb"], ["sakura", "さくら", "#f0508c", "#ff9ac1", "#fff3f7"], ["yumekawa", "ゆめかわ", "#f45fae", "#7fb3ff", "#fbf4ff"], ["mint", "ミント", "#0fa883", "#57d1b0", "#effaf6"], ["matcha", "抹茶", "#5a8a32", "#a3c062", "#f5f8ee"], ["soda", "ソーダ", "#1f8ef1", "#56cfff", "#eef6ff"], ["lemon", "レモン", "#e09a00", "#ffd23f", "#fffbea"], ["peach", "ピーチ", "#f2643f", "#ffad66", "#fff5ef"], ["choco", "カフェ", "#8a5a44", "#c79a73", "#faf5f0"], ["mono", "モノクロ", "#2c2c36", "#6b6b7b", "#f2f2f5"], ["yozora", "よぞら", "#7b8cff", "#c08cff", "#0d1030"], ["neon", "ネオン", "#00c8f0", "#ff3df2", "#07070f"]]; // [名前, 表示名, 色1, 色2, 背景色]
+  const SKIN_BG = Object.fromEntries(SKINS.map(s => [s[0], s[4]]));
+  const LOOK_DEF = { skin: 'lavender', color: '#ff6fae', color2: '#ffb36b', btn: 'circle', recc: 'red', wave: 'bar', pat: 'none', card: 'glass', radius: 'normal', font: 'normal', title: '', tag: '', wallDim: 35 };
+  const LOOK_OK = {
+    skin: SKINS.map(s => s[0]).concat('custom'), btn: ['circle', 'heart', 'star', 'flower', 'cat', 'cloud'], recc: ['red', 'theme'],
+    wave: ['bar', 'candy', 'block', 'dot', 'line', 'mirror'], pat: ['none', 'heart', 'star', 'note', 'dot', 'flower', 'check', 'ribbon'],
+    card: ['glass', 'solid', 'pop', 'note'], radius: ['small', 'normal', 'round'], font: ['normal', 'round', 'mincho']
+  };
+  function sanitizeLook(l) {
+    const o = Object.assign({}, LOOK_DEF);
+    if (!l || typeof l !== 'object') return o;
+    for (const k of Object.keys(LOOK_DEF)) {
+      const v = l[k]; if (v === undefined || v === null) continue;
+      if (LOOK_OK[k]) { if (LOOK_OK[k].includes(v)) o[k] = v; }
+      else if (k === 'color' || k === 'color2') { if (/^#[0-9a-f]{6}$/i.test(v)) o[k] = String(v).toLowerCase(); }
+      else if (k === 'title') o.title = String(v).slice(0, 16);
+      else if (k === 'tag') o.tag = String(v).slice(0, 24);
+      else if (k === 'wallDim') o.wallDim = Math.max(0, Math.min(85, +v || 0));
+    }
+    return o;
+  }
+  function loadLook() {
+    let l = null; try { l = JSON.parse(loadPref('look', 'null')); } catch (_) {}
+    if (!l) { // 前の版の着せ替え設定を引き継ぐ
+      l = { skin: loadPref('skin', 'lavender') };
+      if (loadPref('round', '0') === '1') l.font = 'round';
+      if (loadPref('deco', '0') === '1') l.pat = { sakura: 'heart', soda: 'star', mono: 'star', peach: 'flower', mint: 'dot', choco: 'dot' }[l.skin] || 'note';
+    }
+    return sanitizeLook(l);
+  }
+  let look = loadLook();
+  function curWave() { try { return look.wave; } catch (_) { return 'bar'; } }
+
+  // 色の計算（じぶん色から、相性のよい2色目を作る）
+  function hex2hsl(hex) {
+    const n = parseInt(hex.slice(1), 16), r = (n >> 16 & 255) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2; let h = 0, s = 0;
+    if (mx !== mn) { const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; }
+    return [h, s, l];
+  }
+  function hsl2hex(h, s, l) {
+    const f = (n) => { const k = (n + h / 30) % 12, a = s * Math.min(l, 1 - l); return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))); };
+    return '#' + [f(0), f(8), f(4)].map(v => v.toString(16).padStart(2, '0')).join('');
+  }
+  function deriveColor2(c) { const [h, s, l] = hex2hsl(c); return hsl2hex((h + 38) % 360, Math.min(1, s * .95), Math.min(.78, l + .12)); }
+
+  // 背景の模様（今の色で SVG を作る）
+  function patURL(kind, c) {
+    const o = 'fill-opacity=".22"';
+    const P = {
+      heart: `<path d="M14 20s-7-4.4-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 21 11c0 4.6-7 9-7 9z" fill="${c}" ${o}/><circle cx="44" cy="42" r="2" fill="${c}" ${o}/>`,
+      star: `<path d="M14 6l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill="${c}" ${o}/><path d="M42 36l1 3 3 1-3 1-1 3-1-3-3-1 3-1z" fill="${c}" ${o}/>`,
+      note: `<path d="M14 8v11.5a3 3 0 1 1-2-2.8V6l9-2v3z" fill="${c}" ${o}/><circle cx="44" cy="40" r="2" fill="${c}" ${o}/>`,
+      dot: `<circle cx="14" cy="14" r="4" fill="${c}" ${o}/><circle cx="42" cy="42" r="4" fill="${c}" ${o}/>`,
+      flower: `<g fill="${c}" ${o}><circle cx="14" cy="9" r="3"/><circle cx="19" cy="14" r="3"/><circle cx="14" cy="19" r="3"/><circle cx="9" cy="14" r="3"/></g><circle cx="14" cy="14" r="2" fill="${c}"/><circle cx="44" cy="42" r="2" fill="${c}" ${o}/>`,
+      check: `<rect width="28" height="56" fill="${c}" fill-opacity=".1"/><rect width="56" height="28" fill="${c}" fill-opacity=".1"/>`,
+      ribbon: `<path d="M14 14l-7-5v10zM14 14l7-5v10z" fill="${c}" ${o}/><circle cx="14" cy="14" r="2.4" fill="${c}"/><circle cx="44" cy="42" r="2" fill="${c}" ${o}/>`
+    };
+    if (!P[kind]) return 'none';
+    return `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56">${P[kind]}</svg>`)}")`;
+  }
+
+  // 波形の描き方（録音中・編集・見本で共通）
+  const WAVE_GEO = { bar: [3, 5], candy: [6, 10], block: [4, 5], dot: [3.4, 6], line: [2, 4], mirror: [2, 4] };
+  function waveGeo(style, dpr) { const [bw, st] = WAVE_GEO[style] || WAVE_GEO.bar; return { bw: bw * dpr, stride: st * dpr }; }
+  function smoothTo(g, pts) {
+    for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i]; g.quadraticCurveTo(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2); }
+    if (pts.length) g.lineTo(pts[pts.length - 1][0], pts[pts.length - 1][1]);
+  }
+  function renderWave(g, amps, xAt, bw, mid, half, style, dpr) {
+    const n = amps.length; if (!n) return;
+    if (style === 'line' || style === 'mirror') {
+      const top = [], bot = [];
+      for (let i = 0; i < n; i++) { const x = xAt(i) + bw / 2, a = Math.max(.03, amps[i]) * half; top.push([x, mid - a]); bot.push([x, mid + a]); }
+      g.beginPath(); g.moveTo(top[0][0], mid); g.lineTo(top[0][0], top[0][1]); smoothTo(g, top);
+      g.lineTo(bot[n - 1][0], bot[n - 1][1]); smoothTo(g, bot.slice().reverse()); g.closePath();
+      if (style === 'mirror') { g.fill(); return; }
+      const a0 = g.globalAlpha; g.globalAlpha = a0 * .2; g.fill(); g.globalAlpha = a0;
+      g.strokeStyle = g.fillStyle; g.lineWidth = 2 * dpr; g.lineJoin = 'round';
+      g.beginPath(); g.moveTo(top[0][0], top[0][1]); smoothTo(g, top); g.stroke();
+      g.beginPath(); g.moveTo(bot[0][0], bot[0][1]); smoothTo(g, bot); g.stroke();
+      return;
+    }
+    for (let i = 0; i < n; i++) {
+      const x = xAt(i), a = amps[i];
+      if (style === 'dot') {
+        const step = bw * 1.6, k = Math.max(0, Math.round(a * half / step));
+        g.beginPath();
+        for (let j = -k; j <= k; j++) { g.moveTo(x + bw, mid + j * step); g.arc(x + bw / 2, mid + j * step, bw / 2, 0, Math.PI * 2); }
+        g.fill();
+      } else if (style === 'block') {
+        const bh = Math.max(bw * .6, 2 * a * half); g.fillRect(x, mid - bh / 2, bw, bh);
+      } else {
+        const bh = Math.max(bw, 2 * a * half); rr(g, x, mid - bh / 2, bw, bh, bw / 2);
+      }
+    }
+  }
+  function sampleAmps(n) {
+    return Array.from({ length: n }, (_, i) => { const t = i / n; const env = Math.pow(Math.abs(Math.sin(t * Math.PI * 3.2)), .8) * (.45 + .55 * Math.sin(t * Math.PI)); return .08 + .85 * env * (.75 + .25 * Math.sin(i * 1.7)); });
+  }
+  function drawSample(cv, style) {
+    const { w, h, dpr } = fitCanvas(cv); if (w < 10) return;
+    const g = cv.getContext('2d'); g.clearRect(0, 0, w, h);
+    const { bw, stride } = waveGeo(style, dpr), n = Math.floor(w / stride);
+    const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, cssVar('--accent')); gr.addColorStop(1, cssVar('--accent-2'));
+    g.fillStyle = gr; renderWave(g, sampleAmps(n), (i) => i * stride + (w - n * stride) / 2, bw, h / 2, h * .46, style, dpr);
+  }
+  function drawLookPreviews() {
+    const lw = $('lookWave'); if (lw) drawSample(lw, look.wave);
+    document.querySelectorAll('#waveGrid button').forEach(b => drawSample(b.querySelector('canvas'), b.dataset.wave));
+  }
+
+  // 共有コード
+  function encodeLook() {
+    const o = {}; for (const k of Object.keys(LOOK_DEF)) if (k !== 'wallDim' && look[k] !== LOOK_DEF[k]) o[k] = look[k];
+    try { return 'HBK1.' + btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); } catch (_) { return ''; }
+  }
+  function decodeLook(code) {
+    const m = String(code || '').trim().match(/HBK1\.([A-Za-z0-9_-]+)/); if (!m) return null;
+    try { let b = m[1].replace(/-/g, '+').replace(/_/g, '/'); while (b.length % 4) b += '='; return JSON.parse(decodeURIComponent(escape(atob(b)))); } catch (_) { return null; }
+  }
+
+  function syncLookUI() {
+    const on = (sel, key, val) => document.querySelectorAll(sel).forEach(b => b.classList.toggle('on', b.dataset[key] === val));
+    on('#skinGrid button', 'skin', look.skin); on('#btnGrid button', 'btn', look.btn); on('#reccSeg button', 'recc', look.recc);
+    on('#waveGrid button', 'wave', look.wave); on('#patGrid button', 'pat', look.pat); on('#cardGrid button', 'card', look.card);
+    on('#radiusSeg button', 'radius', look.radius); on('#fontSeg button', 'font', look.font);
+    $('customSw').style.background = look.skin === 'custom' ? `linear-gradient(135deg, ${look.color}, ${look.color2})` : '';
+    $('customColor').value = look.color;
+    const acc = cssVar('--accent');
+    document.querySelectorAll('#patGrid button').forEach(b => { const p = b.querySelector('.patbox'); p.style.backgroundImage = patURL(b.dataset.pat, acc); p.style.backgroundSize = '28px 28px'; });
+    if (document.activeElement !== $('lookTitle')) $('lookTitle').value = look.title;
+    if (document.activeElement !== $('lookTag')) $('lookTag').value = look.tag;
+    $('wallDim').value = look.wallDim;
+    $('lookCode').value = encodeLook();
+  }
+  function applyLook(save = true) {
+    const r = document.documentElement;
+    const setA = (a, v, def) => { if (v === def) r.removeAttribute(a); else r.setAttribute(a, v); };
+    setA('data-skin', look.skin, 'lavender'); setA('data-btn', look.btn, 'circle'); setA('data-recc', look.recc, 'red');
+    setA('data-card', look.card, 'glass'); setA('data-radius', look.radius, 'normal'); setA('data-font', look.font, 'normal'); setA('data-pat', look.pat, 'none');
+    ['--accent', '--accent-2', '--grad', '--wave-sel'].forEach(p => r.style.removeProperty(p));
+    if (look.skin === 'custom') {
+      r.style.setProperty('--accent', look.color); r.style.setProperty('--accent-2', look.color2);
+      r.style.setProperty('--grad', `linear-gradient(135deg, ${look.color} 0%, ${look.color2} 100%)`); r.style.setProperty('--wave-sel', look.color);
+    }
+    r.style.setProperty('--wall-dim', String(look.wallDim / 100));
+    r.style.setProperty('--pat', patURL(look.pat, cssVar('--accent')));
+    const title = look.title || 'Hibiki', tag = look.tag || '録る・整える・磨く';
+    document.querySelectorAll('.brand .name, #lpTitle').forEach(el => { el.firstChild.nodeValue = title; el.querySelector('small').textContent = tag; });
+    if (save) savePref('look', JSON.stringify(look));
+    syncLookUI();
     applyTheme();
+    requestAnimationFrame(drawLookPreviews);
   }
-  document.querySelectorAll('#skinGrid button').forEach(b => b.addEventListener('click', () => {
-    skin = b.dataset.skin; savePref('skin', skin); applySkin(); vibrate(10);
+  function setLook(part) { look = sanitizeLook(Object.assign({}, look, part)); applyLook(); vibrate(8); }
+  const bindOpt = (sel, key) => document.querySelectorAll(sel).forEach(b => b.addEventListener('click', () => setLook({ [key]: b.dataset[key] })));
+  bindOpt('#skinGrid button[data-skin]:not([data-skin="custom"])', 'skin'); bindOpt('#btnGrid button', 'btn'); bindOpt('#reccSeg button', 'recc');
+  bindOpt('#waveGrid button', 'wave'); bindOpt('#patGrid button', 'pat'); bindOpt('#cardGrid button', 'card');
+  bindOpt('#radiusSeg button', 'radius'); bindOpt('#fontSeg button', 'font');
+  const customColor = $('customColor');
+  customColor.addEventListener('input', () => setLook({ skin: 'custom', color: customColor.value, color2: deriveColor2(customColor.value) }));
+  customColor.addEventListener('click', () => { if (look.skin !== 'custom') setLook({ skin: 'custom' }); });
+  $('lookTitle').addEventListener('input', (e) => setLook({ title: e.target.value }));
+  $('lookTag').addEventListener('input', (e) => setLook({ tag: e.target.value }));
+  $('wallDim').addEventListener('input', (e) => { look.wallDim = +e.target.value; document.documentElement.style.setProperty('--wall-dim', String(look.wallDim / 100)); savePref('look', JSON.stringify(look)); });
+  // おまかせセット
+  const PRESETS = [{"name": "ゆめかわ", "look": {"skin": "yumekawa", "btn": "heart", "wave": "candy", "pat": "heart", "card": "pop", "radius": "round", "font": "round", "recc": "theme"}}, {"name": "よぞら", "look": {"skin": "yozora", "btn": "star", "wave": "dot", "pat": "star", "card": "glass", "radius": "normal", "font": "normal", "recc": "theme"}}, {"name": "カフェ", "look": {"skin": "choco", "btn": "cat", "wave": "block", "pat": "dot", "card": "note", "radius": "round", "font": "mincho", "recc": "theme"}}, {"name": "ネオン", "look": {"skin": "neon", "btn": "circle", "wave": "mirror", "pat": "none", "card": "glass", "radius": "small", "font": "normal", "recc": "theme"}}, {"name": "抹茶", "look": {"skin": "matcha", "btn": "flower", "wave": "line", "pat": "flower", "card": "solid", "radius": "round", "font": "round", "recc": "theme"}}, {"name": "ソーダ", "look": {"skin": "soda", "btn": "cloud", "wave": "candy", "pat": "check", "card": "pop", "radius": "round", "font": "round", "recc": "theme"}}, {"name": "シンプル", "look": {"skin": "mono", "btn": "circle", "wave": "bar", "pat": "none", "card": "solid", "radius": "small", "font": "normal", "recc": "red"}}];
+  document.querySelectorAll('#presetGrid button[data-preset]').forEach(b => b.addEventListener('click', () => {
+    setLook(PRESETS[+b.dataset.preset].look); toast(`「${PRESETS[+b.dataset.preset].name}」にしました`, 'ok');
   }));
-  function bindFlag(id, key, attr) {
-    const el = $(id);
-    el.checked = loadPref(key, '0') === '1';
-    el.addEventListener('change', () => {
-      savePref(key, el.checked ? '1' : '0');
-      if (el.checked) document.documentElement.setAttribute(attr, '1'); else document.documentElement.removeAttribute(attr);
-      requestAnimationFrame(() => { peaks = null; drawWave(); });
-    });
+  $('lookRandom').addEventListener('click', () => {
+    const pick = (a) => a[Math.floor(Math.random() * a.length)], p = {};
+    for (const k of Object.keys(LOOK_OK)) p[k] = pick(k === 'skin' ? LOOK_OK.skin.filter(s => s !== 'custom') : LOOK_OK[k]);
+    setLook(p); toast('🎲 ランダムに着せ替えました', 'ok');
+  });
+  // 写真のかべ紙（端末の中にだけ保存）
+  function applyWall() {
+    const r = document.documentElement; let w = null;
+    try { w = localStorage.getItem('hibiki.wall'); } catch (_) {}
+    if (w) { r.setAttribute('data-wall', '1'); r.style.setProperty('--wall', `url("${w}")`); }
+    else { r.removeAttribute('data-wall'); r.style.removeProperty('--wall'); }
   }
-  bindFlag('roundText', 'round', 'data-round');
-  bindFlag('decoBg', 'deco', 'data-deco');
+  const wallFile = $('wallFile');
+  $('wallPick').addEventListener('click', () => wallFile.click());
+  $('wallClear').addEventListener('click', () => { try { localStorage.removeItem('hibiki.wall'); } catch (_) {} applyWall(); });
+  wallFile.addEventListener('change', async () => {
+    const f = wallFile.files && wallFile.files[0]; wallFile.value = ''; if (!f) return;
+    try {
+      const url = URL.createObjectURL(f), img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+      const sc = Math.min(1, 1080 / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.naturalWidth * sc)); c.height = Math.max(1, Math.round(img.naturalHeight * sc));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      let saved = false;
+      for (const q of [.82, .6, .4]) { try { localStorage.setItem('hibiki.wall', c.toDataURL('image/jpeg', q)); saved = true; break; } catch (_) {} }
+      if (!saved) { toast('写真が大きすぎて保存できませんでした', 'err'); return; }
+      applyWall(); toast('かべ紙にしました', 'ok');
+    } catch (_) { toast('この写真は使えませんでした', 'err'); }
+  });
+  // 共有
+  $('lookCopy').addEventListener('click', async () => {
+    const c = encodeLook();
+    try { await navigator.clipboard.writeText(c); toast('コードをコピーしました', 'ok'); }
+    catch (_) { $('lookCode').select(); toast('コードを長押ししてコピーしてください'); }
+  });
+  $('lookShare').addEventListener('click', async () => {
+    const text = `Hibiki の着せ替えコード：${encodeLook()}`;
+    if (navigator.share) { try { await navigator.share({ text }); } catch (_) {} }
+    else { try { await navigator.clipboard.writeText(text); toast('コードをコピーしました', 'ok'); } catch (_) {} }
+  });
+  $('lookApply').addEventListener('click', () => {
+    const l = decodeLook($('lookPaste').value);
+    if (!l) { toast('コードが読めませんでした', 'err'); return; }
+    look = sanitizeLook(Object.assign({}, LOOK_DEF, l, { wallDim: look.wallDim })); applyLook(); $('lookPaste').value = '';
+    toast('おそろいにしました', 'ok');
+  });
+  $('lookReset').addEventListener('click', () => {
+    if (!confirm('着せ替えをはじめの状態に戻しますか？')) return;
+    look = Object.assign({}, LOOK_DEF); applyLook(); toast('はじめに戻しました', 'ok');
+  });
+  $('openLookBtn').addEventListener('click', () => { closeSheet(sheet); showTab('look'); });
   const bigText = $('bigText');
   bigText.checked = loadPref('big', '0') === '1';
   bigText.addEventListener('change', () => {
@@ -4398,7 +4806,8 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   renderLibrary();
   refreshEditTab();
   showTab('rec');
-  applySkin();
+  applyWall();
+  applyLook();
   if (loadPref('guided', '0') !== '1') openGuide();
   loadState().then(st => {
     if (st) {
