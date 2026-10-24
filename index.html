@@ -1028,6 +1028,17 @@
   .kp-quick button#kpAuto { color: var(--accent); }
   button.btn.primary.utaite { min-height: 54px; }
   body:has(#fxTryBar:not(.hidden)) .toast { bottom: calc(env(safe-area-inset-bottom) + 236px); }
+
+  /* ---- 再生位置（▼） ---- */
+  .cur-chip { display: inline-block; font-size: .72rem; padding: 1px 7px; border-radius: 8px; background: var(--text); color: var(--panel-2); vertical-align: middle; }
+  .cur-row { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 8px; margin-top: 10px; align-items: stretch; }
+  .cur-row.two { grid-template-columns: 1fr 1fr; }
+  .cur-row.two .btn { min-height: 46px; font-size: .86rem; }
+  .cur-b { font: inherit; font-size: .86rem; font-weight: 800; border-radius: var(--r-btn, 16px); cursor: pointer; background: var(--btn); border: 1px solid var(--btn-b); color: var(--text); min-height: 52px; }
+  .cur-b:active, .cur-t:active { transform: scale(.96); }
+  .cur-t { font: inherit; border-radius: var(--r-btn, 16px); cursor: pointer; background: color-mix(in srgb, var(--accent) 8%, var(--panel)); border: 1.5px solid color-mix(in srgb, var(--accent) 35%, var(--border)); color: var(--text); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
+  .cur-t small { font-size: .64rem; color: var(--muted); font-weight: 700; }
+  .cur-t b { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body>
@@ -1150,7 +1161,7 @@
       <button id="zoomIn" class="zb" aria-label="拡大">＋</button>
     </div>
 
-    <p class="trim-guide">下の <span class="chip-s">始</span> と <span class="chip-e">終</span> を左右に動かして、使う部分だけを囲みます</p>
+    <p class="trim-guide">波形をタップすると<b class="cur-chip">▼ 再生位置</b>が動きます。使う部分は下の <span class="chip-s">始</span> と <span class="chip-e">終</span> で囲みます</p>
     <div id="range" class="range">
       <div class="track"></div>
       <div id="fill" class="fill" style="left:0;width:100%"></div>
@@ -1189,9 +1200,18 @@
     <div class="player">
       <button id="playBtn" class="playbig" aria-label="再生 / 停止"><span class="pic">▶</span></button>
       <div class="player-txt">
-        <b>選んだ部分を再生</b>
-        <span>もう一度押すと止まります</span>
+        <b>▼の位置から再生</b>
+        <span>もう一度押すと一時停止（そこから続きを再生）</span>
       </div>
+    </div>
+    <div class="cur-row">
+      <button id="curBack" class="cur-b" aria-label="1秒もどる">⏪ 1秒</button>
+      <button id="curHome" class="cur-t" aria-label="再生位置を始まりへ"><small>▼ 再生位置</small><b id="curTime">0:00.00</b></button>
+      <button id="curFwd" class="cur-b" aria-label="1秒すすむ">1秒 ⏩</button>
+    </div>
+    <div class="cur-row two">
+      <button id="curToStart" class="btn">⇤ ここを始まりに</button>
+      <button id="curToEnd" class="btn">ここを終わりに ⇥</button>
     </div>
     <div class="play-row">
       <button id="playAllBtn" class="btn">⏮ 最初から全部</button>
@@ -2115,6 +2135,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   let viewA = 0, viewB = 0, viewBuf = null; // 波形の表示範囲（拡大用・秒）
   let markers = [];         // 録音中に付けた印（秒）
   let playRAF = 0, playhead = null;
+  let cursorT = 0; // 再生位置（トリミングのつまみとは別）
   let speed = 1, loopOn = false, previewURL = null;
   let hifi = true; // 高音質（音楽向け）録音
   let mics = [], micId = ''; // マイク選択（'' = 自動・内蔵優先）
@@ -2509,7 +2530,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     saveCard.classList.remove('disabled');
     analyzeCard.classList.remove('disabled');
     waveEmpty.style.display = 'none';
-    peaks = null; colorGrid = null; fxHist = []; viewBuf = null; viewA = viewB = 0;
+    peaks = null; colorGrid = null; fxHist = []; viewBuf = null; viewA = viewB = 0; cursorT = 0; $('curTime').textContent = fmtTime(0);
     markers = markers.map(t => Math.min(t, audioBuffer.duration)).filter(t => t >= 0).sort((a, b) => a - b);
     pitchOut.textContent = tempoOut.textContent = '—';
     pitchOut.className = tempoOut.className = 'an-out';
@@ -2685,6 +2706,20 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     g.fillRect(sx - dpr, 0, 2 * dpr, h);
     g.fillStyle = cssVar('--accent-2');
     g.fillRect(ex - dpr, 0, 2 * dpr, h);
+    if (playhead === null && cursorT >= viewA && cursorT <= viewB) {
+      // 再生位置（▼）。止まっているときに表示
+      const cx = vx(cursorT) * w, col = cssVar('--text');
+      g.fillStyle = col; g.globalAlpha = .85;
+      g.fillRect(cx - dpr, 0, 2 * dpr, h);
+      g.globalAlpha = 1;
+      g.beginPath(); g.moveTo(cx - 7 * dpr, 0); g.lineTo(cx + 7 * dpr, 0); g.lineTo(cx, 9 * dpr); g.closePath(); g.fill();
+      g.beginPath(); g.moveTo(cx - 7 * dpr, h); g.lineTo(cx + 7 * dpr, h); g.lineTo(cx, h - 9 * dpr); g.closePath(); g.fill();
+      const label = fmtTime(cursorT);
+      g.font = `700 ${11 * dpr}px sans-serif`; g.textBaseline = 'top';
+      const tw = g.measureText(label).width + 10 * dpr, lx = Math.max(0, Math.min(w - tw, cx + 6 * dpr));
+      g.fillStyle = col; rr(g, lx, 12 * dpr, tw, 16 * dpr, 8 * dpr);
+      g.fillStyle = cssVar('--panel-2'); g.fillText(label, lx + 5 * dpr, 14.5 * dpr);
+    }
     if (playhead !== null) {
       const px = vx(playhead) * w;
       g.shadowColor = cssVar('--accent') + 'e6'; g.shadowBlur = 8 * dpr;
@@ -2788,7 +2823,40 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   }
   const nearest = (_, t) => Math.abs(t - selStart) <= Math.abs(t - selEnd) ? 'start' : 'end';
   attachDrag(rangeEl, (ev, t) => ev.target === hStart ? 'start' : ev.target === hEnd ? 'end' : nearest(ev, t));
-  attachDrag(waveCanvas, nearest);
+  // 波形：つまみの近くなら つまみ、それ以外は再生位置（▼）を動かす
+  (function waveDrag() {
+    let mode = null, wasPlaying = false;
+    const hitPx = 18;
+    waveCanvas.addEventListener('pointerdown', (ev) => {
+      if (!audioBuffer) return;
+      ev.preventDefault();
+      const r = waveCanvas.getBoundingClientRect(), x = ev.clientX - r.left;
+      const sxp = vx(selStart) * r.width, exp = vx(selEnd) * r.width;
+      wasPlaying = !audioEl.paused;
+      stopPreview();
+      const t = timeAt(rangeEl, ev);
+      if (Math.abs(x - sxp) <= hitPx || Math.abs(x - exp) <= hitPx) {
+        mode = Math.abs(x - sxp) <= Math.abs(x - exp) ? 'start' : 'end';
+        clearActiveSeg();
+        (mode === 'start' ? hStart : hEnd).classList.add('active');
+        moveHandle(mode, t);
+      } else { mode = 'cursor'; setCursor(t); }
+      waveCanvas.setPointerCapture(ev.pointerId);
+    });
+    waveCanvas.addEventListener('pointermove', (ev) => {
+      if (!mode) return;
+      const t = timeAt(rangeEl, ev);
+      if (mode === 'cursor') setCursor(t); else moveHandle(mode, t);
+    });
+    const end = () => {
+      if (!mode) return;
+      hStart.classList.remove('active'); hEnd.classList.remove('active');
+      const m = mode; mode = null;
+      if (m === 'cursor' && wasPlaying) playFromCursor(); // 再生中にタップしたら、その位置から続けて再生
+    };
+    waveCanvas.addEventListener('pointerup', end);
+    waveCanvas.addEventListener('pointercancel', end);
+  })();
 
   // キーボード（PC）でも操作できるように
   [hStart, hEnd].forEach(h => h.addEventListener('keydown', (e) => {
@@ -2880,10 +2948,45 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     };
     tick();
   }
+  function setCursor(t) {
+    if (!audioBuffer) return;
+    cursorT = Math.max(0, Math.min(audioBuffer.duration, t));
+    $('curTime').textContent = fmtTime(cursorT);
+    // 拡大中に表示の外へ出たら、見える位置まで動かす
+    if (viewB - viewA < audioBuffer.duration - 1e-3 && (cursorT < viewA || cursorT > viewB)) { const l = viewB - viewA; setView(cursorT - l / 2, cursorT + l / 2); }
+    else drawWave();
+  }
+  // 再生位置（▼）が選んだ範囲の中ならそこから、外なら「始」から再生
+  function playFromCursor() {
+    if (!audioBuffer) return;
+    const inside = cursorT >= selStart && cursorT < selEnd - 0.05;
+    if (loopOn) { startPlay(selStart, selEnd, true, playBtn); return; }
+    startPlay(inside ? cursorT : selStart, selEnd, false, playBtn);
+  }
   playBtn.addEventListener('click', () => {
     if (!audioBuffer) return;
-    if (!audioEl.paused) { stopPreview(); return; }
-    startPlay(selStart, selEnd, loopOn, playBtn);
+    if (!audioEl.paused) { stopPreview(); return; } // 一時停止：止めた位置が次の再生位置になる
+    playFromCursor();
+  });
+  const nowPos = () => (!audioEl.paused && playhead !== null) ? playhead : cursorT;
+  function skip(d) {
+    if (!audioBuffer) return;
+    const playing = !audioEl.paused, t = nowPos() + d;
+    if (playing) stopPreview();
+    setCursor(t);
+    if (playing) playFromCursor();
+    vibrate(6);
+  }
+  $('curBack').addEventListener('click', () => skip(-1));
+  $('curFwd').addEventListener('click', () => skip(1));
+  $('curHome').addEventListener('click', () => { const pl = !audioEl.paused; if (pl) stopPreview(); setCursor(selStart); if (pl) playFromCursor(); });
+  $('curToStart').addEventListener('click', () => {
+    if (!audioBuffer) return; const t = nowPos(); clearActiveSeg(); moveHandle('start', t); setCursor(t); vibrate(15);
+    toast(`始まりを ${fmtTime(selStart)} にしました`, 'ok');
+  });
+  $('curToEnd').addEventListener('click', () => {
+    if (!audioBuffer) return; const t = nowPos(); clearActiveSeg(); moveHandle('end', t); vibrate(15);
+    toast(`終わりを ${fmtTime(selEnd)} にしました`, 'ok');
   });
   // 選択に関係なく、最初から通し再生
   playAllBtn.addEventListener('click', () => {
@@ -2902,6 +3005,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   function stopPreview() {
     if (!audioEl.paused) { try { audioEl.pause(); } catch (_) {} }
     cancelAnimationFrame(playRAF);
+    if (playhead !== null && audioBuffer) { cursorT = Math.min(audioBuffer.duration, playhead); const ct = $('curTime'); if (ct) ct.textContent = fmtTime(cursorT); }
     playhead = null;
     if (playBtnActive) setPlayUI(playBtnActive, false);
     setPlayUI(playBtn, false); setPlayUI(playAllBtn, false);
