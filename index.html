@@ -1039,6 +1039,17 @@
   .cur-t { font: inherit; border-radius: var(--r-btn, 16px); cursor: pointer; background: color-mix(in srgb, var(--accent) 8%, var(--panel)); border: 1.5px solid color-mix(in srgb, var(--accent) 35%, var(--border)); color: var(--text); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
   .cur-t small { font-size: .64rem; color: var(--muted); font-weight: 700; }
   .cur-t b { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+
+  /* ---- 保存中 ---- */
+  .busy { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; background: rgba(20,16,40,.35); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+  .busy-box { width: min(300px, 84vw); background: linear-gradient(var(--panel), var(--panel)), var(--bg); border-radius: 24px; padding: 22px 20px 18px; text-align: center; box-shadow: 0 20px 50px rgba(20,10,60,.35); }
+  .busy-box b { display: block; font-size: 1rem; margin-top: 10px; }
+  .busy-box small { display: block; font-size: .78rem; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .busy-spin { width: 40px; height: 40px; margin: 0 auto; border-radius: 50%; border: 4px solid color-mix(in srgb, var(--accent) 20%, transparent); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .busy-bar { height: 8px; border-radius: 4px; background: var(--panel-2); overflow: hidden; margin-top: 12px; border: 1px solid var(--border); }
+  .busy-bar i { display: block; height: 100%; width: 0; background: var(--grad); transition: width .2s; }
+  button.btn:disabled { opacity: .55; }
 </style>
 </head>
 <body>
@@ -1704,6 +1715,18 @@
   </div>
 </div>
 
+<!-- 保存中の表示 -->
+<div id="busy" class="busy hidden" role="status" aria-live="polite">
+  <div class="busy-box">
+    <div class="busy-spin" aria-hidden="true"></div>
+    <b id="busyText">保存中…</b>
+    <div class="busy-bar"><i id="busyBar"></i></div>
+    <small id="busyPct"></small>
+    <button id="busyGo" class="btn primary hidden" style="width:100%;margin-top:12px">📤 共有する<small style="display:block;font-size:.7rem;font-weight:600;opacity:.9">もう一度タップしてね</small></button>
+    <button id="busyCancel" class="btn hidden" style="width:100%;margin-top:8px">やめる</button>
+  </div>
+</div>
+
 <!-- 記録シート -->
 <div id="mySheet" class="sheet hidden" role="dialog" aria-modal="true" aria-label="わたしの記録">
   <div class="sheet-bg" data-close></div>
@@ -1767,7 +1790,7 @@
 <div id="toast" class="toast"></div>
 
 <!-- MP3エンコーダ（lamejs / zhuker, LGPL）。MP3保存のために内蔵 -->
-<script>
+<script id="lamejsSrc">
 function lamejs(){function X(c){return new Int32Array(c)}function K(c){return new Float32Array(c)}function ca(c){if(1==c.length)return K(c[0]);var k=c[0];c=c.slice(1);for(var n=[],u=0;u<k;u++)n.push(ca(c));return n}function Ia(c){if(1==c.length)return X(c[0]);var k=c[0];c=c.slice(1);for(var n=[],u=0;u<k;u++)n.push(Ia(c));return n}function dc(c){if(1==c.length)return new Int16Array(c[0]);var k=c[0];c=c.slice(1);for(var n=[],u=0;u<k;u++)n.push(dc(c));return n}function Ob(c){if(1==c.length)return Array(c[0]);
 var k=c[0];c=c.slice(1);for(var n=[],u=0;u<k;u++)n.push(Ob(c));return n}function ra(c){this.ordinal=c}function G(c){this.ordinal=c}function la(c){this.ordinal=function(){return c}}function mc(){this.getLameVersion=function(){return"3.98.4"};this.getLameShortVersion=function(){return"3.98.4"};this.getLameVeryShortVersion=function(){return"LAME3.98r"};this.getPsyVersion=function(){return"0.93"};this.getLameUrl=function(){return"http://www.mp3dev.org/"};this.getLameOsBitness=function(){return"32bits"}}
 function Y(){function c(f,b,c,a,m,k){for(;0!=m--;)c[a]=1E-10+f[b+0]*k[0]-c[a-1]*k[1]+f[b-1]*k[2]-c[a-2]*k[3]+f[b-2]*k[4]-c[a-3]*k[5]+f[b-3]*k[6]-c[a-4]*k[7]+f[b-4]*k[8]-c[a-5]*k[9]+f[b-5]*k[10]-c[a-6]*k[11]+f[b-6]*k[12]-c[a-7]*k[13]+f[b-7]*k[14]-c[a-8]*k[15]+f[b-8]*k[16]-c[a-9]*k[17]+f[b-9]*k[18]-c[a-10]*k[19]+f[b-10]*k[20],++a,++b}function k(f,b,c,a,m,k){for(;0!=m--;)c[a]=f[b+0]*k[0]-c[a-1]*k[1]+f[b-1]*k[2]-c[a-2]*k[3]+f[b-2]*k[4],++a,++b}function n(f){return f*f}var V=Y.RMS_WINDOW_TIME_NUMERATOR,
@@ -3089,6 +3112,85 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     if (end.length) out.push(new Uint8Array(end));
     return new Blob(out, { type: 'audio/mpeg' });
   }
+  // MP3 変換は重いので、裏側（Worker）で行い、画面が止まらないようにする
+  let mp3Worker = null, mp3Job = 0;
+  function getMp3Worker() {
+    if (mp3Worker !== null) return mp3Worker;
+    try {
+      const src = document.getElementById('lamejsSrc').textContent + `
+        self.onmessage = (e) => {
+          const { id, pcm, sr, kbps } = e.data;
+          const enc = new lamejs.Mp3Encoder(1, sr, kbps), out = [], block = 1152, n = pcm.length;
+          let last = 0;
+          for (let i = 0; i < n; i += block) {
+            const mp3 = enc.encodeBuffer(pcm.subarray(i, Math.min(i + block, n)));
+            if (mp3.length) out.push(new Uint8Array(mp3));
+            if (i - last > sr * 2) { last = i; self.postMessage({ id, progress: i / n }); }
+          }
+          const end = enc.flush(); if (end.length) out.push(new Uint8Array(end));
+          self.postMessage({ id, done: true, chunks: out });
+        };`;
+      mp3Worker = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+    } catch (_) { mp3Worker = false; }
+    return mp3Worker;
+  }
+  function toPcm16(buf, startSec, endSec) {
+    const sr = buf.sampleRate, a = Math.floor(startSec * sr), b = Math.min(buf.length, Math.ceil(endSec * sr));
+    const frames = Math.max(0, b - a), data = buf.getChannelData(0), fadeLen = Math.min(Math.floor(sr * 0.005), Math.floor(frames / 2));
+    const pcm = new Int16Array(frames);
+    for (let i = 0; i < frames; i++) {
+      let g = 1; if (i < fadeLen) g = i / fadeLen; else if (i >= frames - fadeLen) g = (frames - 1 - i) / fadeLen;
+      let v = data[a + i] * g; v = v < -1 ? -1 : v > 1 ? 1 : v; pcm[i] = v < 0 ? v * 0x8000 : v * 0x7fff;
+    }
+    return pcm;
+  }
+  // onProgress(0〜1) を呼びながら MP3 を作る。Worker が使えない端末では少しずつ区切って変換
+  async function encodeMp3Async(buf, startSec, endSec, onProgress) {
+    const sr = buf.sampleRate, kbps = sr <= 24000 ? 128 : 192, pcm = toPcm16(buf, startSec, endSec);
+    const w = getMp3Worker();
+    if (w) {
+      try {
+        const id = ++mp3Job;
+        const chunks = await new Promise((res, rej) => {
+          const onMsg = (e) => {
+            if (e.data.id !== id) return;
+            if (e.data.progress !== undefined && onProgress) onProgress(e.data.progress);
+            if (e.data.done) { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); res(e.data.chunks); }
+          };
+          const onErr = (er) => { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); rej(er); };
+          w.addEventListener('message', onMsg); w.addEventListener('error', onErr);
+          w.postMessage({ id, pcm, sr, kbps }, [pcm.buffer]);
+        });
+        return new Blob(chunks, { type: 'audio/mpeg' });
+      } catch (_) { mp3Worker = false; return encodeMp3Async(buf, startSec, endSec, onProgress); }
+    }
+    const enc = new lamejs.Mp3Encoder(1, sr, kbps), out = [], block = 1152;
+    let t0 = performance.now();
+    for (let i = 0; i < pcm.length; i += block) {
+      const mp3 = enc.encodeBuffer(pcm.subarray(i, Math.min(i + block, pcm.length)));
+      if (mp3.length) out.push(new Uint8Array(mp3));
+      if (performance.now() - t0 > 40) { if (onProgress) onProgress(i / pcm.length); await new Promise(r => setTimeout(r, 0)); t0 = performance.now(); }
+    }
+    const end = enc.flush(); if (end.length) out.push(new Uint8Array(end));
+    return new Blob(out, { type: 'audio/mpeg' });
+  }
+  // 「保存中…」の表示
+  const busyEl = $('busy');
+  function busy(text, p) {
+    if (text === false) { busyEl.classList.add('hidden'); return; }
+    busyEl.classList.remove('hidden');
+    $('busyText').textContent = text;
+    $('busyBar').style.width = p === undefined ? '0%' : `${Math.round(p * 100)}%`;
+    $('busyPct').textContent = p === undefined ? '' : `${Math.round(p * 100)}%`;
+  }
+  // 保存用に音声を作る（MP3 は進み具合を表示）
+  async function encodeAudioAsync(buf, a, e, label = '保存の準備中…') {
+    if (saveFmt !== 'mp3') return encodeWav(buf, a, e);
+    busy(label, 0);
+    try { return await encodeMp3Async(buf, a, e, (p) => busy(label, p)); }
+    finally { busy(false); }
+  }
+  let saving = false;
   // 保存形式（MP3 / WAV）
   let saveFmt = loadPref('fmt', 'mp3') === 'wav' ? 'wav' : 'mp3';
   function curExt() { return saveFmt === 'mp3' ? '.mp3' : '.wav'; }
@@ -3140,9 +3242,14 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
 
   async function save() {
     if (!audioBuffer) { toast('先に録音してください', 'err'); return; }
+    if (saving) return; // 連打で二重に保存しない
+    saving = true; saveBtn.disabled = true;
+    try { await saveInner(); } finally { saving = false; saveBtn.disabled = false; }
+  }
+  async function saveInner() {
     stopPreview();
     nameInput.blur(); // スマホのキーボードを閉じる
-    const blob = encodeAudio(audioBuffer, selStart, selEnd);
+    const blob = await encodeAudioAsync(audioBuffer, selStart, selEnd, '💾 保存中…');
     const name = await uniqueName(baseName()); // 同じ名前がある時は _2, _3 … を付ける
     downloadBlob(blob, name);
     await libAdd(name, blob, curSticker ? { sticker: curSticker } : null);   // アプリ内の一覧にも残す
@@ -3162,17 +3269,31 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     } catch (_) { return false; }
   })();
   if (canShareFiles) { shareBtn.classList.remove('hidden'); saveGrid.classList.add('two'); saveBtn.textContent = '💾 保存'; shareBtn.textContent = '📤 共有'; }
-  shareBtn.addEventListener('click', async () => {
-    if (!audioBuffer) return;
-    stopPreview();
-    const blob = encodeAudio(audioBuffer, selStart, selEnd);
-    const name = await uniqueName(baseName());
+  async function doShare(blob, name) {
     try {
       await navigator.share({ files: [new File([blob], name, { type: blob.type || 'audio/mpeg' })], title: name });
       await libAdd(name, blob, curSticker ? { sticker: curSticker } : null); renderLibrary(); unsaved = false; onSaved(!!curSticker);
+      return true;
     } catch (e) {
-      if (e && e.name !== 'AbortError') toast('共有できませんでした。「保存」を使ってください', 'err');
+      if (e && e.name === 'AbortError') return true;
+      if (e && e.name === 'NotAllowedError') return false; // 変換に時間がかかって「タップ直後」でなくなった
+      toast('共有できませんでした。「保存」を使ってください', 'err'); return true;
     }
+  }
+  shareBtn.addEventListener('click', async () => {
+    if (!audioBuffer || saving) return;
+    saving = true; shareBtn.disabled = true;
+    try {
+      stopPreview();
+      const blob = await encodeAudioAsync(audioBuffer, selStart, selEnd, '📤 共有の準備中…');
+      const name = await uniqueName(baseName());
+      if (!(await doShare(blob, name))) {
+        // もう一度タップしてもらって共有（スマホの決まりで、タップ直後しか共有画面を出せないため）
+        busy('準備できました'); $('busyBar').style.width = '100%';
+        const go = $('busyGo'), cancel = $('busyCancel'); go.classList.remove('hidden'); cancel.classList.remove('hidden');
+        await new Promise((res) => { go.onclick = async () => { go.classList.add('hidden'); cancel.classList.add('hidden'); busy(false); await doShare(blob, name); res(); }; cancel.onclick = () => { go.classList.add('hidden'); cancel.classList.add('hidden'); busy(false); res(); }; });
+      }
+    } finally { saving = false; shareBtn.disabled = false; }
   });
 
   // ---------- ファイル名：タグ & Enter ----------
@@ -3476,7 +3597,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     const base = sanitize(nameInput.value) || defaultName();
     for (let i = 0; i < markers.length; i++) {
       const a = markers[i], e = i + 1 < markers.length ? markers[i + 1] : audioBuffer.duration;
-      const blob = encodeAudio(audioBuffer, a, e);
+      const blob = await encodeAudioAsync(audioBuffer, a, e, `💾 保存中…（${i + 1}/${markers.length}）`);
       const name = await uniqueName(`${base}_${i + 1}`);
       downloadBlob(blob, name);
       await libAdd(name, blob);
@@ -4364,7 +4485,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   loopSave.addEventListener('click', async () => {
     if (!loopBuf) { toast('先にループを作ってください', 'err'); return; }
     stopLoop();
-    const blob = encodeAudio(loopBuf, 0, loopBuf.duration);
+    const blob = await encodeAudioAsync(loopBuf, 0, loopBuf.duration, '💾 ループを保存中…');
     const name = await uniqueName((sanitize(nameInput.value) || defaultName()) + '_ループ');
     downloadBlob(blob, name); await libAdd(name, blob); renderLibrary();
     toast('ループを保存しました', 'ok');
@@ -4413,7 +4534,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     harmNote.textContent = '合成中…';
     setTimeout(async () => {
       const nb = buildHarmony();
-      const blob = encodeAudio(nb, 0, nb.duration);
+      const blob = await encodeAudioAsync(nb, 0, nb.duration, '💾 ハモリを保存中…');
       const name = await uniqueName(baseName() + '_ハモリ');
       downloadBlob(blob, name); await libAdd(name, blob); renderLibrary();
       harmNote.textContent = `「${name}」を保存しました`;
