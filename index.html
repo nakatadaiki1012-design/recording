@@ -1050,6 +1050,41 @@
   .busy-bar { height: 8px; border-radius: 4px; background: var(--panel-2); overflow: hidden; margin-top: 12px; border: 1px solid var(--border); }
   .busy-bar i { display: block; height: 100%; width: 0; background: var(--grad); transition: width .2s; }
   button.btn:disabled { opacity: .55; }
+
+  /* ---- 演奏っぽい所の候補 ---- */
+  button.btn.music-btn { width: 100%; margin-top: 10px; background: color-mix(in srgb, var(--accent) 10%, var(--btn)); border-color: color-mix(in srgb, var(--accent) 35%, var(--btn-b)); }
+  .mc-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .mc-head { font-size: .78rem; color: var(--muted); font-weight: 700; }
+  .mc-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 14px; background: var(--panel-2); border: 1.5px solid var(--border); cursor: pointer; font: inherit; color: var(--text); text-align: left; width: 100%; }
+  .mc-item.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); }
+  .mc-item .mc-no { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: .85rem; color: #fff; background: var(--grad); flex-shrink: 0; }
+  .mc-item .mc-t { flex: 1; min-width: 0; }
+  .mc-item .mc-t b { display: block; font-size: .92rem; font-variant-numeric: tabular-nums; }
+  .mc-item .mc-t small { font-size: .7rem; color: var(--muted); }
+  .mc-item .mc-play { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--btn-b); background: var(--btn); font-size: 1rem; flex-shrink: 0; cursor: pointer; color: var(--text); }
+  .mc-note { font-size: .72rem; color: var(--muted); line-height: 1.5; }
+  /* ---- 保存したかどうか ---- */
+  .save-state { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 12px; font-size: .84rem; font-weight: 800; margin-bottom: 10px; }
+  .save-state.unsaved { background: rgba(255,153,0,.12); color: #c46a00; border: 1px solid rgba(255,153,0,.35); }
+  .save-state.saved { background: rgba(20,160,106,.12); color: #0f8a5c; border: 1px solid rgba(20,160,106,.35); }
+  :root[data-theme="dark"] .save-state.unsaved, :root[data-skin="yozora"] .save-state.unsaved, :root[data-skin="neon"] .save-state.unsaved, :root[data-skin="halloween"] .save-state.unsaved { color: #ffb347; }
+  :root[data-theme="dark"] .save-state.saved, :root[data-skin="yozora"] .save-state.saved, :root[data-skin="neon"] .save-state.saved, :root[data-skin="halloween"] .save-state.saved { color: #4fe0a4; }
+  .save-state .ss-txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tabbar button { position: relative; }
+  .tabbar button.unsaved::after { content: ""; position: absolute; top: 6px; right: calc(50% - 18px); width: 10px; height: 10px; border-radius: 50%; background: #ff9900; border: 2px solid var(--panel); }
+  .lib-item.new { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+  .lib-item .newb { display: inline-block; font-size: .62rem; font-weight: 900; color: #fff; background: var(--grad); padding: 1px 7px; border-radius: 999px; margin-right: 6px; vertical-align: 2px; }
+  .saved-pop { position: fixed; inset: 0; z-index: 260; display: grid; place-items: center; }
+  .saved-pop .sp-bg { position: absolute; inset: 0; background: rgba(20,16,40,.4); }
+  .sp-box { position: relative; width: min(330px, 88vw); background: linear-gradient(var(--panel), var(--panel)), var(--bg); border-radius: 26px; padding: 24px 20px 18px; text-align: center; box-shadow: 0 24px 60px rgba(20,10,60,.35); animation: popIn .35s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes popIn { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
+  .sp-check svg { width: 76px; height: 76px; display: block; margin: 0 auto; }
+  .sp-check circle { fill: #14a06a; }
+  .sp-check path { fill: none; stroke: #fff; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 40; stroke-dashoffset: 40; animation: drawCheck .45s .15s ease-out forwards; }
+  @keyframes drawCheck { to { stroke-dashoffset: 0; } }
+  .sp-title { display: block; font-size: 1.35rem; margin-top: 10px; }
+  .sp-name { margin-top: 6px; font-size: .86rem; font-weight: 700; color: var(--muted); word-break: break-all; }
+  .sp-where { list-style: none; padding: 10px 12px; margin: 12px 0 0; background: var(--panel-2); border-radius: 14px; text-align: left; font-size: .8rem; line-height: 1.8; }
 </style>
 </head>
 <body>
@@ -1206,6 +1241,8 @@
       <button id="autoBtn" class="btn">✂️ 無音を自動カット</button>
       <button id="resetBtn" class="btn">↺ 全部を選ぶ</button>
     </div>
+    <button id="musicBtn" class="btn music-btn">🎵 演奏っぽい所を探す（切り取り候補）</button>
+    <div id="musicCands" class="mc-list hidden"></div>
 
     <h2 style="margin-top:20px">② 聞いてみる</h2>
     <div class="player">
@@ -1496,6 +1533,7 @@
   <!-- 3. ファイル名 & 保存 -->
   <section id="saveCard" class="card disabled hidden" data-tab="edit">
     <h2>💾 保存</h2>
+    <div id="saveState" class="save-state unsaved"><span class="ss-ico">●</span><span class="ss-txt">まだ保存していません</span></div>
     <label class="name-box">
       <input id="nameInput" type="text" spellcheck="false" autocomplete="off" autocapitalize="off"
              autocorrect="off" enterkeyhint="done" aria-label="ファイル名">
@@ -1724,6 +1762,21 @@
     <small id="busyPct"></small>
     <button id="busyGo" class="btn primary hidden" style="width:100%;margin-top:12px">📤 共有する<small style="display:block;font-size:.7rem;font-weight:600;opacity:.9">もう一度タップしてね</small></button>
     <button id="busyCancel" class="btn hidden" style="width:100%;margin-top:8px">やめる</button>
+  </div>
+</div>
+
+<!-- 保存できました -->
+<div id="savedPop" class="saved-pop hidden" role="dialog" aria-modal="true" aria-label="保存しました">
+  <div class="sp-bg" data-close></div>
+  <div class="sp-box">
+    <div class="sp-check" aria-hidden="true"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M15 27l7 7 15-16"/></svg></div>
+    <b class="sp-title">保存しました！</b>
+    <div class="sp-name" id="spName"></div>
+    <ul class="sp-where">
+      <li>📚 アプリの<b>「保存」タブ</b>に入りました</li>
+      <li id="spFile">📁 ファイルとしてもダウンロードしました</li>
+    </ul>
+    <div class="look-row"><button id="spLib" class="btn primary">📚 保存タブへ</button><button id="spOk" class="btn" data-close>OK</button></div>
   </div>
 </div>
 
@@ -2563,7 +2616,8 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     saveState();
     refreshEditTab();
     showTab('edit');
-    unsaved = true;
+    savedSig = null; updateSaveState();
+    musicCands = []; candBuf = null; candOn = -1; $('musicCands').classList.add('hidden');
   }
 
   // 印のチップを描く。タップで「その印から次の印まで」を選択
@@ -2712,6 +2766,15 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       g.fillRect(0, 0, sx, h);
       g.fillRect(ex, 0, w - ex, h);
     }
+    // 演奏っぽい所の候補（下に色の帯と番号）
+    if (candBuf === audioBuffer && musicCands.length) {
+      const bh = 7 * dpr;
+      musicCands.forEach((c, i) => {
+        const x1 = Math.max(0, vx(c.s) * w), x2 = Math.min(w, vx(c.e) * w); if (x2 <= x1) return;
+        g.fillStyle = cssVar('--accent-2'); g.globalAlpha = i === candOn ? .95 : .55; g.fillRect(x1, h - bh, x2 - x1, bh); g.globalAlpha = 1;
+        g.font = `800 ${10 * dpr}px sans-serif`; g.textBaseline = 'bottom'; g.fillStyle = cssVar('--accent-2'); g.fillText('🎵' + (i + 1), x1 + 3 * dpr, h - bh - 2 * dpr);
+      });
+    }
     // 印（マーカー）の縦線と番号
     if (markers && markers.length) {
       for (let i = 0; i < markers.length; i++) {
@@ -2803,6 +2866,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     tEnd.textContent = fmtTime(e);
     tLen.textContent = fmtTime(e - s);
     drawWave();
+    updateSaveState();
   }
   function moveHandle(which, t) {
     if (which === 'start') setSelection(Math.min(t, selEnd), selEnd, 'start');
@@ -2945,6 +3009,121 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     setSelection(s, e);
     const cut = audioBuffer.duration - (e - s);
     toast(cut > 0.05 ? `無音部分 ${cut.toFixed(1)} 秒をカットしました` : 'カットできる無音はありませんでした', 'ok');
+  });
+
+
+  // ---------- 🎵 演奏っぽい所を探す（切り取り候補） ----------
+  // 40msごとに「音量」「音程のはっきりさ」「ザラザラ度（子音・雑音）」を測り、
+  // 1秒ごとに「とぎれずに続く・音程がある・しゃべり声のように細かく切れない」ほど高い点をつける
+  let musicCands = [], candBuf = null, candOn = -1;
+  async function analyzeMusic(buf, onProgress) {
+    const src = buf.getChannelData(0), sr = buf.sampleRate;
+    const dec = Math.max(1, Math.floor(sr / 8000)), fs = sr / dec, n = Math.floor(src.length / dec);
+    const x = new Float32Array(n);
+    for (let i = 0; i < n; i++) { let v = 0; for (let k = 0; k < dec; k++) v += src[i * dec + k]; x[i] = v / dec; }
+    // 10msごとの音量（細かい途切れを見る用）
+    const eh = Math.round(fs * 0.01), ne = Math.floor(n / eh), env = new Float32Array(ne);
+    for (let j = 0; j < ne; j++) { let e = 0; for (let i = j * eh; i < (j + 1) * eh; i++) e += x[i] * x[i]; env[j] = Math.sqrt(e / eh); }
+    // 40msごとの音量・音程・ザラザラ度
+    const hop = Math.round(fs * 0.04), win = Math.round(fs * 0.064), nf = Math.max(0, Math.floor((n - win) / hop));
+    const rms = new Float32Array(nf), clar = new Float32Array(nf), zcr = new Float32Array(nf), lagF = new Float32Array(nf);
+    const minLag = Math.floor(fs / 1000), maxLag = Math.min(win - 8, Math.ceil(fs / 70));
+    const rr_ = new Float32Array(maxLag + 2);
+    let t0 = performance.now();
+    for (let f = 0; f < nf; f++) {
+      const o = f * hop; let e = 0, z = 0, mean = 0;
+      for (let i = 0; i < win; i++) mean += x[o + i]; mean /= win;
+      for (let i = 0; i < win; i++) { const v = x[o + i] - mean; e += v * v; if (i && ((x[o + i - 1] - mean) < 0) !== (v < 0)) z++; }
+      rms[f] = Math.sqrt(e / win); zcr[f] = z / win;
+      if (e > 1e-7) {
+        let best = 0, bl = 0;
+        for (let lag = minLag; lag <= maxLag; lag++) {
+          let c = 0, e1 = 0, e2 = 0;
+          for (let i = 0; i + lag < win; i += 2) { const a = x[o + i] - mean, b = x[o + i + lag] - mean; c += a * b; e1 += a * a; e2 += b * b; }
+          rr_[lag] = c / Math.sqrt(e1 * e2 + 1e-12);
+        }
+        // いちばん短い「はっきりした山」を基本の周期にする（オクターブ違い対策）
+        let gmax = 0; for (let lag = minLag; lag <= maxLag; lag++) if (rr_[lag] > gmax) gmax = rr_[lag];
+        for (let lag = minLag + 1; lag < maxLag; lag++) if (rr_[lag] >= gmax * 0.9 && rr_[lag] >= rr_[lag - 1] && rr_[lag] >= rr_[lag + 1]) { bl = lag; best = rr_[lag]; break; }
+        if (bl) { const a = rr_[bl - 1], c = rr_[bl + 1], d = a - 2 * best + c; lagF[f] = d < 0 ? bl + 0.5 * (a - c) / d : bl; }
+        clar[f] = gmax;
+      }
+      if (performance.now() - t0 > 40) { onProgress && onProgress(f / nf); await new Promise(r => setTimeout(r, 0)); t0 = performance.now(); }
+    }
+    const sorted = Array.from(rms).sort((a, b) => a - b), p95 = sorted[Math.floor(sorted.length * .95)] || 0;
+    const loudTh = Math.max(0.003, p95 * 0.1);
+    const W = 25, H = 5, scores = [], cl = (v) => Math.max(0, Math.min(1, v));
+    for (let w0 = 0; w0 + W <= nf; w0 += H) {
+      let loud = 0, cs = 0, zs = 0, zs2 = 0, pairs = 0, wobble = 0;
+      for (let f = w0; f < w0 + W; f++) {
+        if (rms[f] > loudTh) { loud++; cs += clar[f]; zs += zcr[f]; zs2 += zcr[f] * zcr[f]; }
+        // 音程のゆれ：となり同士の音程が少しずつ（0.3〜4半音）動き続けるのは、しゃべり声の特徴
+        if (f > w0 && rms[f] > loudTh && rms[f - 1] > loudTh && clar[f] > 0.6 && clar[f - 1] > 0.6 && lagF[f] && lagF[f - 1]) {
+          const d = Math.abs(12 * Math.log2(lagF[f - 1] / lagF[f])); pairs++; if (d > 0.3 && d < 4) wobble++;
+        }
+      }
+      // 細かい途切れ：10msの音量で、まわり±150msの最大の35%未満に落ちる谷の数
+      const e0 = Math.floor(w0 * hop / eh), e1 = Math.min(ne, Math.floor((w0 + W) * hop / eh));
+      let dips = 0, lastDip = -99;
+      for (let j = e0 + 1; j < e1 - 1; j++) {
+        if (!(env[j] <= env[j - 1] && env[j] <= env[j + 1])) continue;
+        let mx = 0; for (let k = Math.max(0, j - 15); k < Math.min(ne, j + 16); k++) if (env[k] > mx) mx = env[k];
+        if (mx > loudTh && env[j] < mx * 0.35 && j - lastDip > 6) { dips++; lastDip = j; }
+      }
+      const cont = loud / W, tonal = loud ? cs / loud : 0;
+      const zm = loud ? zs / loud : 0, zsd = loud ? Math.sqrt(Math.max(0, zs2 / loud - zm * zm)) : 0;
+      const unstable = pairs >= 4 ? wobble / pairs : 0;
+      const speechy = 0.6 * cl((unstable - 0.15) / 0.35) + 0.4 * cl((dips - 1.5) / 3);
+      let sc = Math.pow(cont, 0.6) * (0.3 + 0.7 * cl((tonal - 0.35) / 0.45));
+      sc *= 1 - 0.9 * speechy;
+      sc *= 1 - 0.6 * cl((zsd - 0.04) / 0.12);
+      scores.push({ t: (w0 * hop) / fs, sc });
+    }
+    const sm = scores.map((_, i) => { const a = scores.slice(Math.max(0, i - 2), i + 3).map(o => o.sc).sort((p, q) => p - q); return a[a.length >> 1]; });
+    const segs = []; let cur = null;
+    const wl = (W * hop) / fs;
+    sm.forEach((v, i) => {
+      const t = scores[i].t;
+      // 1秒の窓の「まん中あたり」だけを演奏とみなす（端のはみ出しを防ぐ）
+      const cs_ = t + wl * 0.3, ce_ = t + wl * 0.7;
+      if (v >= 0.33) { if (cur && cs_ - cur.e <= 1.0) { cur.e = ce_; cur.sum += v; cur.n++; } else { cur = { s: cs_, e: ce_, sum: v, n: 1 }; segs.push(cur); } }
+    });
+    const dur = buf.duration, fr = (t) => Math.max(0, Math.min(nf - 1, Math.round(t * fs / hop)));
+    return segs.map(g => {
+      // 端を、実際に音が鳴っている所まで広げる／無音の所は削る（最大0.6秒）
+      let a = fr(g.s), b = fr(g.e);
+      for (let k = 0; k < 15 && a > 0 && rms[a - 1] > loudTh; k++) a--;
+      while (a < b && rms[a] <= loudTh) a++;
+      for (let k = 0; k < 15 && b < nf - 1 && rms[b + 1] > loudTh; k++) b++;
+      while (b > a && rms[b] <= loudTh) b--;
+      return { s: Math.max(0, a * hop / fs - 0.1), e: Math.min(dur, (b * hop + win) / fs + 0.25), q: g.sum / g.n };
+    }).filter(g => g.e - g.s >= Math.min(3, dur * 0.25));
+  }
+  function stars(q) { return q > .7 ? '★★★' : q > .5 ? '★★☆' : '★☆☆'; }
+  function renderCands() {
+    const el = $('musicCands');
+    if (!musicCands.length) { el.innerHTML = '<p class="mc-note">演奏っぽい所が見つかりませんでした。しゃべり声や雑音が多いか、演奏がとても短いかもしれません。</p>'; el.classList.remove('hidden'); return; }
+    el.innerHTML = `<div class="mc-head">🎵 ${musicCands.length}か所 見つかりました（タップで選ぶ）</div>` + musicCands.map((c, i) =>
+      `<div class="mc-item${i === candOn ? ' on' : ''}" data-i="${i}" role="button" tabindex="0"><span class="mc-no">${i + 1}</span><span class="mc-t"><b>${fmtTime(c.s)} 〜 ${fmtTime(c.e)}</b><small>${Math.round(c.e - c.s)}秒 ・ 演奏っぽさ ${stars(c.q)}</small></span><button class="mc-play" data-play="${i}" aria-label="候補${i + 1}を再生">▶</button></div>`).join('') +
+      '<p class="mc-note">音の続き方と音程から自動で見つけた候補です。ずれていたら「始」「終」で調整してね。</p>';
+    el.classList.remove('hidden');
+    el.querySelectorAll('.mc-item').forEach(row => row.addEventListener('click', (ev) => {
+      const i = +row.dataset.i, c = musicCands[i];
+      stopPreview(); clearActiveSeg(); candOn = i;
+      setSelection(c.s, c.e); setCursor(c.s);
+      if (ev.target.closest('.mc-play')) startPlay(c.s, c.e, false, playBtn);
+      renderCands(); vibrate(10);
+    }));
+  }
+  $('musicBtn').addEventListener('click', async () => {
+    if (!audioBuffer) return;
+    stopPreview();
+    busy('🎵 演奏っぽい所を探しています…', 0);
+    try { musicCands = await analyzeMusic(audioBuffer, (p) => busy('🎵 演奏っぽい所を探しています…', p)); }
+    finally { busy(false); }
+    candBuf = audioBuffer; candOn = -1;
+    renderCands(); drawWave();
+    if (musicCands.length) toast(`演奏っぽい所が ${musicCands.length}か所 見つかりました`, 'ok');
   });
 
   // プレビュー再生（範囲を WAV にして <audio> で再生。ループ・速度変更に対応）
@@ -3252,13 +3431,36 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     const blob = await encodeAudioAsync(audioBuffer, selStart, selEnd, '💾 保存中…');
     const name = await uniqueName(baseName()); // 同じ名前がある時は _2, _3 … を付ける
     downloadBlob(blob, name);
-    await libAdd(name, blob, curSticker ? { sticker: curSticker } : null);   // アプリ内の一覧にも残す
+    lastSavedId = await libAdd(name, blob, curSticker ? { sticker: curSticker } : null);   // アプリ内の一覧にも残す
     renderLibrary();
-    unsaved = false;
+    markSaved(name);
     onSaved(!!curSticker);
     vibrate(30);
-    toast(`「${name}」を保存しました`, 'ok');
+    showSavedPop(name, true);
   }
+  // ---------- 保存したかどうかの表示 ----------
+  let savedSig = null, savedName = '', lastSavedId = null;
+  const curSig = () => audioBuffer ? { b: audioBuffer, s: Math.round(selStart * 100), e: Math.round(selEnd * 100) } : null;
+  function isSavedNow() { const c = curSig(); return !!(c && savedSig && c.b === savedSig.b && c.s === savedSig.s && c.e === savedSig.e); }
+  function markSaved(name) { savedSig = curSig(); savedName = name; updateSaveState(); }
+  function updateSaveState() {
+    const st = $('saveState'); if (!st) return;
+    const has = !!audioBuffer, ok = has && isSavedNow();
+    unsaved = has && !ok;
+    st.className = 'save-state ' + (ok ? 'saved' : 'unsaved');
+    st.querySelector('.ss-ico').textContent = ok ? '✓' : '●';
+    st.querySelector('.ss-txt').textContent = ok ? `保存ずみ：${savedName}` : (savedSig && savedSig.b === audioBuffer ? '変更があります（まだ保存していません）' : 'まだ保存していません');
+    saveBtn.textContent = ok ? '✓ 保存ずみ（もう一度保存）' : (canShareFiles ? '💾 保存' : '💾 保存する');
+    const tb = document.querySelector('.tabbar button[data-go="edit"]'); if (tb) tb.classList.toggle('unsaved', unsaved);
+  }
+  function showSavedPop(name, downloaded) {
+    $('spName').textContent = name;
+    $('spFile').classList.toggle('hidden', !downloaded);
+    $('savedPop').classList.remove('hidden');
+    try { buddyCheer(); } catch (_) {}
+  }
+  $('savedPop').querySelectorAll('[data-close]').forEach(x => x.addEventListener('click', () => $('savedPop').classList.add('hidden')));
+  $('spLib').addEventListener('click', () => { $('savedPop').classList.add('hidden'); showTab('lib'); });
   saveBtn.addEventListener('click', save);
 
   // 共有（スマホの共有メニュー：LINE・メール・「ファイルに保存」など）
@@ -3272,7 +3474,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   async function doShare(blob, name) {
     try {
       await navigator.share({ files: [new File([blob], name, { type: blob.type || 'audio/mpeg' })], title: name });
-      await libAdd(name, blob, curSticker ? { sticker: curSticker } : null); renderLibrary(); unsaved = false; onSaved(!!curSticker);
+      lastSavedId = await libAdd(name, blob, curSticker ? { sticker: curSticker } : null); renderLibrary(); markSaved(name); onSaved(!!curSticker); showSavedPop(name, false);
       return true;
     } catch (e) {
       if (e && e.name === 'AbortError') return true;
@@ -3603,9 +3805,9 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       await libAdd(name, blob);
       await new Promise(r => setTimeout(r, 500)); // 連続ダウンロードの間隔
     }
-    renderLibrary(); unsaved = false;
+    renderLibrary(); markSaved(`${markers.length}個の区間`);
     vibrate(30);
-    toast(`${markers.length}個の区間を保存しました`, 'ok');
+    showSavedPop(`${markers.length}個の区間（${base}_1〜）`, true);
   });
 
   // ---------- 端末内に自動保存／復元（IndexedDB） ----------
@@ -3666,14 +3868,16 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     } catch (_) { return []; }
   }
   async function libAdd(name, blob, meta) {
+    let added = null;
     try {
       const db = await openDB();
       await new Promise((res, rej) => {
         const tx = db.transaction(LIB, 'readwrite');
-        tx.objectStore(LIB).add(Object.assign({ name, blob, at: Date.now() }, meta || {}));
-        tx.oncomplete = res; tx.onerror = () => rej(tx.error);
-      });
+        const rq = tx.objectStore(LIB).add(Object.assign({ name, blob, at: Date.now() }, meta || {}));
+        tx.oncomplete = () => res(rq.result); tx.onerror = () => rej(tx.error);
+      }).then(id => { added = id; });
     } catch (_) {}
+    return added;
   }
   async function libDelete(id) {
     try { const db = await openDB(); db.transaction(LIB, 'readwrite').objectStore(LIB).delete(id); } catch (_) {}
@@ -3695,10 +3899,10 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     if (!items.length) { libList.appendChild(libEmpty); libEmpty.classList.remove('hidden'); return; }
     for (const it of items) {
       const row = document.createElement('div');
-      row.className = 'lib-item';
+      row.className = 'lib-item' + (it.id === lastSavedId ? ' new' : '');
       const d = new Date(it.at);
       const size = (it.blob.size / 1024 / 1024).toFixed(1);
-      row.innerHTML = `<div class="meta"><div class="nm">${it.sticker ? `<span class="stk">${escHtml(it.sticker)}</span>` : ''}${escHtml(it.name)}</div>` +
+      row.innerHTML = `<div class="meta"><div class="nm">${it.id === lastSavedId ? '<span class="newb">NEW</span>' : ''}${it.sticker ? `<span class="stk">${escHtml(it.sticker)}</span>` : ''}${escHtml(it.name)}</div>` +
         `<div class="sub">${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())} ・ ${size}MB</div></div>`;
       const play = document.createElement('button'); play.textContent = '▶'; play.title = '再生';
       const shareOrDl = document.createElement('button');
@@ -3745,7 +3949,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
     markers = [];
     nameInput.value = it.name.replace(/\.[a-z0-9]+$/i, ''); nameEdited = true; syncTags();
     await finalizeRecording(dec);
-    unsaved = false; // もう保存一覧にあるもの
+    markSaved(it.name); // もう保存一覧にあるもの
     toast('編集画面で開きました', 'ok');
   }
 
