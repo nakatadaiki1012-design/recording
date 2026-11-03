@@ -1139,6 +1139,8 @@
       <button id="markBtn" class="btn mark hidden">🚩 ここに印をつける</button>
       <details class="sub">
         <summary>⚙️ 録音の設定・便利機能</summary>
+      <label class="quality"><input type="checkbox" id="splitLong">
+        <span><b>長い録音を10分ごとに区切って保存</b>（ふだんはオフ：最後まで1つの録音になります）</span></label>
       <label class="quality"><input type="checkbox" id="hifi" checked>
         <span><b>高音質で録音</b>（音楽向け・通話用の音質処理を切る）</span></label>
       <div class="microw">
@@ -2526,7 +2528,8 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   }
 
   // リニアPCM録音（無圧縮・音量自動調整なし）
-  const PART_SEC = window.__hibikiPartSec || 600; // 10分ごとに区切って保存一覧へ自動保存
+  const PART_SEC = window.__hibikiPartSec || 600; // 「区切る」設定をオンにしたときだけ、10分ごとに保存一覧へ自動保存
+  let splitLong = loadPref('splitLong', '0') === '1'; // ふだんは区切らず、最後まで1つの録音にする
   let pcmParts = 0, pcmPartBase = '';
   function startPcmCapture() {
     const ctx = getCtx();
@@ -2539,7 +2542,7 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
       const d = e.inputBuffer.getChannelData(0), q = new Int16Array(d.length);
       for (let i = 0; i < d.length; i++) { let v = d[i]; v = v < -1 ? -1 : v > 1 ? 1 : v; q[i] = v < 0 ? v * 0x8000 : v * 0x7fff; }
       pcmChunks.push(q); pcmFrames += q.length;
-      if (pcmFrames >= PART_SEC * pcmRate) flushPcmPart();
+      if (splitLong && pcmFrames >= PART_SEC * pcmRate) flushPcmPart(); // 区切る設定のときだけ
     };
     micSource.connect(pcmProc); pcmProc.connect(pcmZero); pcmZero.connect(ctx.destination);
   }
@@ -4879,6 +4882,8 @@ a.length>D&&(D=a.length,p=0|1.25*D+7200,r=new Int8Array(p));a=u.lame_encode_buff
   }
   $('toRecBtn').addEventListener('click', () => { showTab('rec'); recBtn.click(); });
   $('hifi').addEventListener('change', (e) => { hifi = e.target.checked; });
+  $('splitLong').checked = splitLong;
+  $('splitLong').addEventListener('change', (e) => { splitLong = e.target.checked; savePref('splitLong', splitLong ? '1' : '0'); });
 
   // ---------- 🎚 エフェクト（Web Audio・オフライン処理） ----------
   let fxHist = [];
